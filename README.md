@@ -7,6 +7,8 @@ Just starting - more options to come :)
 Little demo:
 
 ```
+$ cargo build -v
+
 $ cat test
 echo hi
 echo there
@@ -14,7 +16,7 @@ echo how
 echo are
 echo you
 
-$ cat test | ./target/release/rust-parallel
+$ cat test | ./target/debug/rust-parallel
 
 2022-11-21T23:03:35.372708Z  INFO rust_parallel: got command status = exit status: 0
 2022-11-21T23:03:35.372752Z  INFO rust_parallel: got command stdout:
