@@ -57,7 +57,7 @@ async fn main() -> anyhow::Result<()> {
 
     let mut reader = tokio::io::BufReader::new(tokio::io::stdin());
     let mut line = String::new();
-    let mut commands: Vec<String> = Vec::new();
+    let mut join_set = JoinSet::new();
 
     loop {
         line.clear();
@@ -70,22 +70,14 @@ async fn main() -> anyhow::Result<()> {
             break;
         }
 
-        let trimmed_line = line.trim();
+        let trimmed_line = line.trim().to_owned();
 
         tracing::info!("read line {}", trimmed_line);
 
-        commands.push(trimmed_line.to_owned());
+        join_set.spawn(run_command(trimmed_line));
     }
 
-    tracing::info!("after loop commands len = {}", commands.len());
-
-    let mut join_set = JoinSet::new();
-
-    commands.iter().for_each(|command| {
-        join_set.spawn(run_command(command.clone()));
-    });
-
-    tracing::info!("started all commands");
+    tracing::info!("after loop");
 
     while let Some(res) = join_set.join_next().await {
         tracing::info!("got result {:?}", res);
