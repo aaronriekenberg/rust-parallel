@@ -23,7 +23,7 @@ async fn run_command(command: String) -> CommandAndExitStatus {
                 print!("{}", &String::from_utf8_lossy(&output.stdout));
             }
             if output.stderr.len() > 0 {
-                print!("{}", &String::from_utf8_lossy(&output.stderr));
+                eprint!("{}", &String::from_utf8_lossy(&output.stderr));
             }
 
             CommandAndExitStatus {
