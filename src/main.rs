@@ -2,6 +2,8 @@ use anyhow::Context;
 
 use tokio::{io::AsyncBufReadExt, process::Command, task::JoinSet};
 
+use tracing::debug;
+
 #[derive(Debug)]
 struct CommandAndExitStatus {
     _command: String,
@@ -9,10 +11,6 @@ struct CommandAndExitStatus {
 }
 
 async fn run_command(command: String) -> CommandAndExitStatus {
-    tracing::info!("begin run_command command = {}", command);
-
-    // tokio::time::sleep(Duration::from_millis(500)).await;
-
     let command_output = Command::new("/bin/sh")
         .args(["-c", &command])
         .output()
@@ -20,18 +18,12 @@ async fn run_command(command: String) -> CommandAndExitStatus {
 
     match command_output {
         Ok(output) => {
-            tracing::info!("got command status = {}", output.status);
+            tracing::debug!("got command status = {}", output.status);
             if output.stdout.len() > 0 {
-                tracing::info!(
-                    "got command stdout:\n{}",
-                    &String::from_utf8_lossy(&output.stdout)
-                );
+                print!("{}", &String::from_utf8_lossy(&output.stdout));
             }
             if output.stderr.len() > 0 {
-                tracing::info!(
-                    "got command stderr:\n{}",
-                    &String::from_utf8_lossy(&output.stderr)
-                );
+                print!("{}", &String::from_utf8_lossy(&output.stderr));
             }
 
             CommandAndExitStatus {
@@ -53,7 +45,7 @@ async fn run_command(command: String) -> CommandAndExitStatus {
 async fn main() -> anyhow::Result<()> {
     tracing_subscriber::fmt::init();
 
-    tracing::info!("begin main!");
+    debug!("begin main!");
 
     let mut reader = tokio::io::BufReader::new(tokio::io::stdin());
     let mut line = String::new();
@@ -72,15 +64,15 @@ async fn main() -> anyhow::Result<()> {
 
         let trimmed_line = line.trim().to_owned();
 
-        tracing::info!("read line {}", trimmed_line);
+        debug!("read line {}", trimmed_line);
 
         join_set.spawn(run_command(trimmed_line));
     }
 
-    tracing::info!("after loop");
+    debug!("after loop");
 
     while let Some(res) = join_set.join_next().await {
-        tracing::info!("got result {:?}", res);
+        debug!("got result {:?}", res);
     }
 
     Ok(())
