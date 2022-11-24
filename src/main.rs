@@ -4,13 +4,7 @@ use tokio::{io::AsyncBufReadExt, process::Command, task::JoinSet};
 
 use tracing::debug;
 
-#[derive(Debug)]
-struct CommandAndExitStatus {
-    _command: String,
-    _exit_status: Option<std::process::ExitStatus>,
-}
-
-async fn run_command(command: String) -> CommandAndExitStatus {
+async fn run_command(command: String) -> String {
     let command_output = Command::new("/bin/sh")
         .args(["-c", &command])
         .output()
@@ -25,20 +19,13 @@ async fn run_command(command: String) -> CommandAndExitStatus {
             if output.stderr.len() > 0 {
                 eprint!("{}", &String::from_utf8_lossy(&output.stderr));
             }
-
-            CommandAndExitStatus {
-                _command: command,
-                _exit_status: Some(output.status),
-            }
         }
         Err(e) => {
             tracing::warn!("got error running command '{}': {}", command, e);
-            CommandAndExitStatus {
-                _command: command,
-                _exit_status: None,
-            }
         }
-    }
+    };
+
+    command
 }
 
 #[tokio::main]
@@ -75,8 +62,8 @@ async fn main() -> anyhow::Result<()> {
 
     debug!("after loop join_set.len() = {}", join_set.len());
 
-    while let Some(res) = join_set.join_next().await {
-        debug!("got result {:?}", res);
+    while let Some(result) = join_set.join_next().await {
+        debug!("join_next result = {:?}", result);
     }
 
     Ok(())
