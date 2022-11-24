@@ -73,7 +73,7 @@ async fn main() -> anyhow::Result<()> {
         join_set.spawn(run_command(trimmed_line));
     }
 
-    debug!("after loop");
+    debug!("after loop join_set.len() = {}", join_set.len());
 
     while let Some(res) = join_set.join_next().await {
         debug!("got result {:?}", res);
