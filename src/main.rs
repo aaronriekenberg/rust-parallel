@@ -1,8 +1,10 @@
 use anyhow::Context;
 
-use tokio::{io::AsyncBufReadExt, process::Command, task::JoinSet};
+use tokio::{io::AsyncBufReadExt, process::Command, sync::Semaphore, task::JoinSet};
 
 use tracing::debug;
+
+use std::sync::Arc;
 
 #[derive(Debug)]
 struct CommandInfo {
@@ -10,11 +12,15 @@ struct CommandInfo {
     command: String,
 }
 
-async fn run_command(command_info: CommandInfo) -> CommandInfo {
+async fn run_command(semaphore: Arc<Semaphore>, command_info: CommandInfo) -> CommandInfo {
+    let permit = semaphore.acquire().await.expect("semaphore acquire error");
+
     let command_output = Command::new("/bin/sh")
         .args(["-c", &command_info.command])
         .output()
         .await;
+
+    drop(permit);
 
     match command_output {
         Ok(output) => {
@@ -39,6 +45,9 @@ async fn main() -> anyhow::Result<()> {
     tracing_subscriber::fmt::init();
 
     debug!("begin main!");
+
+    // TOTO: Make permits configurable.
+    let semaphore = Arc::new(Semaphore::new(4));
 
     let mut reader = tokio::io::BufReader::new(tokio::io::stdin());
     let mut line = String::new();
@@ -66,10 +75,13 @@ async fn main() -> anyhow::Result<()> {
             continue;
         }
 
-        join_set.spawn(run_command(CommandInfo {
-            _line_number: line_number,
-            command: trimmed_line,
-        }));
+        join_set.spawn(run_command(
+            Arc::clone(&semaphore),
+            CommandInfo {
+                _line_number: line_number,
+                command: trimmed_line,
+            },
+        ));
     }
 
     debug!("after loop join_set.len() = {}", join_set.len());
