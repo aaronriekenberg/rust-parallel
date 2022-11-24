@@ -66,6 +66,10 @@ async fn main() -> anyhow::Result<()> {
 
         debug!("read line {}", trimmed_line);
 
+        if trimmed_line.is_empty() || trimmed_line.starts_with("#") {
+            continue;
+        }
+
         join_set.spawn(run_command(trimmed_line));
     }
 
