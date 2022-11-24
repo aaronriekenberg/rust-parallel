@@ -54,11 +54,11 @@ async fn main() -> anyhow::Result<()> {
     loop {
         line.clear();
 
-        let bytes = reader
+        let bytes_read = reader
             .read_line(&mut line)
             .await
             .context("read_line error")?;
-        if bytes == 0 {
+        if bytes_read == 0 {
             break;
         }
 
