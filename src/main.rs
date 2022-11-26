@@ -44,7 +44,7 @@ async fn run_command(semaphore: Arc<Semaphore>, command_info: CommandInfo) -> Co
             }
         }
         Err(e) => {
-            warn!("got error running command '{:?}': {}", command_info, e);
+            warn!("got error running command {:?}: {}", command_info, e);
         }
     };
 
