@@ -16,7 +16,7 @@ Run commands from stdin in parallel
 Usage: rust-parallel [OPTIONS]
 
 Options:
-  -j, --jobs <JOBS>  Maximum number of commands to run in parallel [default: 4]
+  -j, --jobs <JOBS>  Maximum number of commands to run in parallel, defauts to num cpus [default: 8]
   -h, --help         Print help information
   -V, --version      Print version information
 ```
