@@ -16,9 +16,10 @@ Run commands from stdin in parallel
 Usage: rust-parallel [OPTIONS]
 
 Options:
-  -j, --jobs <JOBS>  Maximum number of commands to run in parallel, defauts to num cpus [default: 8]
-  -h, --help         Print help information
-  -V, --version      Print version information
+  -j, --jobs <JOBS>    Maximum number of commands to run in parallel, defauts to num cpus [default: 8]
+  -s, --shell-enabled  Use /bin/sh shell to run commands, defaults to false
+  -h, --help           Print help information
+  -V, --version        Print version information
 ```
 
 Little demo:
@@ -59,28 +60,28 @@ With debug logs enabled:
 
 ```
 $ cat test | RUST_LOG=debug ./target/debug/rust-parallel
-2022-11-26T15:47:41.898980Z DEBUG rust_parallel: begin main
-2022-11-26T15:47:41.899717Z DEBUG rust_parallel: command_line_args = CommandLineArgs { jobs: 4 }
-2022-11-26T15:47:41.899933Z DEBUG rust_parallel: read line echo hi
-2022-11-26T15:47:41.900001Z DEBUG rust_parallel: read line echo there
-2022-11-26T15:47:41.900049Z DEBUG rust_parallel: read line echo how
-2022-11-26T15:47:41.900140Z DEBUG rust_parallel: read line echo are
-2022-11-26T15:47:41.900227Z DEBUG rust_parallel: read line echo you
-2022-11-26T15:47:41.900391Z DEBUG rust_parallel: after spawn_commands join_set.len() = 5
-2022-11-26T15:47:41.906264Z DEBUG rust_parallel: got command status = exit status: 0
-hi
-2022-11-26T15:47:41.906433Z DEBUG rust_parallel: got command status = exit status: 0
-how
-2022-11-26T15:47:41.906371Z DEBUG rust_parallel: join_next result = Ok(CommandInfo { _line_number: 1, command: "echo hi" })
-2022-11-26T15:47:41.906479Z DEBUG rust_parallel: got command status = exit status: 0
+2022-11-26T21:27:29.942045Z DEBUG rust_parallel: begin main
+2022-11-26T21:27:29.942807Z DEBUG rust_parallel: command_line_args = CommandLineArgs { jobs: 8, shell_enabled: false }
+2022-11-26T21:27:29.943019Z DEBUG rust_parallel: read line echo hi
+2022-11-26T21:27:29.943092Z DEBUG rust_parallel: read line echo there
+2022-11-26T21:27:29.943137Z DEBUG rust_parallel: read line echo how
+2022-11-26T21:27:29.943182Z DEBUG rust_parallel: read line echo are
+2022-11-26T21:27:29.943211Z DEBUG rust_parallel: read line echo you
+2022-11-26T21:27:29.943372Z DEBUG rust_parallel: after spawn_commands join_set.len() = 5
+2022-11-26T21:27:29.946177Z DEBUG rust_parallel: got command status = exit status: 0
+2022-11-26T21:27:29.946173Z DEBUG rust_parallel: got command status = exit status: 0
 there
-2022-11-26T15:47:41.906519Z DEBUG rust_parallel: join_next result = Ok(CommandInfo { _line_number: 3, command: "echo how" })
-2022-11-26T15:47:41.906556Z DEBUG rust_parallel: join_next result = Ok(CommandInfo { _line_number: 2, command: "echo there" })
-2022-11-26T15:47:41.906570Z DEBUG rust_parallel: got command status = exit status: 0
-are
-2022-11-26T15:47:41.906638Z DEBUG rust_parallel: join_next result = Ok(CommandInfo { _line_number: 4, command: "echo are" })
-2022-11-26T15:47:41.911268Z DEBUG rust_parallel: got command status = exit status: 0
+how
+2022-11-26T21:27:29.946242Z DEBUG rust_parallel: got command status = exit status: 0
+hi
+2022-11-26T21:27:29.946301Z DEBUG rust_parallel: got command status = exit status: 0
+2022-11-26T21:27:29.946317Z DEBUG rust_parallel: join_next result = Ok(CommandInfo { _line_number: 2, command: "echo there", shell_enabled: false })
+2022-11-26T21:27:29.946303Z DEBUG rust_parallel: got command status = exit status: 0
 you
-2022-11-26T15:47:41.911376Z DEBUG rust_parallel: join_next result = Ok(CommandInfo { _line_number: 5, command: "echo you" })
-2022-11-26T15:47:41.911408Z DEBUG rust_parallel: end main
+are
+2022-11-26T21:27:29.946361Z DEBUG rust_parallel: join_next result = Ok(CommandInfo { _line_number: 3, command: "echo how", shell_enabled: false })
+2022-11-26T21:27:29.946560Z DEBUG rust_parallel: join_next result = Ok(CommandInfo { _line_number: 1, command: "echo hi", shell_enabled: false })
+2022-11-26T21:27:29.946585Z DEBUG rust_parallel: join_next result = Ok(CommandInfo { _line_number: 5, command: "echo you", shell_enabled: false })
+2022-11-26T21:27:29.946603Z DEBUG rust_parallel: join_next result = Ok(CommandInfo { _line_number: 4, command: "echo are", shell_enabled: false })
+2022-11-26T21:27:29.946619Z DEBUG rust_parallel: end main
 ```
