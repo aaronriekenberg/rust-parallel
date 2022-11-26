@@ -1,10 +1,21 @@
 use anyhow::Context;
 
+use clap::Parser;
+
 use tokio::{io::AsyncBufReadExt, process::Command, sync::Semaphore, task::JoinSet};
 
-use tracing::debug;
+use tracing::{debug, warn};
 
 use std::sync::Arc;
+
+/// Run commands from stdin in parallel
+#[derive(Parser, Debug)]
+#[command(author, version, about)]
+struct CommandLineArgs {
+    /// Maximum number of commands to run in parallel
+    #[arg(short, long, default_value_t = 4)]
+    jobs: usize,
+}
 
 #[derive(Debug)]
 struct CommandInfo {
@@ -24,7 +35,7 @@ async fn run_command(semaphore: Arc<Semaphore>, command_info: CommandInfo) -> Co
 
     match command_output {
         Ok(output) => {
-            tracing::debug!("got command status = {}", output.status);
+            debug!("got command status = {}", output.status);
             if output.stdout.len() > 0 {
                 print!("{}", &String::from_utf8_lossy(&output.stdout));
             }
@@ -33,7 +44,7 @@ async fn run_command(semaphore: Arc<Semaphore>, command_info: CommandInfo) -> Co
             }
         }
         Err(e) => {
-            tracing::warn!("got error running command '{:?}': {}", command_info, e);
+            warn!("got error running command '{:?}': {}", command_info, e);
         }
     };
 
@@ -44,10 +55,13 @@ async fn run_command(semaphore: Arc<Semaphore>, command_info: CommandInfo) -> Co
 async fn main() -> anyhow::Result<()> {
     tracing_subscriber::fmt::init();
 
-    debug!("begin main!");
+    debug!("begin main");
 
-    // TOTO: Make permits configurable.
-    let semaphore = Arc::new(Semaphore::new(4));
+    let command_line_args = CommandLineArgs::parse();
+
+    debug!("command_line_args = {:?}", command_line_args);
+
+    let semaphore = Arc::new(Semaphore::new(command_line_args.jobs));
 
     let mut reader = tokio::io::BufReader::new(tokio::io::stdin());
     let mut line = String::new();
@@ -67,7 +81,7 @@ async fn main() -> anyhow::Result<()> {
 
         line_number += 1;
 
-        let trimmed_line = line.trim().to_owned();
+        let trimmed_line = line.trim();
 
         debug!("read line {}", trimmed_line);
 
@@ -79,7 +93,7 @@ async fn main() -> anyhow::Result<()> {
             Arc::clone(&semaphore),
             CommandInfo {
                 _line_number: line_number,
-                command: trimmed_line,
+                command: trimmed_line.to_owned(),
             },
         ));
     }
@@ -89,6 +103,8 @@ async fn main() -> anyhow::Result<()> {
     while let Some(result) = join_set.join_next().await {
         debug!("join_next result = {:?}", result);
     }
+
+    debug!("end main");
 
     Ok(())
 }
