@@ -4,6 +4,11 @@ Run commands in parallel, like a simple rust verision of [GNU Parallel](https://
 
 Just starting - more options to come :)
 
+[![Crates.io][crates-badge]][crates-url]
+
+[crates-badge]: https://img.shields.io/crates/v/rust-parallel.svg
+[crates-url]: https://crates.io/crates/rust-parallel
+
 Usage:
 ```
 Run commands from stdin in parallel
