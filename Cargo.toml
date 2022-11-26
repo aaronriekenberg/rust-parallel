@@ -6,7 +6,7 @@ edition = "2021"
 categories = ["asynchronous", "command-line-interface", "concurrency"]
 description = "Run commands from stdin in parallel"
 keywords = ["cli", "parallel", "tokio"]
-license = "Apache 2.0"
+license = "Apache-2.0"
 readme = "README.md"
 repository = "https://github.com/aaronriekenberg/rust-parallel"
 
