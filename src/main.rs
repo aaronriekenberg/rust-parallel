@@ -51,22 +51,11 @@ async fn run_command(semaphore: Arc<Semaphore>, command_info: CommandInfo) -> Co
     command_info
 }
 
-#[tokio::main]
-async fn main() -> anyhow::Result<()> {
-    tracing_subscriber::fmt::init();
-
-    debug!("begin main");
-
-    let command_line_args = CommandLineArgs::parse();
-
-    debug!("command_line_args = {:?}", command_line_args);
-
-    let semaphore = Arc::new(Semaphore::new(command_line_args.jobs));
-
+async fn spawn_commands(semaphore: Arc<Semaphore>) -> anyhow::Result<JoinSet<CommandInfo>> {
     let mut reader = tokio::io::BufReader::new(tokio::io::stdin());
     let mut line = String::new();
-    let mut join_set = JoinSet::new();
     let mut line_number = 0u64;
+    let mut join_set = JoinSet::new();
 
     loop {
         line.clear();
@@ -98,7 +87,24 @@ async fn main() -> anyhow::Result<()> {
         ));
     }
 
-    debug!("after loop join_set.len() = {}", join_set.len());
+    Ok(join_set)
+}
+
+#[tokio::main]
+async fn main() -> anyhow::Result<()> {
+    tracing_subscriber::fmt::init();
+
+    debug!("begin main");
+
+    let command_line_args = CommandLineArgs::parse();
+
+    debug!("command_line_args = {:?}", command_line_args);
+
+    let semaphore = Arc::new(Semaphore::new(command_line_args.jobs));
+
+    let mut join_set = spawn_commands(semaphore).await?;
+
+    debug!("after spawn_commands join_set.len() = {}", join_set.len());
 
     while let Some(result) = join_set.join_next().await {
         debug!("join_next result = {:?}", result);
