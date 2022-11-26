@@ -36,7 +36,22 @@ how
 you
 ```
 
+Using `awk` to form commands:
+
+```
+$ head -100 /usr/share/dict/words| awk '{printf "md5 -s %s\n", $1}' | ./target/debug/rust-parallel
+MD5 ("Abba") = 5fa1e1f6e07a6fea3f2bb098e90a8de2
+MD5 ("abaxial") = ac3a53971d52d9ce3277eadf03f13a5e
+MD5 ("abaze") = 0b08c52aa63d947b6a5601ee975bc3a4
+MD5 ("abaxile") = 21f5fc27d7d34117596e41d8c001087e
+MD5 ("abbacomes") = 76640eb0c929bc97d016731bfbe9a4f8
+MD5 ("abbacy") = 08aeac72800adc98d2aba540b6195921
+MD5 ("Abbadide") = 7add1d6f008790fa6783bc8798d8c803
+MD5 ("abb") = ea01e5fd8e4d8832825acdd20eac5104
+```
+
 With debug logs enabled:
+
 ```
 $ cat test | RUST_LOG=debug ./target/debug/rust-parallel
 2022-11-26T15:47:41.898980Z DEBUG rust_parallel: begin main
