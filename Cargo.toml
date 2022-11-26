@@ -3,7 +3,13 @@ name = "rust-parallel"
 version = "0.1.0"
 authors = ["Aaron Riekenberg <aaron.riekenberg@gmail.com>"]
 edition = "2021"
-categories = ["asynchronous", "command-line", "parallel", "tokio"]
+categories = ["asynchronous", "command-line-interface", "concurrency"]
+description = "Run commands from stdin in parallel"
+keywords = ["cli", "parallel", "tokio"]
+license = "Apache 2.0"
+readme = "README.md"
+repository = "https://github.com/aaronriekenberg/rust-parallel"
+
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
