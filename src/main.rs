@@ -10,7 +10,7 @@ use std::sync::Arc;
 
 /// Run commands from stdin in parallel
 #[derive(Parser, Debug)]
-#[command(author, version, about)]
+#[command(version, about)]
 struct CommandLineArgs {
     /// Maximum number of commands to run in parallel
     #[arg(short, long, default_value_t = 4)]
