@@ -38,29 +38,29 @@ you
 
 With debug logs enabled:
 ```
-cat test | RUST_LOG=debug ./target/debug/rust-parallel
-2022-11-26T15:22:30.498186Z DEBUG rust_parallel: begin main
-2022-11-26T15:22:30.498812Z DEBUG rust_parallel: command_line_args = CommandLineArgs { jobs: 4 }
-2022-11-26T15:22:30.499004Z DEBUG rust_parallel: read line /bin/echo hi
-2022-11-26T15:22:30.499060Z DEBUG rust_parallel: read line /bin/echo there
-2022-11-26T15:22:30.499084Z DEBUG rust_parallel: read line /bin/echo how
-2022-11-26T15:22:30.499115Z DEBUG rust_parallel: read line /bin/echo are
-2022-11-26T15:22:30.499136Z DEBUG rust_parallel: read line /bin/echo you
-2022-11-26T15:22:30.499220Z DEBUG rust_parallel: after loop join_set.len() = 5
-2022-11-26T15:22:30.515913Z DEBUG rust_parallel: got command status = exit status: 0
+$ cat test | RUST_LOG=debug ./target/debug/rust-parallel
+2022-11-26T15:47:41.898980Z DEBUG rust_parallel: begin main
+2022-11-26T15:47:41.899717Z DEBUG rust_parallel: command_line_args = CommandLineArgs { jobs: 4 }
+2022-11-26T15:47:41.899933Z DEBUG rust_parallel: read line echo hi
+2022-11-26T15:47:41.900001Z DEBUG rust_parallel: read line echo there
+2022-11-26T15:47:41.900049Z DEBUG rust_parallel: read line echo how
+2022-11-26T15:47:41.900140Z DEBUG rust_parallel: read line echo are
+2022-11-26T15:47:41.900227Z DEBUG rust_parallel: read line echo you
+2022-11-26T15:47:41.900391Z DEBUG rust_parallel: after spawn_commands join_set.len() = 5
+2022-11-26T15:47:41.906264Z DEBUG rust_parallel: got command status = exit status: 0
 hi
-2022-11-26T15:22:30.516015Z DEBUG rust_parallel: join_next result = Ok(CommandInfo { _line_number: 1, command: "/bin/echo hi" })
-2022-11-26T15:22:30.518279Z DEBUG rust_parallel: got command status = exit status: 0
-are
-2022-11-26T15:22:30.518388Z DEBUG rust_parallel: join_next result = Ok(CommandInfo { _line_number: 4, command: "/bin/echo are" })
-2022-11-26T15:22:30.520035Z DEBUG rust_parallel: got command status = exit status: 0
-there
-2022-11-26T15:22:30.520164Z DEBUG rust_parallel: join_next result = Ok(CommandInfo { _line_number: 2, command: "/bin/echo there" })
-2022-11-26T15:22:30.523486Z DEBUG rust_parallel: got command status = exit status: 0
+2022-11-26T15:47:41.906433Z DEBUG rust_parallel: got command status = exit status: 0
 how
-2022-11-26T15:22:30.523586Z DEBUG rust_parallel: join_next result = Ok(CommandInfo { _line_number: 3, command: "/bin/echo how" })
-2022-11-26T15:22:30.530829Z DEBUG rust_parallel: got command status = exit status: 0
+2022-11-26T15:47:41.906371Z DEBUG rust_parallel: join_next result = Ok(CommandInfo { _line_number: 1, command: "echo hi" })
+2022-11-26T15:47:41.906479Z DEBUG rust_parallel: got command status = exit status: 0
+there
+2022-11-26T15:47:41.906519Z DEBUG rust_parallel: join_next result = Ok(CommandInfo { _line_number: 3, command: "echo how" })
+2022-11-26T15:47:41.906556Z DEBUG rust_parallel: join_next result = Ok(CommandInfo { _line_number: 2, command: "echo there" })
+2022-11-26T15:47:41.906570Z DEBUG rust_parallel: got command status = exit status: 0
+are
+2022-11-26T15:47:41.906638Z DEBUG rust_parallel: join_next result = Ok(CommandInfo { _line_number: 4, command: "echo are" })
+2022-11-26T15:47:41.911268Z DEBUG rust_parallel: got command status = exit status: 0
 you
-2022-11-26T15:22:30.530912Z DEBUG rust_parallel: join_next result = Ok(CommandInfo { _line_number: 5, command: "/bin/echo you" })
-2022-11-26T15:22:30.530942Z DEBUG rust_parallel: end main
+2022-11-26T15:47:41.911376Z DEBUG rust_parallel: join_next result = Ok(CommandInfo { _line_number: 5, command: "echo you" })
+2022-11-26T15:47:41.911408Z DEBUG rust_parallel: end main
 ```
