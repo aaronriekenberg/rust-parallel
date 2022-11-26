@@ -321,6 +321,7 @@ version = "0.1.2"
 dependencies = [
  "anyhow",
  "clap",
+ "num_cpus",
  "tokio",
  "tracing",
  "tracing-subscriber",

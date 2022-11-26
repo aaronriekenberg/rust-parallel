@@ -12,8 +12,8 @@ use std::sync::Arc;
 #[derive(Parser, Debug)]
 #[command(version, about)]
 struct CommandLineArgs {
-    /// Maximum number of commands to run in parallel
-    #[arg(short, long, default_value_t = 4)]
+    /// Maximum number of commands to run in parallel, defauts to num cpus
+    #[arg(short, long, default_value_t = num_cpus::get())]
     jobs: usize,
 }
 
