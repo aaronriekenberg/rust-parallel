@@ -15,21 +15,31 @@ struct CommandLineArgs {
     /// Maximum number of commands to run in parallel, defauts to num cpus
     #[arg(short, long, default_value_t = num_cpus::get())]
     jobs: usize,
+
+    /// Use /bin/sh shell to run commands, defaults to false
+    #[arg(short, long, default_value_t = false)]
+    shell_enabled: bool,
 }
 
 #[derive(Debug)]
 struct CommandInfo {
     _line_number: u64,
     command: String,
+    shell_enabled: bool,
 }
 
 async fn run_command(semaphore: Arc<Semaphore>, command_info: CommandInfo) -> CommandInfo {
     let permit = semaphore.acquire().await.expect("semaphore acquire error");
 
-    let command_output = Command::new("/bin/sh")
-        .args(["-c", &command_info.command])
-        .output()
-        .await;
+    let command_output = if command_info.shell_enabled {
+        Command::new("/bin/sh")
+            .args(["-c", &command_info.command])
+            .output()
+            .await
+    } else {
+        let split: Vec<&str> = command_info.command.split_whitespace().collect();
+        Command::new(split[0]).args(&split[1..]).output().await
+    };
 
     drop(permit);
 
@@ -51,7 +61,10 @@ async fn run_command(semaphore: Arc<Semaphore>, command_info: CommandInfo) -> Co
     command_info
 }
 
-async fn spawn_commands(semaphore: Arc<Semaphore>) -> anyhow::Result<JoinSet<CommandInfo>> {
+async fn spawn_commands(
+    semaphore: Arc<Semaphore>,
+    shell_enabled: bool,
+) -> anyhow::Result<JoinSet<CommandInfo>> {
     let mut reader = tokio::io::BufReader::new(tokio::io::stdin());
     let mut line = String::new();
     let mut line_number = 0u64;
@@ -83,6 +96,7 @@ async fn spawn_commands(semaphore: Arc<Semaphore>) -> anyhow::Result<JoinSet<Com
             CommandInfo {
                 _line_number: line_number,
                 command: trimmed_line.to_owned(),
+                shell_enabled,
             },
         ));
     }
@@ -102,7 +116,7 @@ async fn main() -> anyhow::Result<()> {
 
     let semaphore = Arc::new(Semaphore::new(command_line_args.jobs));
 
-    let mut join_set = spawn_commands(semaphore).await?;
+    let mut join_set = spawn_commands(semaphore, command_line_args.shell_enabled).await?;
 
     debug!("after spawn_commands join_set.len() = {}", join_set.len());
 
