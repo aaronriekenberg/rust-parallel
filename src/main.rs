@@ -39,7 +39,11 @@ async fn run_command(_permit: SemaphorePermit<'static>, command_info: CommandInf
             .await
     } else {
         let split: Vec<&str> = command_info.command.split_whitespace().collect();
-        Command::new(split[0]).args(&split[1..]).output().await
+
+        let command = split.get(0).unwrap_or(&"");
+        let args = &split[1..];
+
+        Command::new(command).args(args).output().await
     };
 
     match command_output {
