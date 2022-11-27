@@ -2,11 +2,14 @@ use anyhow::Context;
 
 use clap::Parser;
 
-use tokio::{io::AsyncBufReadExt, process::Command, sync::Semaphore, task::JoinSet};
+use tokio::{
+    io::AsyncBufReadExt,
+    process::Command,
+    sync::{OnceCell, Semaphore, SemaphorePermit},
+    task::JoinSet,
+};
 
 use tracing::{debug, warn};
-
-use std::sync::Arc;
 
 /// Run commands from stdin in parallel
 #[derive(Parser, Debug)]
@@ -28,9 +31,7 @@ struct CommandInfo {
     shell_enabled: bool,
 }
 
-async fn run_command(semaphore: Arc<Semaphore>, command_info: CommandInfo) -> CommandInfo {
-    let permit = semaphore.acquire().await.expect("semaphore acquire error");
-
+async fn run_command(_permit: SemaphorePermit<'static>, command_info: CommandInfo) -> CommandInfo {
     let command_output = if command_info.shell_enabled {
         Command::new("/bin/sh")
             .args(["-c", &command_info.command])
@@ -40,8 +41,6 @@ async fn run_command(semaphore: Arc<Semaphore>, command_info: CommandInfo) -> Co
         let split: Vec<&str> = command_info.command.split_whitespace().collect();
         Command::new(split[0]).args(&split[1..]).output().await
     };
-
-    drop(permit);
 
     match command_output {
         Ok(output) => {
@@ -61,9 +60,20 @@ async fn run_command(semaphore: Arc<Semaphore>, command_info: CommandInfo) -> Co
     command_info
 }
 
+static COMMAND_SEMAPHORE: OnceCell<Semaphore> = OnceCell::const_new();
+
+async fn acquire_command_semaphore(
+    command_line_args: &CommandLineArgs,
+) -> SemaphorePermit<'static> {
+    let semaphore = COMMAND_SEMAPHORE
+        .get_or_init(|| async { Semaphore::new(command_line_args.jobs) })
+        .await;
+
+    semaphore.acquire().await.expect("semaphore.acquire error")
+}
+
 async fn spawn_commands(
-    semaphore: Arc<Semaphore>,
-    shell_enabled: bool,
+    command_line_args: &CommandLineArgs,
 ) -> anyhow::Result<JoinSet<CommandInfo>> {
     let mut reader = tokio::io::BufReader::new(tokio::io::stdin());
     let mut line = String::new();
@@ -91,12 +101,14 @@ async fn spawn_commands(
             continue;
         }
 
+        let permit = acquire_command_semaphore(&command_line_args).await;
+
         join_set.spawn(run_command(
-            Arc::clone(&semaphore),
+            permit,
             CommandInfo {
                 _line_number: line_number,
                 command: trimmed_line.to_owned(),
-                shell_enabled,
+                shell_enabled: command_line_args.shell_enabled,
             },
         ));
     }
@@ -114,9 +126,7 @@ async fn main() -> anyhow::Result<()> {
 
     debug!("command_line_args = {:?}", command_line_args);
 
-    let semaphore = Arc::new(Semaphore::new(command_line_args.jobs));
-
-    let mut join_set = spawn_commands(semaphore, command_line_args.shell_enabled).await?;
+    let mut join_set = spawn_commands(&command_line_args).await?;
 
     debug!("after spawn_commands join_set.len() = {}", join_set.len());
 
