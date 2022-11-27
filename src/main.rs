@@ -60,11 +60,11 @@ async fn run_command(_permit: SemaphorePermit<'static>, command_info: CommandInf
     command_info
 }
 
-static COMMAND_SEMAPHORE: OnceCell<Semaphore> = OnceCell::const_new();
-
 async fn acquire_command_semaphore(
     command_line_args: &CommandLineArgs,
 ) -> SemaphorePermit<'static> {
+    static COMMAND_SEMAPHORE: OnceCell<Semaphore> = OnceCell::const_new();
+
     let semaphore = COMMAND_SEMAPHORE
         .get_or_init(|| async { Semaphore::new(command_line_args.jobs) })
         .await;
