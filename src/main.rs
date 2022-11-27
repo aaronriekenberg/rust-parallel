@@ -19,8 +19,8 @@ struct CommandLineArgs {
     #[arg(short, long, default_value_t = num_cpus::get())]
     jobs: usize,
 
-    /// Use /bin/sh shell to run commands, defaults to false
-    #[arg(short, long, default_value_t = false)]
+    /// Use /bin/sh -c shell to run commands
+    #[arg(short, long)]
     shell_enabled: bool,
 }
 
