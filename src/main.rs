@@ -31,7 +31,7 @@ struct CommandInfo {
     shell_enabled: bool,
 }
 
-async fn run_command(_permit: SemaphorePermit<'static>, command_info: CommandInfo) -> CommandInfo {
+async fn run_command(_permit: SemaphorePermit<'static>, command_info: CommandInfo) {
     let command_output = if command_info.shell_enabled {
         Command::new("/bin/sh")
             .args(["-c", &command_info.command])
@@ -56,8 +56,6 @@ async fn run_command(_permit: SemaphorePermit<'static>, command_info: CommandInf
             warn!("got error running command {:?}: {}", command_info, e);
         }
     };
-
-    command_info
 }
 
 async fn acquire_command_semaphore(
@@ -72,9 +70,7 @@ async fn acquire_command_semaphore(
     semaphore.acquire().await.expect("semaphore.acquire error")
 }
 
-async fn spawn_commands(
-    command_line_args: &CommandLineArgs,
-) -> anyhow::Result<JoinSet<CommandInfo>> {
+async fn spawn_commands(command_line_args: &CommandLineArgs) -> anyhow::Result<JoinSet<()>> {
     let mut reader = tokio::io::BufReader::new(tokio::io::stdin());
     let mut line = String::new();
     let mut line_number = 0u64;
