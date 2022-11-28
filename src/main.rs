@@ -37,43 +37,41 @@ struct CommandInfo {
     shell_enabled: bool,
 }
 
-async fn run_command(
-    _permit: OwnedSemaphorePermit,
-    _worker: awaitgroup::Worker,
-    command_info: CommandInfo,
-) {
-    debug!("begin run_command command_info = {:?}", command_info);
+impl CommandInfo {
+    async fn run(self, _permit: OwnedSemaphorePermit, _worker: awaitgroup::Worker) {
+        debug!("begin run_command command_info = {:?}", self);
 
-    let command_output = if command_info.shell_enabled {
-        Command::new("/bin/sh")
-            .args(["-c", &command_info.command])
-            .output()
-            .await
-    } else {
-        let split: Vec<&str> = command_info.command.split_whitespace().collect();
+        let command_output = if self.shell_enabled {
+            Command::new("/bin/sh")
+                .args(["-c", &self.command])
+                .output()
+                .await
+        } else {
+            let split: Vec<&str> = self.command.split_whitespace().collect();
 
-        let command = split.get(0).unwrap_or(&"");
-        let args = &split[1..];
+            let command = split.get(0).unwrap_or(&"");
+            let args = &split[1..];
 
-        Command::new(command).args(args).output().await
-    };
+            Command::new(command).args(args).output().await
+        };
 
-    match command_output {
-        Ok(output) => {
-            debug!("got command status = {}", output.status);
-            if output.stdout.len() > 0 {
-                print!("{}", &String::from_utf8_lossy(&output.stdout));
+        match command_output {
+            Ok(output) => {
+                debug!("got command status = {}", output.status);
+                if output.stdout.len() > 0 {
+                    print!("{}", &String::from_utf8_lossy(&output.stdout));
+                }
+                if output.stderr.len() > 0 {
+                    eprint!("{}", &String::from_utf8_lossy(&output.stderr));
+                }
             }
-            if output.stderr.len() > 0 {
-                eprint!("{}", &String::from_utf8_lossy(&output.stderr));
+            Err(e) => {
+                warn!("got error running command {:?}: {}", self, e);
             }
-        }
-        Err(e) => {
-            warn!("got error running command {:?}: {}", command_info, e);
-        }
-    };
+        };
 
-    debug!("end run_command command_info = {:?}", command_info);
+        debug!("end run_command command_info = {:?}", self);
+    }
 }
 
 struct CommandService {
@@ -129,16 +127,14 @@ impl CommandService {
 
             let worker = self.wait_group.worker();
 
-            tokio::spawn(run_command(
-                permit,
-                worker,
-                CommandInfo {
-                    _input_name: input_name.to_owned(),
-                    _line_number: line_number,
-                    command: trimmed_line.to_owned(),
-                    shell_enabled: self.command_line_args.shell_enabled,
-                },
-            ));
+            let command_info = CommandInfo {
+                _input_name: input_name.to_owned(),
+                _line_number: line_number,
+                command: trimmed_line.to_owned(),
+                shell_enabled: self.command_line_args.shell_enabled,
+            };
+
+            tokio::spawn(command_info.run(permit, worker));
         }
 
         debug!("end process_one_input input_name = '{}'", input_name);
