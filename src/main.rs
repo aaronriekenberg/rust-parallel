@@ -14,7 +14,7 @@ use tracing::{debug, warn};
 
 use std::sync::Arc;
 
-#[derive(Parser, Debug)]
+#[derive(Parser, Clone, Debug)]
 #[command(version, about)]
 struct CommandLineArgs {
     /// Maximum number of commands to run in parallel, defauts to num cpus
@@ -76,105 +76,102 @@ async fn run_command(
     debug!("end run_command command_info = {:?}", command_info);
 }
 
-async fn process_one_input(
-    input_name: &str,
-    mut reader: tokio::io::BufReader<impl AsyncRead + Unpin>,
+struct CommandService {
+    command_line_args: CommandLineArgs,
     command_semaphore: Arc<Semaphore>,
-    wait_group: &WaitGroup,
-    command_line_args: &CommandLineArgs,
-) -> anyhow::Result<()> {
-    debug!("begin process_one_input input_name = '{}'", input_name);
-
-    let mut line = String::new();
-    let mut line_number = 0u64;
-
-    loop {
-        line.clear();
-
-        let bytes_read = reader
-            .read_line(&mut line)
-            .await
-            .context("read_line error")?;
-        if bytes_read == 0 {
-            break;
-        }
-
-        line_number += 1;
-
-        let trimmed_line = line.trim();
-
-        debug!("read line {}", trimmed_line);
-
-        if trimmed_line.is_empty() || trimmed_line.starts_with("#") {
-            continue;
-        }
-
-        let permit = Arc::clone(&command_semaphore)
-            .acquire_owned()
-            .await
-            .context("command_semaphore.acquire_owned error")?;
-
-        let worker = wait_group.worker();
-
-        tokio::spawn(run_command(
-            permit,
-            worker,
-            CommandInfo {
-                _input_name: input_name.to_owned(),
-                _line_number: line_number,
-                command: trimmed_line.to_owned(),
-                shell_enabled: command_line_args.shell_enabled,
-            },
-        ));
-    }
-
-    debug!("end process_one_input input_name = '{}'", input_name);
-
-    Ok(())
+    wait_group: WaitGroup,
 }
 
-async fn spawn_commands(command_line_args: &CommandLineArgs) -> anyhow::Result<WaitGroup> {
-    debug!("begin spawn_commands");
-
-    let command_semaphore = Arc::new(Semaphore::new(command_line_args.jobs));
-    let wait_group = WaitGroup::new();
-
-    let inputs = if command_line_args.inputs.is_empty() {
-        vec!["-".to_owned()]
-    } else {
-        command_line_args.inputs.clone()
-    };
-
-    for input_name in &inputs {
-        if input_name == "-" {
-            let reader = tokio::io::BufReader::new(tokio::io::stdin());
-
-            process_one_input(
-                &input_name,
-                reader,
-                Arc::clone(&command_semaphore),
-                &wait_group,
-                &command_line_args,
-            )
-            .await?;
-        } else {
-            let file = tokio::fs::File::open(input_name).await.with_context(|| {
-                format!("error opening input file input_name = '{}'", input_name)
-            })?;
-            let reader = tokio::io::BufReader::new(file);
-
-            process_one_input(
-                &input_name,
-                reader,
-                Arc::clone(&command_semaphore),
-                &wait_group,
-                &command_line_args,
-            )
-            .await?;
+impl CommandService {
+    fn new(command_line_args: &CommandLineArgs) -> Self {
+        Self {
+            command_line_args: command_line_args.clone(),
+            command_semaphore: Arc::new(Semaphore::new(command_line_args.jobs)),
+            wait_group: WaitGroup::new(),
         }
     }
 
-    Ok(wait_group)
+    async fn process_one_input(
+        &self,
+        input_name: &str,
+        mut reader: tokio::io::BufReader<impl AsyncRead + Unpin>,
+    ) -> anyhow::Result<()> {
+        debug!("begin process_one_input input_name = '{}'", input_name);
+
+        let mut line = String::new();
+        let mut line_number = 0u64;
+
+        loop {
+            line.clear();
+
+            let bytes_read = reader
+                .read_line(&mut line)
+                .await
+                .context("read_line error")?;
+            if bytes_read == 0 {
+                break;
+            }
+
+            line_number += 1;
+
+            let trimmed_line = line.trim();
+
+            debug!("read line {}", trimmed_line);
+
+            if trimmed_line.is_empty() || trimmed_line.starts_with("#") {
+                continue;
+            }
+
+            let permit = Arc::clone(&self.command_semaphore)
+                .acquire_owned()
+                .await
+                .context("command_semaphore.acquire_owned error")?;
+
+            let worker = self.wait_group.worker();
+
+            tokio::spawn(run_command(
+                permit,
+                worker,
+                CommandInfo {
+                    _input_name: input_name.to_owned(),
+                    _line_number: line_number,
+                    command: trimmed_line.to_owned(),
+                    shell_enabled: self.command_line_args.shell_enabled,
+                },
+            ));
+        }
+
+        debug!("end process_one_input input_name = '{}'", input_name);
+
+        Ok(())
+    }
+
+    async fn spawn_commands(self) -> anyhow::Result<WaitGroup> {
+        debug!("begin spawn_commands");
+
+        let inputs = if self.command_line_args.inputs.is_empty() {
+            vec!["-".to_owned()]
+        } else {
+            self.command_line_args.inputs.clone()
+        };
+
+        for input_name in &inputs {
+            if input_name == "-" {
+                let reader = tokio::io::BufReader::new(tokio::io::stdin());
+
+                self.process_one_input(&input_name, reader).await?;
+            } else {
+                let file = tokio::fs::File::open(input_name).await.with_context(|| {
+                    format!("error opening input file input_name = '{}'", input_name)
+                })?;
+                let reader = tokio::io::BufReader::new(file);
+
+                self.process_one_input(&input_name, reader).await?;
+            }
+        }
+
+        Ok(self.wait_group)
+    }
 }
 
 #[tokio::main]
@@ -187,7 +184,9 @@ async fn main() -> anyhow::Result<()> {
 
     debug!("command_line_args = {:?}", command_line_args);
 
-    let mut wait_group = spawn_commands(&command_line_args).await?;
+    let command_service = CommandService::new(&command_line_args);
+
+    let mut wait_group = command_service.spawn_commands().await?;
 
     debug!("before wait_group.wait");
 
