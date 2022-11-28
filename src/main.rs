@@ -42,6 +42,8 @@ async fn run_command(
     _worker: awaitgroup::Worker,
     command_info: CommandInfo,
 ) {
+    debug!("begin run_command command_info = {:?}", command_info);
+
     let command_output = if command_info.shell_enabled {
         Command::new("/bin/sh")
             .args(["-c", &command_info.command])
@@ -70,6 +72,8 @@ async fn run_command(
             warn!("got error running command {:?}: {}", command_info, e);
         }
     };
+
+    debug!("end run_command command_info = {:?}", command_info);
 }
 
 async fn process_one_input(
