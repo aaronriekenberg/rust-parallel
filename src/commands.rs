@@ -127,19 +127,22 @@ impl CommandService {
         Ok(())
     }
 
+
     pub async fn spawn_commands(self) -> anyhow::Result<WaitGroup> {
+        const STDIN_INPUT: &'static str = "-";
+
         debug!("begin spawn_commands");
 
         let args = command_line_args::instance();
 
         let inputs = if args.inputs().is_empty() {
-            vec!["-".to_owned()]
+            vec![STDIN_INPUT.to_owned()]
         } else {
             args.inputs().clone()
         };
 
         for input_name in &inputs {
-            if input_name == "-" {
+            if input_name == STDIN_INPUT {
                 let reader = tokio::io::BufReader::new(tokio::io::stdin());
 
                 self.process_one_input(&input_name, reader).await?;
