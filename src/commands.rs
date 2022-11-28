@@ -3,7 +3,7 @@ use anyhow::Context;
 use awaitgroup::WaitGroup;
 
 use tokio::{
-    io::{AsyncBufReadExt, AsyncRead},
+    io::{AsyncBufReadExt, AsyncRead, BufReader},
     process::Command,
     sync::{OwnedSemaphorePermit, Semaphore},
 };
@@ -75,7 +75,7 @@ impl CommandService {
     async fn process_one_input(
         &self,
         input_name: &str,
-        mut reader: tokio::io::BufReader<impl AsyncRead + Unpin>,
+        mut reader: BufReader<impl AsyncRead + Unpin>,
     ) -> anyhow::Result<()> {
         debug!("begin process_one_input input_name = '{}'", input_name);
 
@@ -142,14 +142,14 @@ impl CommandService {
 
         for input_name in inputs {
             if input_name == STDIN_INPUT {
-                let reader = tokio::io::BufReader::new(tokio::io::stdin());
+                let reader = BufReader::new(tokio::io::stdin());
 
                 self.process_one_input(&input_name, reader).await?;
             } else {
                 let file = tokio::fs::File::open(input_name).await.with_context(|| {
                     format!("error opening input file input_name = '{}'", input_name)
                 })?;
-                let reader = tokio::io::BufReader::new(file);
+                let reader = BufReader::new(file);
 
                 self.process_one_input(&input_name, reader).await?;
             }
