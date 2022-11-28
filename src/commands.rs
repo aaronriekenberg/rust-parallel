@@ -34,7 +34,7 @@ impl CommandInfo {
         } else {
             let split: Vec<&str> = self.command.split_whitespace().collect();
 
-            let command = split.get(0).unwrap_or(&"");
+            let command = split.get(0).expect("invalid command string");
             let args = &split[1..];
 
             Command::new(command).args(args).output().await
