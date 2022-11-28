@@ -1,12 +1,13 @@
 use anyhow::Context;
 
+use awaitgroup::WaitGroup;
+
 use clap::Parser;
 
 use tokio::{
     io::AsyncBufReadExt,
     process::Command,
     sync::{OnceCell, Semaphore, SemaphorePermit},
-    task::JoinSet,
 };
 
 use tracing::{debug, warn};
@@ -31,7 +32,11 @@ struct CommandInfo {
     shell_enabled: bool,
 }
 
-async fn run_command(_permit: SemaphorePermit<'static>, command_info: CommandInfo) {
+async fn run_command(
+    _permit: SemaphorePermit<'static>,
+    _worker: awaitgroup::Worker,
+    command_info: CommandInfo,
+) {
     let command_output = if command_info.shell_enabled {
         Command::new("/bin/sh")
             .args(["-c", &command_info.command])
@@ -74,11 +79,11 @@ async fn acquire_command_semaphore(
     semaphore.acquire().await.expect("semaphore.acquire error")
 }
 
-async fn spawn_commands(command_line_args: &CommandLineArgs) -> anyhow::Result<JoinSet<()>> {
+async fn spawn_commands(command_line_args: &CommandLineArgs) -> anyhow::Result<WaitGroup> {
     let mut reader = tokio::io::BufReader::new(tokio::io::stdin());
     let mut line = String::new();
     let mut line_number = 0u64;
-    let mut join_set = JoinSet::new();
+    let wait_group = WaitGroup::new();
 
     loop {
         line.clear();
@@ -103,8 +108,11 @@ async fn spawn_commands(command_line_args: &CommandLineArgs) -> anyhow::Result<J
 
         let permit = acquire_command_semaphore(&command_line_args).await;
 
-        join_set.spawn(run_command(
+        let worker = wait_group.worker();
+
+        tokio::spawn(run_command(
             permit,
+            worker,
             CommandInfo {
                 _line_number: line_number,
                 command: trimmed_line.to_owned(),
@@ -113,7 +121,7 @@ async fn spawn_commands(command_line_args: &CommandLineArgs) -> anyhow::Result<J
         ));
     }
 
-    Ok(join_set)
+    Ok(wait_group)
 }
 
 #[tokio::main]
@@ -126,13 +134,11 @@ async fn main() -> anyhow::Result<()> {
 
     debug!("command_line_args = {:?}", command_line_args);
 
-    let mut join_set = spawn_commands(&command_line_args).await?;
+    let mut wait_group = spawn_commands(&command_line_args).await?;
 
-    debug!("after spawn_commands join_set.len() = {}", join_set.len());
+    debug!("before wait_group.wait");
 
-    while let Some(result) = join_set.join_next().await {
-        debug!("join_next result = {:?}", result);
-    }
+    wait_group.wait().await;
 
     debug!("end main");
 
