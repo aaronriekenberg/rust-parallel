@@ -7,10 +7,12 @@ use clap::Parser;
 use tokio::{
     io::AsyncBufReadExt,
     process::Command,
-    sync::{OnceCell, Semaphore, SemaphorePermit},
+    sync::{OwnedSemaphorePermit, Semaphore},
 };
 
 use tracing::{debug, warn};
+
+use std::sync::Arc;
 
 /// Run commands from stdin in parallel
 #[derive(Parser, Debug)]
@@ -33,7 +35,7 @@ struct CommandInfo {
 }
 
 async fn run_command(
-    _permit: SemaphorePermit<'static>,
+    _permit: OwnedSemaphorePermit,
     _worker: awaitgroup::Worker,
     command_info: CommandInfo,
 ) {
@@ -67,22 +69,12 @@ async fn run_command(
     };
 }
 
-async fn acquire_command_semaphore(
-    command_line_args: &CommandLineArgs,
-) -> SemaphorePermit<'static> {
-    static COMMAND_SEMAPHORE: OnceCell<Semaphore> = OnceCell::const_new();
-
-    let semaphore = COMMAND_SEMAPHORE
-        .get_or_init(|| async { Semaphore::new(command_line_args.jobs) })
-        .await;
-
-    semaphore.acquire().await.expect("semaphore.acquire error")
-}
-
 async fn spawn_commands(command_line_args: &CommandLineArgs) -> anyhow::Result<WaitGroup> {
     let mut reader = tokio::io::BufReader::new(tokio::io::stdin());
     let mut line = String::new();
     let mut line_number = 0u64;
+
+    let command_semaphore = Arc::new(Semaphore::new(command_line_args.jobs));
     let wait_group = WaitGroup::new();
 
     loop {
@@ -106,7 +98,10 @@ async fn spawn_commands(command_line_args: &CommandLineArgs) -> anyhow::Result<W
             continue;
         }
 
-        let permit = acquire_command_semaphore(&command_line_args).await;
+        let permit = Arc::clone(&command_semaphore)
+            .acquire_owned()
+            .await
+            .context("command_semaphore.acquire_owned error")?;
 
         let worker = wait_group.worker();
 
