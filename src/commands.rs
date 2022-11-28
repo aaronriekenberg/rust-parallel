@@ -127,7 +127,6 @@ impl CommandService {
         Ok(())
     }
 
-
     pub async fn spawn_commands(self) -> anyhow::Result<WaitGroup> {
         const STDIN_INPUT: &'static str = "-";
 
@@ -155,6 +154,8 @@ impl CommandService {
                 self.process_one_input(&input_name, reader).await?;
             }
         }
+
+        debug!("end spawn_commands");
 
         Ok(self.wait_group)
     }
