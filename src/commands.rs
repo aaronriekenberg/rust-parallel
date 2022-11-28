@@ -135,12 +135,12 @@ impl CommandService {
         let args = command_line_args::instance();
 
         let inputs = if args.inputs().is_empty() {
-            vec![STDIN_INPUT.to_owned()]
+            vec![STDIN_INPUT]
         } else {
-            args.inputs().clone()
+            args.inputs().iter().map(|s| s.as_str()).collect()
         };
 
-        for input_name in &inputs {
+        for input_name in inputs {
             if input_name == STDIN_INPUT {
                 let reader = tokio::io::BufReader::new(tokio::io::stdin());
 
