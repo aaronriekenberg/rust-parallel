@@ -25,7 +25,7 @@ Just starting - more options to come :)
   * `async` / `await` functions (aka coroutines)
   * Singleton `CommandLineArgs` instance using [`tokio::sync::OnceCell`](https://docs.rs/tokio/latest/tokio/sync/struct.OnceCell.html).
   * Asynchronous command execution using [`tokio::process::Command`](https://docs.rs/tokio/latest/tokio/process/struct.Command.html)
-  * Semaphores
+  * Semaphore
 * [tracing](https://docs.rs/tracing/latest/tracing/) used for debug and warning logs.
 
 # Installation:
