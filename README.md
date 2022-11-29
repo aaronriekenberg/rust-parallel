@@ -115,37 +115,37 @@ With debug logs enabled:
 
 ```
 $ cat test | RUST_LOG=debug rust-parallel
-2022-11-29T01:22:20.352921Z DEBUG rust_parallel: begin main
-2022-11-29T01:22:20.353561Z DEBUG rust_parallel::command_line_args: command_line_args = CommandLineArgs { jobs: 12, shell_enabled: false, inputs: [] }
-2022-11-29T01:22:20.353605Z DEBUG rust_parallel::commands: begin spawn_commands
-2022-11-29T01:22:20.353636Z DEBUG rust_parallel::commands: begin process_one_input input_name = '-'
-2022-11-29T01:22:20.353783Z DEBUG rust_parallel::commands: read line echo hi
-2022-11-29T01:22:20.353835Z DEBUG rust_parallel::commands: read line echo there
-2022-11-29T01:22:20.353861Z DEBUG rust_parallel::commands: read line echo how
-2022-11-29T01:22:20.353879Z DEBUG rust_parallel::commands: read line echo are
-2022-11-29T01:22:20.353897Z DEBUG rust_parallel::commands: read line echo you
-2022-11-29T01:22:20.353925Z DEBUG rust_parallel::commands: begin run_command command = Command { _input_name: "-", _line_number: 1, command: "echo hi", shell_enabled: false }
-2022-11-29T01:22:20.353922Z DEBUG rust_parallel::commands: begin run_command command = Command { _input_name: "-", _line_number: 2, command: "echo there", shell_enabled: false }
-2022-11-29T01:22:20.353963Z DEBUG rust_parallel::commands: begin run_command command = Command { _input_name: "-", _line_number: 4, command: "echo are", shell_enabled: false }
-2022-11-29T01:22:20.353948Z DEBUG rust_parallel::commands: begin run_command command = Command { _input_name: "-", _line_number: 3, command: "echo how", shell_enabled: false }
-2022-11-29T01:22:20.353974Z DEBUG rust_parallel::commands: end process_one_input input_name = '-'
-2022-11-29T01:22:20.353980Z DEBUG rust_parallel::commands: begin run_command command = Command { _input_name: "-", _line_number: 5, command: "echo you", shell_enabled: false }
-2022-11-29T01:22:20.357172Z DEBUG rust_parallel::commands: end spawn_commands
-2022-11-29T01:22:20.357207Z DEBUG rust_parallel: before wait_group.wait wait_group = WaitGroup { count: 5 }
-2022-11-29T01:22:20.359083Z DEBUG rust_parallel::commands: got command status = exit status: 0
+2022-11-29T03:44:17.993760Z DEBUG rust_parallel: begin main
+2022-11-29T03:44:17.994436Z DEBUG rust_parallel::command_line_args: command_line_args = CommandLineArgs { jobs: 12, shell_enabled: false, inputs: [] }
+2022-11-29T03:44:17.994476Z DEBUG rust_parallel::commands: begin spawn_commands
+2022-11-29T03:44:17.994510Z DEBUG rust_parallel::commands: begin process_one_input input = Stdin
+2022-11-29T03:44:17.994669Z DEBUG rust_parallel::commands: read line echo hi
+2022-11-29T03:44:17.994721Z DEBUG rust_parallel::commands: read line echo there
+2022-11-29T03:44:17.994752Z DEBUG rust_parallel::commands: read line echo how
+2022-11-29T03:44:17.994775Z DEBUG rust_parallel::commands: read line echo are
+2022-11-29T03:44:17.994777Z DEBUG rust_parallel::commands: begin run_command command = Command { _input: Stdin, _line_number: 1, command: "echo hi", shell_enabled: false }
+2022-11-29T03:44:17.994803Z DEBUG rust_parallel::commands: read line echo you
+2022-11-29T03:44:17.994793Z DEBUG rust_parallel::commands: begin run_command command = Command { _input: Stdin, _line_number: 2, command: "echo there", shell_enabled: false }
+2022-11-29T03:44:17.994815Z DEBUG rust_parallel::commands: begin run_command command = Command { _input: Stdin, _line_number: 3, command: "echo how", shell_enabled: false }
+2022-11-29T03:44:17.994832Z DEBUG rust_parallel::commands: begin run_command command = Command { _input: Stdin, _line_number: 4, command: "echo are", shell_enabled: false }
+2022-11-29T03:44:17.994888Z DEBUG rust_parallel::commands: begin run_command command = Command { _input: Stdin, _line_number: 5, command: "echo you", shell_enabled: false }
+2022-11-29T03:44:17.994902Z DEBUG rust_parallel::commands: end process_one_input input = Stdin
+2022-11-29T03:44:17.999410Z DEBUG rust_parallel::commands: end spawn_commands
+2022-11-29T03:44:17.999455Z DEBUG rust_parallel: before wait_group.wait wait_group = WaitGroup { count: 5 }
+2022-11-29T03:44:17.999524Z DEBUG rust_parallel::commands: got command status = exit status: 0
 hi
-2022-11-29T01:22:20.359161Z DEBUG rust_parallel::commands: end run_command command = Command { _input_name: "-", _line_number: 1, command: "echo hi", shell_enabled: false }
-2022-11-29T01:22:20.360766Z DEBUG rust_parallel::commands: got command status = exit status: 0
-are
-2022-11-29T01:22:20.360805Z DEBUG rust_parallel::commands: end run_command command = Command { _input_name: "-", _line_number: 4, command: "echo are", shell_enabled: false }
-2022-11-29T01:22:20.361892Z DEBUG rust_parallel::commands: got command status = exit status: 0
-you
-2022-11-29T01:22:20.361925Z DEBUG rust_parallel::commands: end run_command command = Command { _input_name: "-", _line_number: 5, command: "echo you", shell_enabled: false }
-2022-11-29T01:22:20.363213Z DEBUG rust_parallel::commands: got command status = exit status: 0
-there
-2022-11-29T01:22:20.363242Z DEBUG rust_parallel::commands: end run_command command = Command { _input_name: "-", _line_number: 2, command: "echo there", shell_enabled: false }
-2022-11-29T01:22:20.364298Z DEBUG rust_parallel::commands: got command status = exit status: 0
+2022-11-29T03:44:17.999572Z DEBUG rust_parallel::commands: end run_command command = Command { _input: Stdin, _line_number: 1, command: "echo hi", shell_enabled: false }
+2022-11-29T03:44:18.001264Z DEBUG rust_parallel::commands: got command status = exit status: 0
 how
-2022-11-29T01:22:20.364326Z DEBUG rust_parallel::commands: end run_command command = Command { _input_name: "-", _line_number: 3, command: "echo how", shell_enabled: false }
-2022-11-29T01:22:20.364378Z DEBUG rust_parallel: end main
+2022-11-29T03:44:18.001321Z DEBUG rust_parallel::commands: end run_command command = Command { _input: Stdin, _line_number: 3, command: "echo how", shell_enabled: false }
+2022-11-29T03:44:18.003308Z DEBUG rust_parallel::commands: got command status = exit status: 0
+there
+2022-11-29T03:44:18.003353Z DEBUG rust_parallel::commands: end run_command command = Command { _input: Stdin, _line_number: 2, command: "echo there", shell_enabled: false }
+2022-11-29T03:44:18.004760Z DEBUG rust_parallel::commands: got command status = exit status: 0
+are
+2022-11-29T03:44:18.004798Z DEBUG rust_parallel::commands: end run_command command = Command { _input: Stdin, _line_number: 4, command: "echo are", shell_enabled: false }
+2022-11-29T03:44:18.006124Z DEBUG rust_parallel::commands: got command status = exit status: 0
+you
+2022-11-29T03:44:18.006158Z DEBUG rust_parallel::commands: end run_command command = Command { _input: Stdin, _line_number: 5, command: "echo you", shell_enabled: false }
+2022-11-29T03:44:18.006277Z DEBUG rust_parallel: end main
 ```
