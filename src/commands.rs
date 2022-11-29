@@ -144,14 +144,14 @@ impl CommandService {
             if input_name == STDIN_INPUT {
                 let reader = BufReader::new(tokio::io::stdin());
 
-                self.process_one_input(&input_name, reader).await?;
+                self.process_one_input(input_name, reader).await?;
             } else {
                 let file = tokio::fs::File::open(input_name).await.with_context(|| {
                     format!("error opening input file input_name = '{}'", input_name)
                 })?;
                 let reader = BufReader::new(file);
 
-                self.process_one_input(&input_name, reader).await?;
+                self.process_one_input(input_name, reader).await?;
             }
         }
 
