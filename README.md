@@ -88,6 +88,29 @@ MD5 ("Abbadide") = 7add1d6f008790fa6783bc8798d8c803
 MD5 ("abb") = ea01e5fd8e4d8832825acdd20eac5104
 ```
 
+Using input file.  Multiple inputs can be specified, `-` means stdin:
+
+```
+$ cat >./test1 <<EOL
+echo hi
+echo there
+echo how
+EOL
+
+$ cat >./test2 <<EOL
+echo are
+echo you
+EOL
+
+$ cat test2 | rust-parallel test1 -
+there
+how
+hi
+are
+you
+
+```
+
 With debug logs enabled:
 
 ```
