@@ -11,19 +11,28 @@ Just starting - more options to come :)
 
 # Goals:
 * Use only safe rust.
-* Use only asynchronous operations supported by [Tokio](https://tokio.rs), do not use any blocking operations.
+* Use only asynchronous operations supported by [tokio](https://tokio.rs), do not use any blocking operations.
 * Support arbitrarily large number of input lines, avoid `O(number of input lines)` memory usage.  In support of this:
-  * [Tokio Semaphore](https://docs.rs/tokio/latest/tokio/sync/struct.Semaphore.html) is used carefully to limit the number of commands that can be run, and to limit memory usage while waiting for commands to finish.  Do not spawn tasks for all input lines immediately.
-  * [awaitgroup::WaitGroup](https://crates.io/crates/awaitgroup) is used to wait for all async functions to finish.  Internally this is just a counter and uses a constant amount of memory.
+  * [`tokio::sync::Semaphore`](https://docs.rs/tokio/latest/tokio/sync/struct.Semaphore.html) is used carefully to limit the number of commands that can be run, and to limit memory usage while waiting for commands to finish.  Do not spawn tasks for all input lines immediately to limit memory usage.
+  * [`awaitgroup::WaitGroup`](https://crates.io/crates/awaitgroup) is used to wait for all async functions to finish.  Internally this is just a counter and uses a constant amount of memory.
+* Support running commands on local machine only, not on remote machines.
 
-# Non-goals:
-* Executing commands on remote computers.
+# Tech Stack:
+* [anyhow](https://github.com/dtolnay/anyhow) used for application error handling to propogate and format fatal errors.
+* [awaitgroup](https://crates.io/crates/awaitgroup) used to await completion of all async functions.
+* [clap](https://docs.rs/clap/latest/clap/) command line argument parser.
+* [tokio](https://tokio.rs/) asynchronous runtime for rust.  From tokio this app uses:
+  * `async` / `await` functions (aka coroutines)
+  * Singleton `CommandLineArgs` instance using [`tokio::sync::OnceCell`](https://docs.rs/tokio/latest/tokio/sync/struct.OnceCell.html).
+  * Asynchronous command execution using [`tokio::process::Command`](https://docs.rs/tokio/latest/tokio/process/struct.Command.html)
+  * Semaphores
+* [tracing](https://docs.rs/tracing/latest/tracing/) used for debug and warning logs.
 
 # Installation:
 1. Clone this git repo
 2. Build options:
-  - `cargo build -v` faster build, slower runtime performance, executable in `target/debug/rust-parallel`
-  - `cargo build --release` slower build, faster runtime performance, executable in `target/release/rust-parallel`
+   * `cargo build -v` faster build, slower runtime performance, executable in `target/debug/rust-parallel`
+   * `cargo build --release` slower build, faster runtime performance, executable in `target/release/rust-parallel`
 3. Below demos assume you have put the `rust-parallel` executable in your `PATH`.
 
 # Usage:
