@@ -144,11 +144,13 @@ impl CommandService {
         } else {
             args.inputs()
                 .iter()
-                .map(|s| {
-                    if s == "-" {
+                .map(|input_name| {
+                    if input_name == "-" {
                         Input::Stdin
                     } else {
-                        Input::File { file_name: s }
+                        Input::File {
+                            file_name: input_name,
+                        }
                     }
                 })
                 .collect()
