@@ -9,6 +9,16 @@ Just starting - more options to come :)
 [crates-badge]: https://img.shields.io/crates/v/rust-parallel.svg
 [crates-url]: https://crates.io/crates/rust-parallel
 
+# Goals:
+* Use only safe rust.
+* Use only asynchronous operations supported by [Tokio](https://tokio.rs), do not use any blocking operations.
+* Support arbitrarily large number of input lines, avoid `O(number of input lines)` memory usage.  In support of this:
+  * [Tokio Semaphore](https://docs.rs/tokio/latest/tokio/sync/struct.Semaphore.html) is used carefully to limit the number of commands that can be run, and to limit memory usage while waiting for commands to finish.  Do not spawn tasks for all input lines immediately.
+  * [awaitgroup::WaitGroup](https://crates.io/crates/awaitgroup) is used to wait for all async functions to finish.  Internally this is just a counter and uses a constant amount of memory.
+
+# Non-goals:
+* Executing commands on remote computers.
+
 # Usage:
 ```
 $ rust-parallel -h
