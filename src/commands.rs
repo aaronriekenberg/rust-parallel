@@ -4,7 +4,7 @@ use awaitgroup::WaitGroup;
 
 use tokio::{
     io::{AsyncBufReadExt, AsyncRead, BufReader},
-    process::Command,
+    process::Command as TokioCommand,
     sync::{OwnedSemaphorePermit, Semaphore},
 };
 
@@ -15,19 +15,19 @@ use std::sync::Arc;
 use crate::command_line_args;
 
 #[derive(Debug)]
-struct CommandInfo {
+struct Command {
     _input_name: String,
     _line_number: u64,
     command: String,
     shell_enabled: bool,
 }
 
-impl CommandInfo {
+impl Command {
     async fn run(self, _permit: OwnedSemaphorePermit, _worker: awaitgroup::Worker) {
-        debug!("begin run_command command_info = {:?}", self);
+        debug!("begin run_command command = {:?}", self);
 
         let command_output = if self.shell_enabled {
-            Command::new("/bin/sh")
+            TokioCommand::new("/bin/sh")
                 .args(["-c", &self.command])
                 .output()
                 .await
@@ -37,7 +37,7 @@ impl CommandInfo {
             let command = split.get(0).expect("invalid command string");
             let args = &split[1..];
 
-            Command::new(command).args(args).output().await
+            TokioCommand::new(command).args(args).output().await
         };
 
         match command_output {
@@ -55,7 +55,7 @@ impl CommandInfo {
             }
         };
 
-        debug!("end run_command command_info = {:?}", self);
+        debug!("end run_command command = {:?}", self);
     }
 }
 
@@ -112,14 +112,14 @@ impl CommandService {
 
             let worker = self.wait_group.worker();
 
-            let command_info = CommandInfo {
+            let command = Command {
                 _input_name: input_name.to_owned(),
                 _line_number: line_number,
                 command: trimmed_line.to_owned(),
                 shell_enabled: *args.shell_enabled(),
             };
 
-            tokio::spawn(command_info.run(permit, worker));
+            tokio::spawn(command.run(permit, worker));
         }
 
         debug!("end process_one_input input_name = '{}'", input_name);
