@@ -14,7 +14,7 @@ use std::sync::Arc;
 
 use crate::command_line_args;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 enum Input {
     Stdin,
 
@@ -120,7 +120,7 @@ impl CommandService {
             let worker = self.wait_group.worker();
 
             let command = Command {
-                _input: input.clone(),
+                _input: input,
                 _line_number: line_number,
                 command: trimmed_line.to_owned(),
                 shell_enabled: *args.shell_enabled(),
