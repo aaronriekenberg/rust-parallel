@@ -18,7 +18,7 @@ use crate::command_line_args;
 enum Input {
     Stdin,
 
-    File { file_name: String },
+    File { file_name: &'static str },
 }
 
 #[derive(Debug)]
@@ -148,9 +148,7 @@ impl CommandService {
                     if s == "-" {
                         Input::Stdin
                     } else {
-                        Input::File {
-                            file_name: s.clone(),
-                        }
+                        Input::File { file_name: s }
                     }
                 })
                 .collect()
@@ -163,7 +161,7 @@ impl CommandService {
 
                     self.process_one_input(input, reader).await?;
                 }
-                Input::File { ref file_name } => {
+                Input::File { file_name } => {
                     let file = tokio::fs::File::open(file_name).await.with_context(|| {
                         format!("error opening input file file_name = '{}'", file_name)
                     })?;
