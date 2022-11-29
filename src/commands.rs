@@ -14,9 +14,16 @@ use std::sync::Arc;
 
 use crate::command_line_args;
 
+#[derive(Debug, Clone)]
+enum Input {
+    Stdin,
+
+    File { file_name: String },
+}
+
 #[derive(Debug)]
 struct Command {
-    _input_name: String,
+    _input: Input,
     _line_number: u64,
     command: String,
     shell_enabled: bool,
@@ -74,10 +81,10 @@ impl CommandService {
 
     async fn process_one_input(
         &self,
-        input_name: &str,
+        input: &Input,
         mut reader: BufReader<impl AsyncRead + Unpin>,
     ) -> anyhow::Result<()> {
-        debug!("begin process_one_input input_name = '{}'", input_name);
+        debug!("begin process_one_input input = {:?}", input);
 
         let args = command_line_args::instance();
 
@@ -113,7 +120,7 @@ impl CommandService {
             let worker = self.wait_group.worker();
 
             let command = Command {
-                _input_name: input_name.to_owned(),
+                _input: input.clone(),
                 _line_number: line_number,
                 command: trimmed_line.to_owned(),
                 shell_enabled: *args.shell_enabled(),
@@ -122,36 +129,48 @@ impl CommandService {
             tokio::spawn(command.run(permit, worker));
         }
 
-        debug!("end process_one_input input_name = '{}'", input_name);
+        debug!("end process_one_input input = {:?}", input);
 
         Ok(())
     }
 
     pub async fn spawn_commands(self) -> anyhow::Result<WaitGroup> {
-        const STDIN_INPUT: &'static str = "-";
-
         debug!("begin spawn_commands");
 
         let args = command_line_args::instance();
 
         let inputs = if args.inputs().is_empty() {
-            vec![STDIN_INPUT]
+            vec![Input::Stdin]
         } else {
-            args.inputs().iter().map(|s| s.as_str()).collect()
+            args.inputs()
+                .iter()
+                .map(|s| {
+                    if s == "-" {
+                        Input::Stdin
+                    } else {
+                        Input::File {
+                            file_name: s.clone(),
+                        }
+                    }
+                })
+                .collect()
         };
 
-        for input_name in inputs {
-            if input_name == STDIN_INPUT {
-                let reader = BufReader::new(tokio::io::stdin());
+        for input in &inputs {
+            match input {
+                Input::Stdin => {
+                    let reader = BufReader::new(tokio::io::stdin());
 
-                self.process_one_input(input_name, reader).await?;
-            } else {
-                let file = tokio::fs::File::open(input_name).await.with_context(|| {
-                    format!("error opening input file input_name = '{}'", input_name)
-                })?;
-                let reader = BufReader::new(file);
+                    self.process_one_input(input, reader).await?;
+                }
+                Input::File { file_name } => {
+                    let file = tokio::fs::File::open(file_name).await.with_context(|| {
+                        format!("error opening input file file_name = '{}'", file_name)
+                    })?;
+                    let reader = BufReader::new(file);
 
-                self.process_one_input(input_name, reader).await?;
+                    self.process_one_input(input, reader).await?;
+                }
             }
         }
 
