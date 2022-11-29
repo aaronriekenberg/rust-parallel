@@ -19,6 +19,13 @@ Just starting - more options to come :)
 # Non-goals:
 * Executing commands on remote computers.
 
+# Installation:
+1. Clone this git repo
+2. Build options:
+  - `cargo build -v` faster build, slower runtime performance, executable in `target/debug/rust-parallel`
+  - `cargo build --release` slower build, faster runtime performance, executable in `target/release/rust-parallel`
+3. Below demos assume you have put the `rust-parallel` executable in your `PATH`.
+
 # Usage:
 ```
 $ rust-parallel -h
