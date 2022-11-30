@@ -134,28 +134,7 @@ impl CommandService {
         Ok(())
     }
 
-    pub async fn spawn_commands(self) -> anyhow::Result<WaitGroup> {
-        debug!("begin spawn_commands");
-
-        let args = command_line_args::instance();
-
-        let inputs = if args.inputs().is_empty() {
-            vec![Input::Stdin]
-        } else {
-            args.inputs()
-                .iter()
-                .map(|input_name| {
-                    if input_name == "-" {
-                        Input::Stdin
-                    } else {
-                        Input::File {
-                            file_name: input_name,
-                        }
-                    }
-                })
-                .collect()
-        };
-
+    async fn process_inputs(&self, inputs: Vec<Input>) -> anyhow::Result<()> {
         for input in inputs {
             match input {
                 Input::Stdin => {
@@ -173,6 +152,36 @@ impl CommandService {
                 }
             }
         }
+        Ok(())
+    }
+
+    fn build_inputs(&self) -> Vec<Input> {
+        let args = command_line_args::instance();
+
+        if args.inputs().is_empty() {
+            vec![Input::Stdin]
+        } else {
+            args.inputs()
+                .iter()
+                .map(|input_name| {
+                    if input_name == "-" {
+                        Input::Stdin
+                    } else {
+                        Input::File {
+                            file_name: input_name,
+                        }
+                    }
+                })
+                .collect()
+        }
+    }
+
+    pub async fn spawn_commands(self) -> anyhow::Result<WaitGroup> {
+        debug!("begin spawn_commands");
+
+        let inputs = self.build_inputs();
+
+        self.process_inputs(inputs).await?;
 
         debug!("end spawn_commands");
 
