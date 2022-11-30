@@ -82,7 +82,7 @@ impl CommandService {
     async fn process_one_input(
         &self,
         input: Input,
-        mut reader: BufReader<impl AsyncRead + Unpin>,
+        mut input_reader: BufReader<impl AsyncRead + Unpin>,
     ) -> anyhow::Result<()> {
         debug!("begin process_one_input input = {:?}", input);
 
@@ -94,7 +94,7 @@ impl CommandService {
         loop {
             line.clear();
 
-            let bytes_read = reader
+            let bytes_read = input_reader
                 .read_line(&mut line)
                 .await
                 .context("read_line error")?;
@@ -138,17 +138,17 @@ impl CommandService {
         for input in inputs {
             match input {
                 Input::Stdin => {
-                    let reader = BufReader::new(tokio::io::stdin());
+                    let input_reader = BufReader::new(tokio::io::stdin());
 
-                    self.process_one_input(input, reader).await?;
+                    self.process_one_input(input, input_reader).await?;
                 }
                 Input::File { file_name } => {
                     let file = tokio::fs::File::open(file_name).await.with_context(|| {
                         format!("error opening input file file_name = '{}'", file_name)
                     })?;
-                    let reader = BufReader::new(file);
+                    let input_reader = BufReader::new(file);
 
-                    self.process_one_input(input, reader).await?;
+                    self.process_one_input(input, input_reader).await?;
                 }
             }
         }
