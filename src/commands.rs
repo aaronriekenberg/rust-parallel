@@ -4,7 +4,7 @@ use awaitgroup::WaitGroup;
 
 use tokio::{
     io::{AsyncBufReadExt, AsyncRead, BufReader},
-    process::Command as TokioCommand,
+    process::Command,
     sync::{OwnedSemaphorePermit, Semaphore},
 };
 
@@ -22,19 +22,21 @@ enum Input {
 }
 
 #[derive(Debug)]
-struct Command {
+struct CommandInvocation {
     _input: Input,
     _line_number: u64,
     command: String,
     shell_enabled: bool,
+    _permit: OwnedSemaphorePermit,
+    _worker: awaitgroup::Worker,
 }
 
-impl Command {
-    async fn run(self, _permit: OwnedSemaphorePermit, _worker: awaitgroup::Worker) {
-        debug!("begin run_command command = {:?}", self);
+impl CommandInvocation {
+    async fn run(self) {
+        debug!("begin run command = {:?}", self);
 
         let command_output = if self.shell_enabled {
-            TokioCommand::new("/bin/sh")
+            Command::new("/bin/sh")
                 .args(["-c", &self.command])
                 .output()
                 .await
@@ -44,7 +46,7 @@ impl Command {
             let command = split.get(0).expect("invalid command string");
             let args = &split[1..];
 
-            TokioCommand::new(command).args(args).output().await
+            Command::new(command).args(args).output().await
         };
 
         match command_output {
@@ -62,7 +64,7 @@ impl Command {
             }
         };
 
-        debug!("end run_command command = {:?}", self);
+        debug!("end run command = {:?}", self);
     }
 }
 
@@ -119,14 +121,16 @@ impl CommandService {
 
             let worker = self.wait_group.worker();
 
-            let command = Command {
+            let command = CommandInvocation {
                 _input: input,
                 _line_number: line_number,
                 command: trimmed_line.to_owned(),
                 shell_enabled: *args.shell_enabled(),
+                _permit: permit,
+                _worker: worker,
             };
 
-            tokio::spawn(command.run(permit, worker));
+            tokio::spawn(command.run());
         }
 
         debug!("end process_one_input input = {:?}", input);
