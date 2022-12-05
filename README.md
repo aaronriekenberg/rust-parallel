@@ -59,6 +59,8 @@ Small demo of 5 echo commands:
 
 ```
 $ cat >./test <<EOL
+# input can contain comment lines (starting with #) and blank lines too
+
 echo hi
 echo there
 echo how
