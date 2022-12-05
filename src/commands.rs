@@ -119,15 +119,13 @@ impl CommandService {
                 .await
                 .context("command_semaphore.acquire_owned error")?;
 
-            let worker = self.wait_group.worker();
-
             let command = CommandInvocation {
                 _input: input,
                 _line_number: line_number,
                 command: trimmed_line.to_owned(),
                 shell_enabled: *args.shell_enabled(),
                 _permit: permit,
-                _worker: worker,
+                _worker: self.wait_group.worker(),
             };
 
             tokio::spawn(command.run());
