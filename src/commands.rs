@@ -27,8 +27,8 @@ struct CommandInvocation {
     _line_number: u64,
     command: String,
     shell_enabled: bool,
-    _permit: OwnedSemaphorePermit,
     _worker: awaitgroup::Worker,
+    _permit: OwnedSemaphorePermit,
 }
 
 impl CommandInvocation {
@@ -125,8 +125,8 @@ impl CommandService {
                 _line_number: line_number,
                 command: trimmed_line.to_owned(),
                 shell_enabled: *args.shell_enabled(),
-                _permit: permit,
                 _worker: self.wait_group.worker(),
+                _permit: permit,
             };
 
             tokio::spawn(command.run());
