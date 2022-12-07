@@ -29,11 +29,11 @@ Just starting - more options to come :)
 * [tracing](https://docs.rs/tracing/latest/tracing/) used for debug and warning logs.
 
 # Installation:
-1. Clone this git repo
-2. Build options:
-   * `cargo build -v` faster build, slower runtime performance, executable in `target/debug/rust-parallel`
-   * `cargo build --release` slower build, faster runtime performance, executable in `target/release/rust-parallel`
-3. Below demos assume you have put the `rust-parallel` executable in your `PATH`.
+1. [Install Rust](https://www.rust-lang.org/learn/get-started)
+2. Install the latest version of this app from [crates.io](https://crates.io):
+   ```
+   $ cargo install rust-parallel   
+   ```
 
 # Usage:
 ```
