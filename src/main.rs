@@ -1,3 +1,5 @@
+#![warn(rust_2018_idioms)]
+
 mod command_line_args;
 mod commands;
 

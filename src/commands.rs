@@ -41,7 +41,7 @@ impl CommandInvocation {
                 .output()
                 .await
         } else {
-            let split: Vec<&str> = self.command.split_whitespace().collect();
+            let split: Vec<_> = self.command.split_whitespace().collect();
 
             let [command, args @ ..] = split.as_slice() else {
                 panic!("invalid command '{}'", self.command);
