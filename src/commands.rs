@@ -8,7 +8,7 @@ use tokio::{
     sync::{OwnedSemaphorePermit, Semaphore},
 };
 
-use tracing::{debug, warn};
+use tracing::{debug, trace, warn};
 
 use std::sync::Arc;
 
@@ -54,10 +54,16 @@ impl CommandInvocation {
             Ok(output) => {
                 debug!("got command status = {}", output.status);
                 if output.stdout.len() > 0 {
-                    print!("{}", &String::from_utf8_lossy(&output.stdout));
+                    let result =
+                        tokio::io::copy(&mut output.stdout.as_slice(), &mut tokio::io::stdout())
+                            .await;
+                    trace!("stdout copy result = {:?}", result);
                 }
                 if output.stderr.len() > 0 {
-                    eprint!("{}", &String::from_utf8_lossy(&output.stderr));
+                    let result =
+                        tokio::io::copy(&mut output.stderr.as_slice(), &mut tokio::io::stderr())
+                            .await;
+                    trace!("stderr copy result = {:?}", result);
                 }
             }
             Err(e) => {
