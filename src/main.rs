@@ -6,7 +6,7 @@ mod commands;
 use tracing::{debug, error};
 
 async fn try_main() -> anyhow::Result<()> {
-    debug!("begin main");
+    debug!("begin try_main");
 
     command_line_args::initialize()?;
 
@@ -18,7 +18,7 @@ async fn try_main() -> anyhow::Result<()> {
 
     wait_group.wait().await;
 
-    debug!("end main");
+    debug!("end try_main");
 
     Ok(())
 }
