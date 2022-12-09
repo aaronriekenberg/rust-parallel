@@ -1,6 +1,8 @@
 # rust-parallel
 
-Run commands in parallel, like a simple rust verision of [GNU Parallel](https://www.gnu.org/software/parallel/).
+Command-line utility to execute commands in parallel and display their output.
+
+Like a simple rust version of [GNU Parallel](https://www.gnu.org/software/parallel/).
 
 Just starting - more options to come :)
 
