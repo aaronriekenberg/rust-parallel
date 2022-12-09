@@ -3,12 +3,9 @@
 mod command_line_args;
 mod commands;
 
-use tracing::debug;
+use tracing::{debug, error};
 
-#[tokio::main]
-async fn main() -> anyhow::Result<()> {
-    tracing_subscriber::fmt::init();
-
+async fn try_main() -> anyhow::Result<()> {
     debug!("begin main");
 
     command_line_args::initialize()?;
@@ -24,4 +21,14 @@ async fn main() -> anyhow::Result<()> {
     debug!("end main");
 
     Ok(())
+}
+
+#[tokio::main]
+async fn main() {
+    tracing_subscriber::fmt::init();
+
+    if let Err(err) = try_main().await {
+        error!("fatal error:\n{:#}", err);
+        std::process::exit(1);
+    }
 }
