@@ -4,7 +4,7 @@ use awaitgroup::WaitGroup;
 
 use tokio::{
     io::{AsyncBufReadExt, AsyncRead, BufReader, Stderr, Stdout},
-    process::Command,
+    process::Command as TokioCommand,
     sync::{Mutex, OwnedSemaphorePermit, Semaphore},
 };
 
@@ -68,14 +68,14 @@ impl OutputWriter {
 }
 
 #[derive(Debug)]
-struct CommandInvocation {
+struct Command {
     input: Input,
     line_number: u64,
     command: String,
     shell_enabled: bool,
 }
 
-impl CommandInvocation {
+impl Command {
     async fn run(
         self,
         worker: awaitgroup::Worker,
@@ -88,7 +88,7 @@ impl CommandInvocation {
         );
 
         let command_output = if self.shell_enabled {
-            Command::new("/bin/sh")
+            TokioCommand::new("/bin/sh")
                 .args(["-c", &self.command])
                 .output()
                 .await
@@ -99,7 +99,7 @@ impl CommandInvocation {
                 panic!("invalid command '{}'", self.command);
             };
 
-            Command::new(command).args(args).output().await
+            TokioCommand::new(command).args(args).output().await
         };
 
         match command_output {
@@ -119,7 +119,7 @@ impl CommandInvocation {
     }
 }
 
-impl std::fmt::Display for CommandInvocation {
+impl std::fmt::Display for Command {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
@@ -182,7 +182,7 @@ impl CommandService {
                 .await
                 .context("command_semaphore.acquire_owned error")?;
 
-            let command = CommandInvocation {
+            let command = Command {
                 input,
                 line_number,
                 command: trimmed_line.to_owned(),
