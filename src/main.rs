@@ -1,16 +1,18 @@
 #![warn(rust_2018_idioms)]
 
-mod command_line_args;
-mod commands;
-
 use tracing::{debug, error};
+
+mod command;
+mod command_line_args;
+mod input;
+mod output;
 
 async fn try_main() -> anyhow::Result<()> {
     debug!("begin try_main");
 
     command_line_args::initialize()?;
 
-    let command_service = commands::CommandService::new();
+    let command_service = command::CommandService::new();
 
     let mut wait_group = command_service.spawn_commands().await?;
 

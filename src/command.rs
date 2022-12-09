@@ -3,62 +3,16 @@ use anyhow::Context;
 use awaitgroup::WaitGroup;
 
 use tokio::{
-    io::{AsyncBufReadExt, AsyncRead, AsyncWrite, BufReader, Stderr, Stdout},
+    io::{AsyncBufReadExt, AsyncRead, BufReader},
     process::Command as TokioCommand,
-    sync::{Mutex, OwnedSemaphorePermit, Semaphore},
+    sync::{OwnedSemaphorePermit, Semaphore},
 };
 
-use tracing::{debug, trace, warn};
+use tracing::{debug, warn};
 
-use std::{process::Output, sync::Arc};
+use std::sync::Arc;
 
-use crate::command_line_args;
-
-#[derive(Debug, Clone, Copy)]
-enum Input {
-    Stdin,
-
-    File { file_name: &'static str },
-}
-
-impl std::fmt::Display for Input {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Input::Stdin => write!(f, "stdin"),
-            Input::File { file_name } => write!(f, "file('{}')", file_name),
-        }
-    }
-}
-
-struct OutputWriter {
-    stdout: Mutex<Stdout>,
-    stderr: Mutex<Stderr>,
-}
-
-impl OutputWriter {
-    fn new() -> Arc<Self> {
-        Arc::new(Self {
-            stdout: Mutex::new(tokio::io::stdout()),
-            stderr: Mutex::new(tokio::io::stderr()),
-        })
-    }
-
-    async fn write_command_output(&self, command_output: &Output) {
-        async fn write(mut buffer: &[u8], output_stream_mutex: &Mutex<impl AsyncWrite + Unpin>) {
-            let mut output_stream = output_stream_mutex.lock().await;
-
-            let result = tokio::io::copy(&mut buffer, &mut *output_stream).await;
-            trace!("write_command_output copy result = {:?}", result);
-        }
-
-        if !command_output.stdout.is_empty() {
-            write(&command_output.stdout, &self.stdout).await;
-        }
-        if !command_output.stderr.is_empty() {
-            write(&command_output.stderr, &self.stderr).await;
-        }
-    }
-}
+use crate::{command_line_args, input::Input, output::OutputWriter};
 
 #[derive(Debug)]
 struct Command {
