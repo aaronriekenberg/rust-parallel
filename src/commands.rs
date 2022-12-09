@@ -25,7 +25,7 @@ impl std::fmt::Display for Input {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Input::Stdin => write!(f, "stdin"),
-            Input::File { file_name } => write!(f, "file({})", file_name),
+            Input::File { file_name } => write!(f, "file('{}')", file_name),
         }
     }
 }
@@ -116,7 +116,7 @@ impl std::fmt::Display for Command {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "input={},line_number={},command={},shell_enabled={}",
+            "input={},line_number={},command='{}',shell_enabled={}",
             self.input, self.line_number, self.command, self.shell_enabled,
         )
     }
