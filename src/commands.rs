@@ -21,10 +21,19 @@ enum Input {
     File { file_name: &'static str },
 }
 
+impl std::fmt::Display for Input {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Input::Stdin => write!(f, "stdin"),
+            Input::File { file_name } => write!(f, "file({})", file_name),
+        }
+    }
+}
+
 #[derive(Debug)]
 struct CommandInvocation {
-    _input: Input,
-    _line_number: u64,
+    input: Input,
+    line_number: u64,
     command: String,
     shell_enabled: bool,
     _worker: awaitgroup::Worker,
@@ -67,11 +76,21 @@ impl CommandInvocation {
                 }
             }
             Err(e) => {
-                warn!("got error running command {:?}: {}", self, e);
+                warn!("got error running command ({}): {}", self, e);
             }
         };
 
         debug!("end run command = {:?}", self);
+    }
+}
+
+impl std::fmt::Display for CommandInvocation {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "input={},line_number={},command={},shell_enabled={}",
+            self.input, self.line_number, self.command, self.shell_enabled,
+        )
     }
 }
 
@@ -127,8 +146,8 @@ impl CommandService {
                 .context("command_semaphore.acquire_owned error")?;
 
             let command = CommandInvocation {
-                _input: input,
-                _line_number: line_number,
+                input,
+                line_number,
                 command: trimmed_line.to_owned(),
                 shell_enabled: *args.shell_enabled(),
                 _worker: self.wait_group.worker(),
