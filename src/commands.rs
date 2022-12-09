@@ -113,7 +113,7 @@ impl Command {
         };
 
         debug!(
-            "begin run command = {:?} worker = {:?} permit = {:?}",
+            "end run command = {:?} worker = {:?} permit = {:?}",
             self, worker, permit
         );
     }
