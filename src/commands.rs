@@ -36,13 +36,14 @@ struct CommandInvocation {
     line_number: u64,
     command: String,
     shell_enabled: bool,
-    _worker: awaitgroup::Worker,
-    _permit: OwnedSemaphorePermit,
 }
 
 impl CommandInvocation {
-    async fn run(self) {
-        debug!("begin run command = {:?}", self);
+    async fn run(self, worker: awaitgroup::Worker, permit: OwnedSemaphorePermit) {
+        debug!(
+            "begin run command = {:?} worker = {:?} permit = {:?}",
+            self, worker, permit
+        );
 
         let command_output = if self.shell_enabled {
             Command::new("/bin/sh")
@@ -80,7 +81,10 @@ impl CommandInvocation {
             }
         };
 
-        debug!("end run command = {:?}", self);
+        debug!(
+            "begin run command = {:?} worker = {:?} permit = {:?}",
+            self, worker, permit
+        );
     }
 }
 
@@ -150,11 +154,9 @@ impl CommandService {
                 line_number,
                 command: trimmed_line.to_owned(),
                 shell_enabled: *args.shell_enabled(),
-                _worker: self.wait_group.worker(),
-                _permit: permit,
             };
 
-            tokio::spawn(command.run());
+            tokio::spawn(command.run(self.wait_group.worker(), permit));
         }
 
         debug!("end process_one_input input = {:?}", input);
