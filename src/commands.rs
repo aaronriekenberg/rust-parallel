@@ -3,14 +3,14 @@ use anyhow::Context;
 use awaitgroup::WaitGroup;
 
 use tokio::{
-    io::{AsyncBufReadExt, AsyncRead, BufReader, Stderr, Stdout},
+    io::{AsyncBufReadExt, AsyncRead, AsyncWrite, BufReader, Stderr, Stdout},
     process::Command as TokioCommand,
     sync::{Mutex, OwnedSemaphorePermit, Semaphore},
 };
 
 use tracing::{debug, trace, warn};
 
-use std::sync::Arc;
+use std::{process::Output, sync::Arc};
 
 use crate::command_line_args;
 
@@ -43,26 +43,19 @@ impl OutputWriter {
         })
     }
 
-    async fn write_to_stdout(&self, mut buffer: &[u8]) {
-        let mut stdout = self.stdout.lock().await;
+    async fn write_command_output(&self, command_output: &Output) {
+        async fn write(mut buffer: &[u8], output_stream_mutex: &Mutex<impl AsyncWrite + Unpin>) {
+            let mut output_stream = output_stream_mutex.lock().await;
 
-        let result = tokio::io::copy(&mut buffer, &mut *stdout).await;
-        trace!("stdout copy result = {:?}", result);
-    }
-
-    async fn write_to_stderr(&self, mut buffer: &[u8]) {
-        let mut stderr = self.stderr.lock().await;
-
-        let result = tokio::io::copy(&mut buffer, &mut *stderr).await;
-        trace!("stderr copy result = {:?}", result);
-    }
-
-    async fn write(&self, stdout_buffer: &[u8], stderr_buffer: &[u8]) {
-        if !stdout_buffer.is_empty() {
-            self.write_to_stdout(stdout_buffer).await;
+            let result = tokio::io::copy(&mut buffer, &mut *output_stream).await;
+            trace!("write_command_output copy result = {:?}", result);
         }
-        if !stderr_buffer.is_empty() {
-            self.write_to_stderr(stderr_buffer).await;
+
+        if !command_output.stdout.is_empty() {
+            write(&command_output.stdout, &self.stdout).await;
+        }
+        if !command_output.stderr.is_empty() {
+            write(&command_output.stderr, &self.stderr).await;
         }
     }
 }
@@ -105,7 +98,7 @@ impl Command {
         match command_output {
             Ok(output) => {
                 debug!("got command status = {}", output.status);
-                output_writer.write(&output.stdout, &output.stderr).await;
+                output_writer.write_command_output(&output).await;
             }
             Err(e) => {
                 warn!("got error running command ({}): {}", self, e);
