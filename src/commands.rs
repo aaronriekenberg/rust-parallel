@@ -3,9 +3,9 @@ use anyhow::Context;
 use awaitgroup::WaitGroup;
 
 use tokio::{
-    io::{AsyncBufReadExt, AsyncRead, BufReader},
+    io::{AsyncBufReadExt, AsyncRead, BufReader, Stderr, Stdout},
     process::Command,
-    sync::{OwnedSemaphorePermit, Semaphore},
+    sync::{Mutex, OwnedSemaphorePermit, Semaphore},
 };
 
 use tracing::{debug, trace, warn};
@@ -30,6 +30,43 @@ impl std::fmt::Display for Input {
     }
 }
 
+struct OutputWriter {
+    stdout: Mutex<Stdout>,
+    stderr: Mutex<Stderr>,
+}
+
+impl OutputWriter {
+    fn new() -> Arc<Self> {
+        Arc::new(Self {
+            stdout: Mutex::new(tokio::io::stdout()),
+            stderr: Mutex::new(tokio::io::stderr()),
+        })
+    }
+
+    async fn write_to_stdout(&self, mut buffer: &[u8]) {
+        let mut stdout = self.stdout.lock().await;
+
+        let result = tokio::io::copy(&mut buffer, &mut *stdout).await;
+        trace!("stdout copy result = {:?}", result);
+    }
+
+    async fn write_to_stderr(&self, mut buffer: &[u8]) {
+        let mut stderr = self.stderr.lock().await;
+
+        let result = tokio::io::copy(&mut buffer, &mut *stderr).await;
+        trace!("stderr copy result = {:?}", result);
+    }
+
+    async fn write(&self, stdout_buffer: &[u8], stderr_buffer: &[u8]) {
+        if !stdout_buffer.is_empty() {
+            self.write_to_stdout(stdout_buffer).await;
+        }
+        if !stderr_buffer.is_empty() {
+            self.write_to_stderr(stderr_buffer).await;
+        }
+    }
+}
+
 #[derive(Debug)]
 struct CommandInvocation {
     input: Input,
@@ -39,7 +76,12 @@ struct CommandInvocation {
 }
 
 impl CommandInvocation {
-    async fn run(self, worker: awaitgroup::Worker, permit: OwnedSemaphorePermit) {
+    async fn run(
+        self,
+        worker: awaitgroup::Worker,
+        permit: OwnedSemaphorePermit,
+        output_writer: Arc<OutputWriter>,
+    ) {
         debug!(
             "begin run command = {:?} worker = {:?} permit = {:?}",
             self, worker, permit
@@ -63,18 +105,7 @@ impl CommandInvocation {
         match command_output {
             Ok(output) => {
                 debug!("got command status = {}", output.status);
-                if output.stdout.len() > 0 {
-                    let result =
-                        tokio::io::copy(&mut output.stdout.as_slice(), &mut tokio::io::stdout())
-                            .await;
-                    trace!("stdout copy result = {:?}", result);
-                }
-                if output.stderr.len() > 0 {
-                    let result =
-                        tokio::io::copy(&mut output.stderr.as_slice(), &mut tokio::io::stderr())
-                            .await;
-                    trace!("stderr copy result = {:?}", result);
-                }
+                output_writer.write(&output.stdout, &output.stderr).await;
             }
             Err(e) => {
                 warn!("got error running command ({}): {}", self, e);
@@ -101,6 +132,7 @@ impl std::fmt::Display for CommandInvocation {
 pub struct CommandService {
     command_semaphore: Arc<Semaphore>,
     wait_group: WaitGroup,
+    output_writer: Arc<OutputWriter>,
 }
 
 impl CommandService {
@@ -108,6 +140,7 @@ impl CommandService {
         Self {
             command_semaphore: Arc::new(Semaphore::new(*command_line_args::instance().jobs())),
             wait_group: WaitGroup::new(),
+            output_writer: OutputWriter::new(),
         }
     }
 
@@ -156,7 +189,11 @@ impl CommandService {
                 shell_enabled: *args.shell_enabled(),
             };
 
-            tokio::spawn(command.run(self.wait_group.worker(), permit));
+            tokio::spawn(command.run(
+                self.wait_group.worker(),
+                permit,
+                Arc::clone(&self.output_writer),
+            ));
         }
 
         debug!("end process_one_input input = {:?}", input);
