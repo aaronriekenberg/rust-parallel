@@ -93,6 +93,16 @@ MD5 ("Abbadide") = 7add1d6f008790fa6783bc8798d8c803
 MD5 ("abb") = ea01e5fd8e4d8832825acdd20eac5104
 ```
 
+Using as part of a shell pipeline.  stdout and stderr from each command run are copied to stdout/stderr of the rust-parallel process.
+
+```
+$ head -100 /usr/share/dict/words| awk '{printf "md5 -s %s\n", $1}' | rust-parallel | grep -i abba
+MD5 ("Abba") = 5fa1e1f6e07a6fea3f2bb098e90a8de2
+MD5 ("abbacomes") = 76640eb0c929bc97d016731bfbe9a4f8
+MD5 ("abbacy") = 08aeac72800adc98d2aba540b6195921
+MD5 ("Abbadide") = 7add1d6f008790fa6783bc8798d8c803
+```
+
 Using input file.  Multiple inputs can be specified, `-` means stdin:
 
 ```
