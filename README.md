@@ -15,8 +15,8 @@ Just starting - more options to come :)
 * Use only safe rust.
 * Use only asynchronous operations supported by [tokio](https://tokio.rs), do not use any blocking operations.
 * Support arbitrarily large number of input lines, avoid `O(number of input lines)` memory usage.  In support of this:
-  * [`tokio::sync::Semaphore`](https://docs.rs/tokio/latest/tokio/sync/struct.Semaphore.html) is used carefully to limit the number of commands that can be run, and to limit memory usage while waiting for commands to finish.  Do not spawn tasks for all input lines immediately to limit memory usage.
-  * [`awaitgroup::WaitGroup`](https://crates.io/crates/awaitgroup) is used to wait for all async functions to finish.  Internally this is just a counter and uses a constant amount of memory.
+  * [`tokio::sync::Semaphore`](https://docs.rs/tokio/latest/tokio/sync/struct.Semaphore.html) is used carefully to limit the number of commands that run concurrently.  Do not spawn tasks for all input lines immediately to limit memory usage.
+  * [`awaitgroup::WaitGroup`](https://crates.io/crates/awaitgroup) is used to wait for all async functions to finish.  Internally this is a counter and uses a constant amount of memory.
 * Support running commands on local machine only, not on remote machines.
 
 # Tech Stack:
@@ -27,15 +27,16 @@ Just starting - more options to come :)
   * `async` / `await` functions (aka coroutines)
   * Singleton `CommandLineArgs` instance using [`tokio::sync::OnceCell`](https://docs.rs/tokio/latest/tokio/sync/struct.OnceCell.html).
   * Asynchronous command execution using [`tokio::process::Command`](https://docs.rs/tokio/latest/tokio/process/struct.Command.html)
-  * Semaphore
+  * [`tokio::sync::Semaphore`](https://docs.rs/tokio/latest/tokio/sync/struct.Semaphore.html) used to limit number of commands that run concurrently.
+  * [`tokio::sync::Mutex`](https://docs.rs/tokio/latest/tokio/sync/struct.Mutex.html) used to protect access to stdout/stderr to prevent interleaved command output.
 * [tracing](https://docs.rs/tracing/latest/tracing/) used for debug and warning logs.
 
 # Installation:
 1. [Install Rust](https://www.rust-lang.org/learn/get-started)
-2. Install the latest version of this app from [crates.io](https://crates.io):
-   ```
-   $ cargo install rust-parallel   
-   ```
+2. Install the latest version of this app from [crates.io](https://crates.io/crates/rust-parallel):
+```
+$ cargo install rust-parallel   
+```
 
 # Usage:
 ```
