@@ -2,9 +2,9 @@
 
 Command-line utility to execute commands in parallel and aggregate their output.
 
-Like a simple rust version of [GNU Parallel](https://www.gnu.org/software/parallel/).
+Something like a simple rust version of [GNU Parallel](https://www.gnu.org/software/parallel/).
 
-Just starting - more options to come :)
+Being written in rust it is quite fast - see [benchmarks](https://github.com/aaronriekenberg/rust-parallel/wiki/Benchmarks).
 
 [![Crates.io][crates-badge]][crates-url]
 
