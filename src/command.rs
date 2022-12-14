@@ -190,15 +190,21 @@ impl CommandService {
         }
     }
 
-    pub async fn spawn_commands(self) -> anyhow::Result<WaitGroup> {
-        debug!("begin spawn_commands");
+    pub async fn run_commands(self) -> anyhow::Result<()> {
+        debug!("begin run_commands");
 
         let inputs = self.build_inputs();
 
         self.process_inputs(inputs).await?;
 
-        debug!("end spawn_commands");
+        debug!("before wait_group.wait wait_group = {:?}", self.wait_group);
 
-        Ok(self.wait_group)
+        let mut mut_self = self;
+
+        mut_self.wait_group.wait().await;
+
+        debug!("end run_commands");
+
+        Ok(())
     }
 }

@@ -14,11 +14,7 @@ async fn try_main() -> anyhow::Result<()> {
 
     let command_service = command::CommandService::new();
 
-    let mut wait_group = command_service.spawn_commands().await?;
-
-    debug!("before wait_group.wait wait_group = {:?}", wait_group);
-
-    wait_group.wait().await;
+    command_service.run_commands().await?;
 
     debug!("end try_main");
 
