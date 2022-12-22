@@ -20,6 +20,12 @@ struct InputAndLineNumber {
     line_number: u64,
 }
 
+impl std::fmt::Display for InputAndLineNumber {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}:{}", self.input, self.line_number)
+    }
+}
+
 #[derive(Debug)]
 struct Command {
     input_and_line_number: InputAndLineNumber,
@@ -36,7 +42,7 @@ impl Command {
     ) {
         debug!(
             "begin run command = {:?} worker = {:?} permit = {:?}",
-            self, worker, permit
+            self, worker, permit,
         );
 
         let command_output = if self.shell_enabled {
@@ -60,13 +66,13 @@ impl Command {
                 output_writer.write_command_output(&output).await;
             }
             Err(e) => {
-                warn!("got error running command ({}): {}", self, e);
+                warn!("got error running command: {}: {}", self, e);
             }
         };
 
         debug!(
             "end run command = {:?} worker = {:?} permit = {:?}",
-            self, worker, permit
+            self, worker, permit,
         );
     }
 }
@@ -75,11 +81,8 @@ impl std::fmt::Display for Command {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "input={},line_number={},command='{}',shell_enabled={}",
-            self.input_and_line_number.input,
-            self.input_and_line_number.line_number,
-            self.command,
-            self.shell_enabled,
+            "{} '{}' shell={}",
+            self.input_and_line_number, self.command, self.shell_enabled,
         )
     }
 }
