@@ -130,39 +130,39 @@ With debug logs enabled:
 
 ```
 $ cat test | RUST_LOG=debug rust-parallel
-2022-12-18T13:42:00.554691Z DEBUG rust_parallel: begin try_main
-2022-12-18T13:42:00.555500Z DEBUG rust_parallel::command_line_args: command_line_args = CommandLineArgs { jobs: 8, shell_enabled: false, inputs: [] }
-2022-12-18T13:42:00.555556Z DEBUG rust_parallel::command: begin run_commands
-2022-12-18T13:42:00.555594Z DEBUG rust_parallel::command: begin process_one_input input = Stdin
-2022-12-18T13:42:00.555795Z DEBUG rust_parallel::command: read line # input can contain comment lines (starting with #) and blank lines too
-2022-12-18T13:42:00.555823Z DEBUG rust_parallel::command: read line
-2022-12-18T13:42:00.555837Z DEBUG rust_parallel::command: read line echo hi
-2022-12-18T13:42:00.555895Z DEBUG rust_parallel::command: read line echo there
-2022-12-18T13:42:00.555923Z DEBUG rust_parallel::command: read line echo how
-2022-12-18T13:42:00.555953Z DEBUG rust_parallel::command: read line echo are
-2022-12-18T13:42:00.555992Z DEBUG rust_parallel::command: read line echo you
-2022-12-18T13:42:00.555982Z DEBUG rust_parallel::command: begin run command = Command { input: Stdin, line_number: 3, command: "echo hi", shell_enabled: false } worker = WaitGroup { count: 5 } permit = OwnedSemaphorePermit { sem: Semaphore { ll_sem: Semaphore { permits: 3 } }, permits: 1 }
-2022-12-18T13:42:00.556011Z DEBUG rust_parallel::command: begin run command = Command { input: Stdin, line_number: 5, command: "echo how", shell_enabled: false } worker = WaitGroup { count: 5 } permit = OwnedSemaphorePermit { sem: Semaphore { ll_sem: Semaphore { permits: 3 } }, permits: 1 }
-2022-12-18T13:42:00.555992Z DEBUG rust_parallel::command: begin run command = Command { input: Stdin, line_number: 4, command: "echo there", shell_enabled: false } worker = WaitGroup { count: 5 } permit = OwnedSemaphorePermit { sem: Semaphore { ll_sem: Semaphore { permits: 3 } }, permits: 1 }
-2022-12-18T13:42:00.556052Z DEBUG rust_parallel::command: begin run command = Command { input: Stdin, line_number: 6, command: "echo are", shell_enabled: false } worker = WaitGroup { count: 5 } permit = OwnedSemaphorePermit { sem: Semaphore { ll_sem: Semaphore { permits: 3 } }, permits: 1 }
-2022-12-18T13:42:00.556068Z DEBUG rust_parallel::command: begin run command = Command { input: Stdin, line_number: 7, command: "echo you", shell_enabled: false } worker = WaitGroup { count: 5 } permit = OwnedSemaphorePermit { sem: Semaphore { ll_sem: Semaphore { permits: 3 } }, permits: 1 }
-2022-12-18T13:42:00.556112Z DEBUG rust_parallel::command: end process_one_input input = Stdin
-2022-12-18T13:42:00.559214Z DEBUG rust_parallel::command: got command status = exit status: 0
-2022-12-18T13:42:00.563456Z DEBUG rust_parallel::command: before wait_group.wait wait_group = WaitGroup { count: 5 }
-how
-2022-12-18T13:42:00.563760Z DEBUG rust_parallel::command: got command status = exit status: 0
-2022-12-18T13:42:00.563808Z DEBUG rust_parallel::command: end run command = Command { input: Stdin, line_number: 5, command: "echo how", shell_enabled: false } worker = WaitGroup { count: 5 } permit = OwnedSemaphorePermit { sem: Semaphore { ll_sem: Semaphore { permits: 3 } }, permits: 1 }
-hi
-2022-12-18T13:42:00.564006Z DEBUG rust_parallel::command: end run command = Command { input: Stdin, line_number: 3, command: "echo hi", shell_enabled: false } worker = WaitGroup { count: 4 } permit = OwnedSemaphorePermit { sem: Semaphore { ll_sem: Semaphore { permits: 4 } }, permits: 1 }
-2022-12-18T13:42:00.566178Z DEBUG rust_parallel::command: got command status = exit status: 0
-2022-12-18T13:42:00.566178Z DEBUG rust_parallel::command: got command status = exit status: 0
-you
-2022-12-18T13:42:00.566286Z DEBUG rust_parallel::command: got command status = exit status: 0
-2022-12-18T13:42:00.566402Z DEBUG rust_parallel::command: end run command = Command { input: Stdin, line_number: 7, command: "echo you", shell_enabled: false } worker = WaitGroup { count: 3 } permit = OwnedSemaphorePermit { sem: Semaphore { ll_sem: Semaphore { permits: 5 } }, permits: 1 }
+2022-12-22T23:03:25.233196Z DEBUG rust_parallel: begin try_main
+2022-12-22T23:03:25.233895Z DEBUG rust_parallel::command_line_args: command_line_args = CommandLineArgs { jobs: 12, shell_enabled: false, inputs: [] }
+2022-12-22T23:03:25.233958Z DEBUG rust_parallel::command: begin run_commands
+2022-12-22T23:03:25.233989Z DEBUG rust_parallel::command: begin process_one_input input = Stdin
+2022-12-22T23:03:25.234169Z DEBUG rust_parallel::command: process_one_input_line # input can contain comment lines (starting with #) and blank lines too
+2022-12-22T23:03:25.234197Z DEBUG rust_parallel::command: process_one_input_line
+2022-12-22T23:03:25.234211Z DEBUG rust_parallel::command: process_one_input_line echo hi
+2022-12-22T23:03:25.234258Z DEBUG rust_parallel::command: process_one_input_line echo there
+2022-12-22T23:03:25.234289Z DEBUG rust_parallel::command: process_one_input_line echo how
+2022-12-22T23:03:25.234312Z DEBUG rust_parallel::command: process_one_input_line echo are
+2022-12-22T23:03:25.234339Z DEBUG rust_parallel::command: process_one_input_line echo you
+2022-12-22T23:03:25.234356Z DEBUG rust_parallel::command: begin run command = Command { input_line_number: InputLineNumber { input: Stdin, line_number: 3 }, command: "echo hi", shell_enabled: false } worker = WaitGroup { count: 5 } permit = OwnedSemaphorePermit { sem: Semaphore { ll_sem: Semaphore { permits: 7 } }, permits: 1 }
+2022-12-22T23:03:25.234369Z DEBUG rust_parallel::command: begin run command = Command { input_line_number: InputLineNumber { input: Stdin, line_number: 4 }, command: "echo there", shell_enabled: false } worker = WaitGroup { count: 5 } permit = OwnedSemaphorePermit { sem: Semaphore { ll_sem: Semaphore { permits: 7 } }, permits: 1 }
+2022-12-22T23:03:25.234388Z DEBUG rust_parallel::command: begin run command = Command { input_line_number: InputLineNumber { input: Stdin, line_number: 5 }, command: "echo how", shell_enabled: false } worker = WaitGroup { count: 5 } permit = OwnedSemaphorePermit { sem: Semaphore { ll_sem: Semaphore { permits: 7 } }, permits: 1 }
+2022-12-22T23:03:25.234420Z DEBUG rust_parallel::command: begin run command = Command { input_line_number: InputLineNumber { input: Stdin, line_number: 6 }, command: "echo are", shell_enabled: false } worker = WaitGroup { count: 5 } permit = OwnedSemaphorePermit { sem: Semaphore { ll_sem: Semaphore { permits: 7 } }, permits: 1 }
+2022-12-22T23:03:25.234425Z DEBUG rust_parallel::command: end process_one_input input = Stdin
+2022-12-22T23:03:25.234486Z DEBUG rust_parallel::command: before wait_group.wait wait_group = WaitGroup { count: 5 }
+2022-12-22T23:03:25.234450Z DEBUG rust_parallel::command: begin run command = Command { input_line_number: InputLineNumber { input: Stdin, line_number: 7 }, command: "echo you", shell_enabled: false } worker = WaitGroup { count: 5 } permit = OwnedSemaphorePermit { sem: Semaphore { ll_sem: Semaphore { permits: 7 } }, permits: 1 }
+2022-12-22T23:03:25.238679Z DEBUG rust_parallel::command: got command status = exit status: 0
 there
-2022-12-18T13:42:00.566652Z DEBUG rust_parallel::command: end run command = Command { input: Stdin, line_number: 4, command: "echo there", shell_enabled: false } worker = WaitGroup { count: 2 } permit = OwnedSemaphorePermit { sem: Semaphore { ll_sem: Semaphore { permits: 6 } }, permits: 1 }
+2022-12-22T23:03:25.238955Z DEBUG rust_parallel::command: end run command = Command { input_line_number: InputLineNumber { input: Stdin, line_number: 4 }, command: "echo there", shell_enabled: false } worker = WaitGroup { count: 5 } permit = OwnedSemaphorePermit { sem: Semaphore { ll_sem: Semaphore { permits: 7 } }, permits: 1 }
+2022-12-22T23:03:25.239721Z DEBUG rust_parallel::command: got command status = exit status: 0
+hi
+2022-12-22T23:03:25.239993Z DEBUG rust_parallel::command: end run command = Command { input_line_number: InputLineNumber { input: Stdin, line_number: 3 }, command: "echo hi", shell_enabled: false } worker = WaitGroup { count: 4 } permit = OwnedSemaphorePermit { sem: Semaphore { ll_sem: Semaphore { permits: 8 } }, permits: 1 }
+2022-12-22T23:03:25.241048Z DEBUG rust_parallel::command: got command status = exit status: 0
 are
-2022-12-18T13:42:00.566847Z DEBUG rust_parallel::command: end run command = Command { input: Stdin, line_number: 6, command: "echo are", shell_enabled: false } worker = WaitGroup { count: 1 } permit = OwnedSemaphorePermit { sem: Semaphore { ll_sem: Semaphore { permits: 7 } }, permits: 1 }
-2022-12-18T13:42:00.566917Z DEBUG rust_parallel::command: end run_commands
-2022-12-18T13:42:00.566940Z DEBUG rust_parallel: end try_main
+2022-12-22T23:03:25.241316Z DEBUG rust_parallel::command: end run command = Command { input_line_number: InputLineNumber { input: Stdin, line_number: 6 }, command: "echo are", shell_enabled: false } worker = WaitGroup { count: 3 } permit = OwnedSemaphorePermit { sem: Semaphore { ll_sem: Semaphore { permits: 9 } }, permits: 1 }
+2022-12-22T23:03:25.241877Z DEBUG rust_parallel::command: got command status = exit status: 0
+how
+2022-12-22T23:03:25.242076Z DEBUG rust_parallel::command: end run command = Command { input_line_number: InputLineNumber { input: Stdin, line_number: 5 }, command: "echo how", shell_enabled: false } worker = WaitGroup { count: 2 } permit = OwnedSemaphorePermit { sem: Semaphore { ll_sem: Semaphore { permits: 10 } }, permits: 1 }
+2022-12-22T23:03:25.242614Z DEBUG rust_parallel::command: got command status = exit status: 0
+you
+2022-12-22T23:03:25.242776Z DEBUG rust_parallel::command: end run command = Command { input_line_number: InputLineNumber { input: Stdin, line_number: 7 }, command: "echo you", shell_enabled: false } worker = WaitGroup { count: 1 } permit = OwnedSemaphorePermit { sem: Semaphore { ll_sem: Semaphore { permits: 11 } }, permits: 1 }
+2022-12-22T23:03:25.242829Z DEBUG rust_parallel::command: end run_commands
+2022-12-22T23:03:25.242857Z DEBUG rust_parallel: end try_main
 ```
