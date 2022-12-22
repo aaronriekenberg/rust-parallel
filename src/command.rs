@@ -91,14 +91,49 @@ impl CommandService {
         }
     }
 
+    async fn process_one_input_line(
+        &self,
+        input: Input,
+        line: &str,
+        line_number: u64,
+    ) -> anyhow::Result<()> {
+        let trimmed_line = line.trim();
+
+        debug!("process_one_input_line {}", trimmed_line);
+
+        if trimmed_line.is_empty() || trimmed_line.starts_with("#") {
+            return Ok(());
+        }
+
+        let args = command_line_args::instance();
+
+        let permit = Arc::clone(&self.command_semaphore)
+            .acquire_owned()
+            .await
+            .context("command_semaphore.acquire_owned error")?;
+
+        let command = Command {
+            input,
+            line_number,
+            command: trimmed_line.to_owned(),
+            shell_enabled: *args.shell_enabled(),
+        };
+
+        tokio::spawn(command.run(
+            self.wait_group.worker(),
+            permit,
+            Arc::clone(&self.output_writer),
+        ));
+
+        Ok(())
+    }
+
     async fn process_one_input(
         &self,
         input: Input,
         mut input_reader: BufReader<impl AsyncRead + Unpin>,
     ) -> anyhow::Result<()> {
         debug!("begin process_one_input input = {:?}", input);
-
-        let args = command_line_args::instance();
 
         let mut line = String::new();
         let mut line_number = 0u64;
@@ -116,31 +151,8 @@ impl CommandService {
 
             line_number += 1;
 
-            let trimmed_line = line.trim();
-
-            debug!("read line {}", trimmed_line);
-
-            if trimmed_line.is_empty() || trimmed_line.starts_with("#") {
-                continue;
-            }
-
-            let permit = Arc::clone(&self.command_semaphore)
-                .acquire_owned()
-                .await
-                .context("command_semaphore.acquire_owned error")?;
-
-            let command = Command {
-                input,
-                line_number,
-                command: trimmed_line.to_owned(),
-                shell_enabled: *args.shell_enabled(),
-            };
-
-            tokio::spawn(command.run(
-                self.wait_group.worker(),
-                permit,
-                Arc::clone(&self.output_writer),
-            ));
+            self.process_one_input_line(input, &line, line_number)
+                .await?;
         }
 
         debug!("end process_one_input input = {:?}", input);
