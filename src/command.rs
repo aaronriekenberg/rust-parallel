@@ -12,23 +12,15 @@ use tracing::{debug, warn};
 
 use std::sync::Arc;
 
-use crate::{command_line_args, input::Input, output::OutputWriter};
-
-#[derive(Debug)]
-struct InputAndLineNumber {
-    input: Input,
-    line_number: u64,
-}
-
-impl std::fmt::Display for InputAndLineNumber {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}:{}", self.input, self.line_number)
-    }
-}
+use crate::{
+    command_line_args,
+    input::{Input, InputLineNumber},
+    output::OutputWriter,
+};
 
 #[derive(Debug)]
 struct Command {
-    input_and_line_number: InputAndLineNumber,
+    input_line_number: InputLineNumber,
     command: String,
     shell_enabled: bool,
 }
@@ -81,8 +73,8 @@ impl std::fmt::Display for Command {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "{} '{}' shell={}",
-            self.input_and_line_number, self.command, self.shell_enabled,
+            "'{}' [line={},shell={}]",
+            self.command, self.input_line_number, self.shell_enabled,
         )
     }
 }
@@ -105,7 +97,7 @@ impl CommandService {
     async fn process_one_input_line(
         &self,
         line: &str,
-        input_and_line_number: InputAndLineNumber,
+        input_line_number: InputLineNumber,
     ) -> anyhow::Result<()> {
         let trimmed_line = line.trim();
 
@@ -123,7 +115,7 @@ impl CommandService {
             .context("command_semaphore.acquire_owned error")?;
 
         let command = Command {
-            input_and_line_number,
+            input_line_number,
             command: trimmed_line.to_owned(),
             shell_enabled: *args.shell_enabled(),
         };
@@ -160,7 +152,7 @@ impl CommandService {
 
             line_number += 1;
 
-            let input_and_line_number = InputAndLineNumber { input, line_number };
+            let input_and_line_number = InputLineNumber { input, line_number };
 
             self.process_one_input_line(&line, input_and_line_number)
                 .await?;
