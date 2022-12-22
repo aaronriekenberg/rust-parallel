@@ -15,9 +15,14 @@ use std::sync::Arc;
 use crate::{command_line_args, input::Input, output::OutputWriter};
 
 #[derive(Debug)]
-struct Command {
+struct InputAndLineNumber {
     input: Input,
     line_number: u64,
+}
+
+#[derive(Debug)]
+struct Command {
+    input_and_line_number: InputAndLineNumber,
     command: String,
     shell_enabled: bool,
 }
@@ -71,7 +76,10 @@ impl std::fmt::Display for Command {
         write!(
             f,
             "input={},line_number={},command='{}',shell_enabled={}",
-            self.input, self.line_number, self.command, self.shell_enabled,
+            self.input_and_line_number.input,
+            self.input_and_line_number.line_number,
+            self.command,
+            self.shell_enabled,
         )
     }
 }
@@ -93,9 +101,8 @@ impl CommandService {
 
     async fn process_one_input_line(
         &self,
-        input: Input,
         line: &str,
-        line_number: u64,
+        input_and_line_number: InputAndLineNumber,
     ) -> anyhow::Result<()> {
         let trimmed_line = line.trim();
 
@@ -113,8 +120,7 @@ impl CommandService {
             .context("command_semaphore.acquire_owned error")?;
 
         let command = Command {
-            input,
-            line_number,
+            input_and_line_number,
             command: trimmed_line.to_owned(),
             shell_enabled: *args.shell_enabled(),
         };
@@ -151,7 +157,9 @@ impl CommandService {
 
             line_number += 1;
 
-            self.process_one_input_line(input, &line, line_number)
+            let input_and_line_number = InputAndLineNumber { input, line_number };
+
+            self.process_one_input_line(&line, input_and_line_number)
                 .await?;
         }
 
