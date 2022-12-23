@@ -153,9 +153,7 @@ impl CommandService {
 
             line_number += 1;
 
-            let input_and_line_number = InputLineNumber { input, line_number };
-
-            self.process_one_input_line(&line, input_and_line_number)
+            self.process_one_input_line(&line, InputLineNumber { input, line_number })
                 .await?;
         }
 
