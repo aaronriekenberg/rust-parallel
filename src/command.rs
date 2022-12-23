@@ -80,6 +80,7 @@ impl std::fmt::Display for Command {
 }
 
 pub struct CommandService {
+    command_line_args: &'static command_line_args::CommandLineArgs,
     command_semaphore: Arc<Semaphore>,
     wait_group: WaitGroup,
     output_writer: Arc<OutputWriter>,
@@ -87,8 +88,10 @@ pub struct CommandService {
 
 impl CommandService {
     pub fn new() -> Self {
+        let command_line_args = command_line_args::instance();
         Self {
-            command_semaphore: Arc::new(Semaphore::new(*command_line_args::instance().jobs())),
+            command_line_args,
+            command_semaphore: Arc::new(Semaphore::new(*command_line_args.jobs())),
             wait_group: WaitGroup::new(),
             output_writer: OutputWriter::new(),
         }
@@ -107,8 +110,6 @@ impl CommandService {
             return Ok(());
         }
 
-        let args = command_line_args::instance();
-
         let permit = Arc::clone(&self.command_semaphore)
             .acquire_owned()
             .await
@@ -117,7 +118,7 @@ impl CommandService {
         let command = Command {
             input_line_number,
             command: trimmed_line.to_owned(),
-            shell_enabled: *args.shell_enabled(),
+            shell_enabled: *self.command_line_args.shell_enabled(),
         };
 
         tokio::spawn(command.run(
@@ -185,12 +186,11 @@ impl CommandService {
     }
 
     fn build_inputs(&self) -> Vec<Input> {
-        let args = command_line_args::instance();
-
-        if args.inputs().is_empty() {
+        if self.command_line_args.inputs().is_empty() {
             vec![Input::Stdin]
         } else {
-            args.inputs()
+            self.command_line_args
+                .inputs()
                 .iter()
                 .map(|input_name| {
                     if input_name == "-" {
