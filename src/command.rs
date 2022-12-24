@@ -5,7 +5,7 @@ use awaitgroup::WaitGroup;
 use tokio::{
     io::{AsyncBufReadExt, AsyncRead, BufReader},
     process::Command as TokioCommand,
-    sync::{OwnedSemaphorePermit, Semaphore},
+    sync::Semaphore,
 };
 
 use tracing::{debug, warn};
@@ -27,16 +27,8 @@ struct Command {
 }
 
 impl Command {
-    async fn run(
-        self,
-        worker: awaitgroup::Worker,
-        permit: OwnedSemaphorePermit,
-        output_writer: Arc<OutputWriter>,
-    ) {
-        debug!(
-            "begin run command = {:?} worker = {:?} permit = {:?}",
-            self, worker, permit,
-        );
+    async fn run(self, output_writer: Arc<OutputWriter>) {
+        debug!("begin run command = {:?}", self);
 
         let command_output = if self.shell_enabled {
             TokioCommand::new("/bin/sh")
@@ -63,10 +55,7 @@ impl Command {
             }
         };
 
-        debug!(
-            "end run command = {:?} worker = {:?} permit = {:?}",
-            self, worker, permit,
-        );
+        debug!("end run command = {:?}", self);
     }
 }
 
@@ -116,17 +105,22 @@ impl CommandService {
             .await
             .context("command_semaphore.acquire_owned error")?;
 
+        let worker = self.wait_group.worker();
+
+        let output_writer_clone = Arc::clone(&self.output_writer);
+
         let command = Command {
             input_line_number,
             command: trimmed_line.to_owned(),
             shell_enabled: *self.command_line_args.shell_enabled(),
         };
 
-        tokio::spawn(command.run(
-            self.wait_group.worker(),
-            permit,
-            Arc::clone(&self.output_writer),
-        ));
+        tokio::spawn(async move {
+            command.run(output_writer_clone).await;
+
+            drop(permit);
+            worker.done();
+        });
 
         Ok(())
     }
