@@ -14,6 +14,7 @@ use std::sync::Arc;
 
 use crate::{
     command_line_args,
+    command_line_args::CommandLineArgs,
     input::{Input, InputLineNumber},
     output::OutputWriter,
 };
@@ -80,7 +81,7 @@ impl std::fmt::Display for Command {
 }
 
 pub struct CommandService {
-    command_line_args: &'static command_line_args::CommandLineArgs,
+    command_line_args: &'static CommandLineArgs,
     command_semaphore: Arc<Semaphore>,
     wait_group: WaitGroup,
     output_writer: Arc<OutputWriter>,
