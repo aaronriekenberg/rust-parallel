@@ -203,6 +203,9 @@ impl CommandService {
             self.command_semaphore
         );
 
+        // At this point all commands have been spawned.
+        // When all semaphore permits can be acquired
+        // we know all commands have completed.
         let _ = self
             .command_semaphore
             .acquire_many(*self.command_line_args.jobs() as u32)
