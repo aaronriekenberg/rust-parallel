@@ -87,19 +87,11 @@ impl CommandService {
         }
     }
 
-    async fn process_one_input_line(
+    async fn spawn_command(
         &self,
-        line: &str,
+        trimmed_line: &str,
         input_line_number: InputLineNumber,
     ) -> anyhow::Result<()> {
-        let trimmed_line = line.trim();
-
-        debug!("process_one_input_line {}", trimmed_line);
-
-        if trimmed_line.is_empty() || trimmed_line.starts_with("#") {
-            return Ok(());
-        }
-
         let permit = Arc::clone(&self.command_semaphore)
             .acquire_owned()
             .await
@@ -148,7 +140,15 @@ impl CommandService {
 
             line_number += 1;
 
-            self.process_one_input_line(&line, InputLineNumber { input, line_number })
+            let trimmed_line = line.trim();
+
+            debug!("trimmed_line {}", trimmed_line);
+
+            if trimmed_line.is_empty() || trimmed_line.starts_with("#") {
+                continue;
+            }
+
+            self.spawn_command(&trimmed_line, InputLineNumber { input, line_number })
                 .await?;
         }
 
