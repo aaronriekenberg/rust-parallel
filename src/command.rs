@@ -1,7 +1,5 @@
 use anyhow::Context;
 
-use awaitgroup::WaitGroup;
-
 use tokio::{
     io::{AsyncBufReadExt, AsyncRead, BufReader},
     process::Command as TokioCommand,
@@ -72,7 +70,6 @@ impl std::fmt::Display for Command {
 pub struct CommandService {
     command_line_args: &'static CommandLineArgs,
     command_semaphore: Arc<Semaphore>,
-    wait_group: WaitGroup,
     output_writer: Arc<OutputWriter>,
 }
 
@@ -82,7 +79,6 @@ impl CommandService {
         Self {
             command_line_args,
             command_semaphore: Arc::new(Semaphore::new(*command_line_args.jobs())),
-            wait_group: WaitGroup::new(),
             output_writer: OutputWriter::new(),
         }
     }
@@ -97,8 +93,6 @@ impl CommandService {
             .await
             .context("command_semaphore.acquire_owned error")?;
 
-        let worker = self.wait_group.worker();
-
         let output_writer_clone = Arc::clone(&self.output_writer);
 
         let command = Command {
@@ -111,7 +105,6 @@ impl CommandService {
             command.run(output_writer_clone).await;
 
             drop(permit);
-            worker.done();
         });
 
         Ok(())
@@ -205,11 +198,16 @@ impl CommandService {
 
         self.process_inputs(inputs).await?;
 
-        debug!("before wait_group.wait wait_group = {:?}", self.wait_group);
+        debug!(
+            "before acquire_many command_semaphore = {:?}",
+            self.command_semaphore
+        );
 
-        let mut mut_self = self;
-
-        mut_self.wait_group.wait().await;
+        let _ = self
+            .command_semaphore
+            .acquire_many(*self.command_line_args.jobs() as u32)
+            .await
+            .context("command_semaphore.acquire_many error")?;
 
         debug!("end run_commands");
 
