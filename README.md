@@ -26,6 +26,7 @@ Being written in asynchronous rust it is quite fast - see [benchmarks](https://g
   * Singleton `CommandLineArgs` instance using [`tokio::sync::OnceCell`](https://docs.rs/tokio/latest/tokio/sync/struct.OnceCell.html).
   * Asynchronous command execution using [`tokio::process::Command`](https://docs.rs/tokio/latest/tokio/process/struct.Command.html)
   * [`tokio::sync::Semaphore`](https://docs.rs/tokio/latest/tokio/sync/struct.Semaphore.html) used to limit number of commands that run concurrently.
+     * Life would be a bit easier if `acquire_many` took a `usize` parameter: https://github.com/tokio-rs/tokio/issues/4446
   * [`tokio::sync::Mutex`](https://docs.rs/tokio/latest/tokio/sync/struct.Mutex.html) used to protect access to stdout/stderr to prevent interleaved command output.
 * [tracing](https://docs.rs/tracing/latest/tracing/) used for debug and warning logs.
 
