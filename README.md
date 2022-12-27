@@ -16,12 +16,10 @@ Being written in asynchronous rust it is quite fast - see [benchmarks](https://g
 * Use only asynchronous operations supported by [tokio](https://tokio.rs), do not use any blocking operations.
 * Support arbitrarily large number of input lines, avoid `O(number of input lines)` memory usage.  In support of this:
   * [`tokio::sync::Semaphore`](https://docs.rs/tokio/latest/tokio/sync/struct.Semaphore.html) is used carefully to limit the number of commands that run concurrently.  Do not spawn tasks for all input lines immediately to limit memory usage.
-  * [`awaitgroup::WaitGroup`](https://crates.io/crates/awaitgroup) is used to wait for all async functions to finish.  Internally this is a counter and uses a constant amount of memory.
 * Support running commands on local machine only, not on remote machines.
 
 # Tech Stack:
 * [anyhow](https://github.com/dtolnay/anyhow) used for application error handling to propogate and format fatal errors.
-* [awaitgroup](https://crates.io/crates/awaitgroup) used to await completion of all async functions.
 * [clap](https://docs.rs/clap/latest/clap/) command line argument parser.
 * [tokio](https://tokio.rs/) asynchronous runtime for rust.  From tokio this app uses:
   * `async` / `await` functions (aka coroutines)
