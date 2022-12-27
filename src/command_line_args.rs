@@ -8,12 +8,16 @@ use tokio::sync::OnceCell;
 
 use tracing::debug;
 
+fn default_jobs() -> u32 {
+    num_cpus::get().try_into().unwrap()
+}
+
 #[derive(Parser, Debug, Getters)]
 #[command(version, about)]
 #[getset(get = "pub")]
 pub struct CommandLineArgs {
     /// Maximum number of commands to run in parallel, defauts to num cpus
-    #[arg(short, long, default_value_t = num_cpus::get().try_into().unwrap())]
+    #[arg(short, long, default_value_t = default_jobs(), value_parser = clap::value_parser!(u32).range(1..))]
     jobs: u32,
 
     /// Use /bin/sh -c shell to run commands
