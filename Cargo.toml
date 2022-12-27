@@ -1,6 +1,6 @@
 [package]
 name = "rust-parallel"
-version = "0.1.19"
+version = "0.1.20"
 authors = ["Aaron Riekenberg <aaron.riekenberg@gmail.com>"]
 edition = "2021"
 categories = ["asynchronous", "command-line-interface", "concurrency"]
