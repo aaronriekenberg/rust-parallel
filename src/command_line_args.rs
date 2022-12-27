@@ -13,8 +13,8 @@ use tracing::debug;
 #[getset(get = "pub")]
 pub struct CommandLineArgs {
     /// Maximum number of commands to run in parallel, defauts to num cpus
-    #[arg(short, long, default_value_t = num_cpus::get())]
-    jobs: usize,
+    #[arg(short, long, default_value_t = num_cpus::get().try_into().unwrap())]
+    jobs: u32,
 
     /// Use /bin/sh -c shell to run commands
     #[arg(short, long)]

@@ -76,9 +76,10 @@ pub struct CommandService {
 impl CommandService {
     pub fn new() -> Self {
         let command_line_args = command_line_args::instance();
+        let jobs: usize = (*command_line_args.jobs()).try_into().unwrap();
         Self {
             command_line_args,
-            command_semaphore: Arc::new(Semaphore::new(*command_line_args.jobs())),
+            command_semaphore: Arc::new(Semaphore::new(jobs)),
             output_writer: OutputWriter::new(),
         }
     }
@@ -208,7 +209,7 @@ impl CommandService {
         // we know all commands have completed.
         let _ = self
             .command_semaphore
-            .acquire_many(*self.command_line_args.jobs() as u32)
+            .acquire_many(*self.command_line_args.jobs())
             .await
             .context("command_semaphore.acquire_many error")?;
 
