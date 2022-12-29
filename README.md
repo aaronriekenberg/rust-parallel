@@ -57,7 +57,7 @@ Options:
 
 # Demos:
 
-Small demo of 5 echo commands:
+Small demo of 5 echo commands.  With `-j5` all 5 commands are run in parallel.  With `-j1` commands are run sequentially:
 
 ```
 $ cat >./test <<EOL
@@ -75,6 +75,13 @@ are
 hi
 there
 how
+you
+
+cat test | rust-parallel -j1
+hi
+there
+how
+are
 you
 ```
 
