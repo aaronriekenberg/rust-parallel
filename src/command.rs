@@ -114,23 +114,19 @@ impl CommandService {
     async fn process_one_input(
         &self,
         input: Input,
-        mut input_reader: BufReader<impl AsyncRead + Unpin>,
+        input_reader: BufReader<impl AsyncRead + Unpin>,
     ) -> anyhow::Result<()> {
         debug!("begin process_one_input input = {:?}", input);
 
-        let mut line = String::new();
+        let mut segments = input_reader.split(b'\n');
         let mut line_number = 0u64;
 
-        loop {
-            line.clear();
-
-            let bytes_read = input_reader
-                .read_line(&mut line)
-                .await
-                .context("read_line error")?;
-            if bytes_read == 0 {
-                break;
-            }
+        while let Some(segment) = segments
+            .next_segment()
+            .await
+            .context("next_segment error")?
+        {
+            let line = String::from_utf8_lossy(&segment);
 
             line_number += 1;
 
