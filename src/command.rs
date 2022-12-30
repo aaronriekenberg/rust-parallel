@@ -98,6 +98,10 @@ impl CommandService {
     ) -> anyhow::Result<()> {
         let command_and_args = self.build_command_and_args(trimmed_line);
 
+        if command_and_args.is_empty() {
+            return Ok(());
+        }
+
         let permit = Arc::clone(&self.command_semaphore)
             .acquire_owned()
             .await
