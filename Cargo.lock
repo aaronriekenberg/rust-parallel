@@ -320,7 +320,7 @@ dependencies = [
 
 [[package]]
 name = "rust-parallel"
-version = "0.1.21"
+version = "0.2.0"
 dependencies = [
  "anyhow",
  "clap",
