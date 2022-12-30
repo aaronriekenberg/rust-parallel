@@ -101,10 +101,14 @@ impl CommandService {
     }
 
     fn build_command_and_args(&self, trimmed_line: &str) -> Vec<String> {
-        let mut command_and_args: Vec<String> = trimmed_line
-            .split_whitespace()
-            .map(|s| s.to_owned())
-            .collect();
+        let mut command_and_args: Vec<String> = if *self.command_line_args.null_separator() {
+            vec![trimmed_line.to_owned()]
+        } else {
+            trimmed_line
+                .split_whitespace()
+                .map(|s| s.to_owned())
+                .collect()
+        };
 
         let command_and_initial_arguments = self.command_line_args.command_and_initial_arguments();
 
@@ -120,23 +124,25 @@ impl CommandService {
     async fn process_one_input(
         &self,
         input: Input,
-        mut input_reader: BufReader<impl AsyncRead + Unpin>,
+        input_reader: BufReader<impl AsyncRead + Unpin>,
     ) -> anyhow::Result<()> {
         debug!("begin process_one_input input = {:?}", input);
 
-        let mut line = String::new();
+        let line_separator = if *self.command_line_args.null_separator() {
+            0u8
+        } else {
+            b'\n'
+        };
+
+        let mut segments = input_reader.split(line_separator);
         let mut line_number = 0u64;
 
-        loop {
-            line.clear();
-
-            let bytes_read = input_reader
-                .read_line(&mut line)
-                .await
-                .context("read_line error")?;
-            if bytes_read == 0 {
-                break;
-            }
+        while let Some(segment) = segments
+            .next_segment()
+            .await
+            .context("next_segment error")?
+        {
+            let line = String::from_utf8_lossy(&segment);
 
             line_number += 1;
 
