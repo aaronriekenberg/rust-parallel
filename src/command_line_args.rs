@@ -24,6 +24,10 @@ pub struct CommandLineArgs {
     #[arg(short, long)]
     inputs: Vec<String>,
 
+    /// Use null separator for reading input instead of newline.
+    #[arg(short, long)]
+    null_separator: bool,
+
     /// Optional command and initial arguments to run for each input line.
     #[arg(trailing_var_arg(true))]
     command_and_initial_arguments: Vec<String>,
