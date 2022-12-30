@@ -20,12 +20,13 @@ pub struct CommandLineArgs {
     #[arg(short, long, default_value_t = default_jobs(), value_parser = clap::value_parser!(u32).range(1..))]
     jobs: u32,
 
-    /// Use /bin/sh -c shell to run commands
-    #[arg(short, long)]
-    shell_enabled: bool,
-
     /// Input file or - for stdin.  Defaults to stdin if no inputs are specified.
+    #[arg(short, long)]
     inputs: Vec<String>,
+
+    /// Optional command and initial arguments to run for each input line.
+    #[arg(trailing_var_arg(true))]
+    command_and_initial_arguments: Vec<String>,
 }
 
 static INSTANCE: OnceCell<CommandLineArgs> = OnceCell::const_new();
