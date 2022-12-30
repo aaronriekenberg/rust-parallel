@@ -20,36 +20,42 @@ use crate::{
 #[derive(Debug)]
 struct Command {
     input_line_number: InputLineNumber,
-    command: String,
-    shell_enabled: bool,
+    input_line_string: String,
 }
 
 impl Command {
     async fn run(self, output_writer: Arc<OutputWriter>) {
         debug!("begin run command = {:?}", self);
 
-        let command_output = if self.shell_enabled {
-            TokioCommand::new("/bin/sh")
-                .args(["-c", &self.command])
-                .output()
-                .await
-        } else {
-            let split: Vec<_> = self.command.split_whitespace().collect();
+        let mut command_and_args: Vec<String> = self
+            .input_line_string
+            .split_whitespace()
+            .map(|s| s.to_owned())
+            .collect();
 
-            let [command, args @ ..] = split.as_slice() else {
-                panic!("invalid command '{}'", self.command);
+        let cla = crate::command_line_args::instance();
+
+        if cla.command_and_initial_arguments().len() > 0 {
+            let mut v: Vec<String> = cla.command_and_initial_arguments().clone();
+            v.append(&mut command_and_args);
+            command_and_args = v;
+        }
+
+        debug!("command_and_args = {:?}", command_and_args);
+
+        let [command, args @ ..] = command_and_args.as_slice() else {
+                panic!("invalid command_and_args '{:?}'", command_and_args);
             };
 
-            TokioCommand::new(command).args(args).output().await
-        };
+        let command_output = TokioCommand::new(command).args(args).output().await;
 
         match command_output {
+            Err(e) => {
+                warn!("got error running command: {}: {}", self, e);
+            }
             Ok(output) => {
                 debug!("got command status = {}", output.status);
                 output_writer.write_command_output(&output).await;
-            }
-            Err(e) => {
-                warn!("got error running command: {}: {}", self, e);
             }
         };
 
@@ -61,8 +67,8 @@ impl std::fmt::Display for Command {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "'{}' [line={},shell={}]",
-            self.command, self.input_line_number, self.shell_enabled,
+            "'{}' [line={}]",
+            self.input_line_string, self.input_line_number,
         )
     }
 }
@@ -98,8 +104,7 @@ impl CommandService {
 
         let command = Command {
             input_line_number,
-            command: trimmed_line.to_owned(),
-            shell_enabled: *self.command_line_args.shell_enabled(),
+            input_line_string: trimmed_line.to_owned(),
         };
 
         tokio::spawn(async move {
@@ -137,10 +142,6 @@ impl CommandService {
             let trimmed_line = line.trim();
 
             debug!("trimmed_line {}", trimmed_line);
-
-            if trimmed_line.is_empty() || trimmed_line.starts_with("#") {
-                continue;
-            }
 
             self.spawn_command(&trimmed_line, InputLineNumber { input, line_number })
                 .await?;
