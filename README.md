@@ -2,7 +2,7 @@
 
 Command-line utility to execute commands in parallel and aggregate their output.
 
-Something like a simple rust version of [GNU Parallel](https://www.gnu.org/software/parallel/).
+Similar to [GNU Parallel](https://www.gnu.org/software/parallel/parallel_examples.html) or [xargs](https://man.openbsd.org/xargs) with `-n1` option but implemented in rust.
 
 Being written in asynchronous rust it is quite fast - see [benchmarks](https://github.com/aaronriekenberg/rust-parallel/wiki/Benchmarks).
 
@@ -39,20 +39,18 @@ $ cargo install rust-parallel
 
 # Usage:
 ```
-$ rust-parallel -h
-
 Run commands in parallel
 
-Usage: rust-parallel [OPTIONS] [INPUTS]...
+Usage: rust-parallel [OPTIONS] [COMMAND_AND_INITIAL_ARGUMENTS]...
 
 Arguments:
-  [INPUTS]...  Input file or - for stdin.  Defaults to stdin if no inputs are specified
+  [COMMAND_AND_INITIAL_ARGUMENTS]...  Optional command and initial arguments to run for each input line
 
 Options:
-  -j, --jobs <JOBS>    Maximum number of commands to run in parallel, defauts to num cpus [default: 12]
-  -s, --shell-enabled  Use /bin/sh -c shell to run commands
-  -h, --help           Print help information
-  -V, --version        Print version information
+  -j, --jobs <JOBS>      Maximum number of commands to run in parallel, defauts to num cpus [default: 8]
+  -i, --inputs <INPUTS>  Input file or - for stdin.  Defaults to stdin if no inputs are specified
+  -h, --help             Print help information
+  -V, --version          Print version information
 ```
 
 # Demos:
@@ -61,8 +59,6 @@ Small demo of 5 echo commands.  With `-j5` all 5 commands are run in parallel.  
 
 ```
 $ cat >./test <<EOL
-# input can contain comment lines (starting with #) and blank lines too
-
 echo hi
 echo there
 echo how
@@ -85,10 +81,26 @@ are
 you
 ```
 
-Using `awk` to form commands:
+Specifying command and intial arguments on command line:
 
 ```
-$ head -100 /usr/share/dict/words| awk '{printf "md5 -s %s\n", $1}' | rust-parallel
+head -100 /usr/share/dict/words | rust-parallel md5 -s
+MD5 ("aal") = ff45e881572ca2c987460932660d320c
+MD5 ("A") = 7fc56270e7a70fa81a5935b72eacbe29
+MD5 ("aardvark") = 88571e5d5e13a4a60f82cea7802f6255
+MD5 ("aalii") = 0a1ea2a8d75d02ae052f8222e36927a5
+MD5 ("aam") = 35c2d90f7c06b623fe763d0a4e5b7ed9
+MD5 ("aa") = 4124bc0a9335c27f086f24ba207a4912
+MD5 ("a") = 0cc175b9c0f1b6a831c399e269772661
+MD5 ("Aani") = e9b22dd6213c3d29648e8ad7a8642f2f
+MD5 ("Aaron") = 1c0a11cc4ddc0dbd3fa4d77232a4e22e
+MD5 ("aardwolf") = 66a4a1a2b442e8d218e8e99100069877
+```
+
+Using `awk` to form complete commands:
+
+```
+$ head -100 /usr/share/dict/words | awk '{printf "md5 -s %s\n", $1}' | rust-parallel
 MD5 ("Abba") = 5fa1e1f6e07a6fea3f2bb098e90a8de2
 MD5 ("abaxial") = ac3a53971d52d9ce3277eadf03f13a5e
 MD5 ("abaze") = 0b08c52aa63d947b6a5601ee975bc3a4
@@ -102,73 +114,10 @@ MD5 ("abb") = ea01e5fd8e4d8832825acdd20eac5104
 Using as part of a shell pipeline.  stdout and stderr from each command run are copied to stdout/stderr of the rust-parallel process.
 
 ```
-$ head -100 /usr/share/dict/words| awk '{printf "md5 -s %s\n", $1}' | rust-parallel | grep -i abba
+$ head -100 /usr/share/dict/words | rust-parallel md5 -s | grep -i abba
 MD5 ("Abba") = 5fa1e1f6e07a6fea3f2bb098e90a8de2
 MD5 ("abbacomes") = 76640eb0c929bc97d016731bfbe9a4f8
 MD5 ("abbacy") = 08aeac72800adc98d2aba540b6195921
 MD5 ("Abbadide") = 7add1d6f008790fa6783bc8798d8c803
 ```
 
-Using input file.  Multiple inputs can be specified, `-` means stdin:
-
-```
-$ cat >./test1 <<EOL
-echo hi
-echo there
-echo how
-EOL
-
-$ cat >./test2 <<EOL
-echo are
-echo you
-EOL
-
-$ cat test2 | rust-parallel test1 -
-there
-how
-hi
-are
-you
-
-```
-
-With debug logs enabled:
-
-```
-$ cat test | RUST_LOG=debug rust-parallel
-2022-12-27T13:47:06.173183Z DEBUG rust_parallel: begin try_main
-2022-12-27T13:47:06.174003Z DEBUG rust_parallel::command_line_args: command_line_args = CommandLineArgs { jobs: 8, shell_enabled: false, inputs: [] }
-2022-12-27T13:47:06.174067Z DEBUG rust_parallel::command: begin run_commands
-2022-12-27T13:47:06.174107Z DEBUG rust_parallel::command: begin process_one_input input = Stdin
-2022-12-27T13:47:06.174357Z DEBUG rust_parallel::command: trimmed_line # input can contain comment lines (starting with #) and blank lines too
-2022-12-27T13:47:06.174381Z DEBUG rust_parallel::command: trimmed_line
-2022-12-27T13:47:06.174392Z DEBUG rust_parallel::command: trimmed_line echo hi
-2022-12-27T13:47:06.174440Z DEBUG rust_parallel::command: trimmed_line echo there
-2022-12-27T13:47:06.174466Z DEBUG rust_parallel::command: trimmed_line echo how
-2022-12-27T13:47:06.174485Z DEBUG rust_parallel::command: trimmed_line echo are
-2022-12-27T13:47:06.174502Z DEBUG rust_parallel::command: trimmed_line echo you
-2022-12-27T13:47:06.174514Z DEBUG rust_parallel::command: begin run command = Command { input_line_number: InputLineNumber { input: Stdin, line_number: 4 }, command: "echo there", shell_enabled: false }
-2022-12-27T13:47:06.174534Z DEBUG rust_parallel::command: begin run command = Command { input_line_number: InputLineNumber { input: Stdin, line_number: 5 }, command: "echo how", shell_enabled: false }
-2022-12-27T13:47:06.174511Z DEBUG rust_parallel::command: begin run command = Command { input_line_number: InputLineNumber { input: Stdin, line_number: 3 }, command: "echo hi", shell_enabled: false }
-2022-12-27T13:47:06.174556Z DEBUG rust_parallel::command: begin run command = Command { input_line_number: InputLineNumber { input: Stdin, line_number: 6 }, command: "echo are", shell_enabled: false }
-2022-12-27T13:47:06.174591Z DEBUG rust_parallel::command: end process_one_input input = Stdin
-2022-12-27T13:47:06.174596Z DEBUG rust_parallel::command: begin run command = Command { input_line_number: InputLineNumber { input: Stdin, line_number: 7 }, command: "echo you", shell_enabled: false }
-2022-12-27T13:47:06.175825Z DEBUG rust_parallel::command: before acquire_many command_semaphore = Semaphore { ll_sem: Semaphore { permits: 3 } }
-2022-12-27T13:47:06.177347Z DEBUG rust_parallel::command: got command status = exit status: 0
-2022-12-27T13:47:06.177352Z DEBUG rust_parallel::command: got command status = exit status: 0
-there
-2022-12-27T13:47:06.177591Z DEBUG rust_parallel::command: end run command = Command { input_line_number: InputLineNumber { input: Stdin, line_number: 4 }, command: "echo there", shell_enabled: false }
-how
-2022-12-27T13:47:06.177768Z DEBUG rust_parallel::command: end run command = Command { input_line_number: InputLineNumber { input: Stdin, line_number: 5 }, command: "echo how", shell_enabled: false }
-2022-12-27T13:47:06.178158Z DEBUG rust_parallel::command: got command status = exit status: 0
-are
-2022-12-27T13:47:06.178256Z DEBUG rust_parallel::command: got command status = exit status: 0
-2022-12-27T13:47:06.178260Z DEBUG rust_parallel::command: got command status = exit status: 0
-2022-12-27T13:47:06.178334Z DEBUG rust_parallel::command: end run command = Command { input_line_number: InputLineNumber { input: Stdin, line_number: 6 }, command: "echo are", shell_enabled: false }
-hi
-2022-12-27T13:47:06.178503Z DEBUG rust_parallel::command: end run command = Command { input_line_number: InputLineNumber { input: Stdin, line_number: 3 }, command: "echo hi", shell_enabled: false }
-you
-2022-12-27T13:47:06.178694Z DEBUG rust_parallel::command: end run command = Command { input_line_number: InputLineNumber { input: Stdin, line_number: 7 }, command: "echo you", shell_enabled: false }
-2022-12-27T13:47:06.178771Z DEBUG rust_parallel::command: end run_commands
-2022-12-27T13:47:06.178795Z DEBUG rust_parallel: end try_main
-```
