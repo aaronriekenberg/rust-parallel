@@ -19,32 +19,16 @@ use crate::{
 
 #[derive(Debug)]
 struct Command {
+    command_and_args: Vec<String>,
     input_line_number: InputLineNumber,
-    input_line_string: String,
 }
 
 impl Command {
     async fn run(self, output_writer: Arc<OutputWriter>) {
         debug!("begin run command = {:?}", self);
 
-        let mut command_and_args: Vec<String> = self
-            .input_line_string
-            .split_whitespace()
-            .map(|s| s.to_owned())
-            .collect();
-
-        let cla = crate::command_line_args::instance();
-
-        if cla.command_and_initial_arguments().len() > 0 {
-            let mut v: Vec<String> = cla.command_and_initial_arguments().clone();
-            v.append(&mut command_and_args);
-            command_and_args = v;
-        }
-
-        debug!("command_and_args = {:?}", command_and_args);
-
-        let [command, args @ ..] = command_and_args.as_slice() else {
-                panic!("invalid command_and_args '{:?}'", command_and_args);
+        let [command, args @ ..] = self.command_and_args.as_slice() else {
+                panic!("invalid command_and_args '{:?}'", self.command_and_args);
             };
 
         let command_output = TokioCommand::new(command).args(args).output().await;
@@ -67,8 +51,8 @@ impl std::fmt::Display for Command {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "'{}' [line={}]",
-            self.input_line_string, self.input_line_number,
+            "command_and_args={:?},input_line_number={}",
+            self.command_and_args, self.input_line_number,
         )
     }
 }
@@ -90,11 +74,30 @@ impl CommandService {
         }
     }
 
+    fn build_command_and_args(&self, trimmed_line: &str) -> Vec<String> {
+        let mut command_and_args: Vec<String> = trimmed_line
+            .split_whitespace()
+            .map(|s| s.to_owned())
+            .collect();
+
+        let command_and_initial_arguments = self.command_line_args.command_and_initial_arguments();
+
+        if command_and_initial_arguments.len() > 0 {
+            let mut v: Vec<String> = command_and_initial_arguments.clone();
+            v.append(&mut command_and_args);
+            command_and_args = v;
+        }
+
+        command_and_args
+    }
+
     async fn spawn_command(
         &self,
         trimmed_line: &str,
         input_line_number: InputLineNumber,
     ) -> anyhow::Result<()> {
+        let command_and_args = self.build_command_and_args(trimmed_line);
+
         let permit = Arc::clone(&self.command_semaphore)
             .acquire_owned()
             .await
@@ -104,7 +107,7 @@ impl CommandService {
 
         let command = Command {
             input_line_number,
-            input_line_string: trimmed_line.to_owned(),
+            command_and_args,
         };
 
         tokio::spawn(async move {
