@@ -74,34 +74,11 @@ impl CommandService {
         }
     }
 
-    fn build_command_and_args(&self, trimmed_line: &str) -> Vec<String> {
-        let mut command_and_args: Vec<String> = trimmed_line
-            .split_whitespace()
-            .map(|s| s.to_owned())
-            .collect();
-
-        let command_and_initial_arguments = self.command_line_args.command_and_initial_arguments();
-
-        if command_and_initial_arguments.len() > 0 {
-            let mut v: Vec<String> = command_and_initial_arguments.clone();
-            v.append(&mut command_and_args);
-            command_and_args = v;
-        }
-
-        command_and_args
-    }
-
     async fn spawn_command(
         &self,
-        trimmed_line: &str,
+        command_and_args: Vec<String>,
         input_line_number: InputLineNumber,
     ) -> anyhow::Result<()> {
-        let command_and_args = self.build_command_and_args(trimmed_line);
-
-        if command_and_args.is_empty() {
-            return Ok(());
-        }
-
         let permit = Arc::clone(&self.command_semaphore)
             .acquire_owned()
             .await
@@ -121,6 +98,23 @@ impl CommandService {
         });
 
         Ok(())
+    }
+
+    fn build_command_and_args(&self, trimmed_line: &str) -> Vec<String> {
+        let mut command_and_args: Vec<String> = trimmed_line
+            .split_whitespace()
+            .map(|s| s.to_owned())
+            .collect();
+
+        let command_and_initial_arguments = self.command_line_args.command_and_initial_arguments();
+
+        if command_and_initial_arguments.len() > 0 {
+            let mut v: Vec<String> = command_and_initial_arguments.clone();
+            v.append(&mut command_and_args);
+            command_and_args = v;
+        }
+
+        command_and_args
     }
 
     async fn process_one_input(
@@ -150,7 +144,13 @@ impl CommandService {
 
             debug!("trimmed_line {}", trimmed_line);
 
-            self.spawn_command(&trimmed_line, InputLineNumber { input, line_number })
+            let command_and_args = self.build_command_and_args(trimmed_line);
+
+            if command_and_args.is_empty() {
+                continue;
+            }
+
+            self.spawn_command(command_and_args, InputLineNumber { input, line_number })
                 .await?;
         }
 
