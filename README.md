@@ -2,7 +2,7 @@
 
 Command-line utility to execute commands in parallel and aggregate their output.
 
-Similar to [GNU Parallel](https://www.gnu.org/software/parallel/parallel_examples.html) or [xargs](https://man.openbsd.org/xargs) with `-n1` option but implemented in rust.
+Similar to [GNU Parallel](https://www.gnu.org/software/parallel/parallel_examples.html) or [xargs](https://man.openbsd.org/xargs) with `-n1` option but implemented in rust and [tokio](https://tokio.rs).
 
 Being written in asynchronous rust it is quite fast - see [benchmarks](https://github.com/aaronriekenberg/rust-parallel/wiki/Benchmarks).
 
@@ -10,32 +10,6 @@ Being written in asynchronous rust it is quite fast - see [benchmarks](https://g
 
 [crates-badge]: https://img.shields.io/crates/v/rust-parallel.svg
 [crates-url]: https://crates.io/crates/rust-parallel
-
-# Goals:
-* Use only safe rust.
-* Use only asynchronous operations supported by [tokio](https://tokio.rs), do not use any blocking operations.
-* Support arbitrarily large number of input lines, avoid `O(number of input lines)` memory usage.  In support of this:
-  * [`tokio::sync::Semaphore`](https://docs.rs/tokio/latest/tokio/sync/struct.Semaphore.html) is used carefully to limit the number of commands that run concurrently.  Do not spawn tasks for all input lines immediately to limit memory usage.
-* Support running commands on local machine only, not on remote machines.
-
-# Tech Stack:
-* [anyhow](https://github.com/dtolnay/anyhow) used for application error handling to propogate and format fatal errors.
-* [clap](https://docs.rs/clap/latest/clap/) command line argument parser.
-* [tokio](https://tokio.rs/) asynchronous runtime for rust.  From tokio this app uses:
-  * `async` / `await` functions (aka coroutines)
-  * Singleton `CommandLineArgs` instance using [`tokio::sync::OnceCell`](https://docs.rs/tokio/latest/tokio/sync/struct.OnceCell.html).
-  * Asynchronous command execution using [`tokio::process::Command`](https://docs.rs/tokio/latest/tokio/process/struct.Command.html)
-  * [`tokio::sync::Semaphore`](https://docs.rs/tokio/latest/tokio/sync/struct.Semaphore.html) used to limit number of commands that run concurrently.
-     * Life would be a bit easier if `acquire_many` took a `usize` parameter: https://github.com/tokio-rs/tokio/issues/4446
-  * [`tokio::sync::Mutex`](https://docs.rs/tokio/latest/tokio/sync/struct.Mutex.html) used to protect access to stdout/stderr to prevent interleaved command output.
-* [tracing](https://docs.rs/tracing/latest/tracing/) used for debug and warning logs.
-
-# Installation:
-1. [Install Rust](https://www.rust-lang.org/learn/get-started)
-2. Install the latest version of this app from [crates.io](https://crates.io/crates/rust-parallel):
-```
-$ cargo install rust-parallel   
-```
 
 # Usage:
 ```
@@ -52,6 +26,13 @@ Options:
   -0, --null-separator  Use null separator for reading input instead of newline
   -h, --help            Print help information
   -V, --version         Print version information
+```
+
+# Installation:
+1. [Install Rust](https://www.rust-lang.org/learn/get-started)
+2. Install the latest version of this app from [crates.io](https://crates.io/crates/rust-parallel):
+```
+$ cargo install rust-parallel   
 ```
 
 # Demos:
@@ -127,4 +108,23 @@ MD5 ("abbacomes") = 76640eb0c929bc97d016731bfbe9a4f8
 MD5 ("abbacy") = 08aeac72800adc98d2aba540b6195921
 MD5 ("Abbadide") = 7add1d6f008790fa6783bc8798d8c803
 ```
+
+# Goals:
+* Use only safe rust.
+* Use only asynchronous operations supported by [tokio](https://tokio.rs), do not use any blocking operations.
+* Support arbitrarily large number of input lines, avoid `O(number of input lines)` memory usage.  In support of this:
+  * [`tokio::sync::Semaphore`](https://docs.rs/tokio/latest/tokio/sync/struct.Semaphore.html) is used carefully to limit the number of commands that run concurrently.  Do not spawn tasks for all input lines immediately to limit memory usage.
+* Support running commands on local machine only, not on remote machines.
+
+# Tech Stack:
+* [anyhow](https://github.com/dtolnay/anyhow) used for application error handling to propogate and format fatal errors.
+* [clap](https://docs.rs/clap/latest/clap/) command line argument parser.
+* [tokio](https://tokio.rs/) asynchronous runtime for rust.  From tokio this app uses:
+  * `async` / `await` functions (aka coroutines)
+  * Singleton `CommandLineArgs` instance using [`tokio::sync::OnceCell`](https://docs.rs/tokio/latest/tokio/sync/struct.OnceCell.html).
+  * Asynchronous command execution using [`tokio::process::Command`](https://docs.rs/tokio/latest/tokio/process/struct.Command.html)
+  * [`tokio::sync::Semaphore`](https://docs.rs/tokio/latest/tokio/sync/struct.Semaphore.html) used to limit number of commands that run concurrently.
+     * Life would be a bit easier if `acquire_many` took a `usize` parameter: https://github.com/tokio-rs/tokio/issues/4446
+  * [`tokio::sync::Mutex`](https://docs.rs/tokio/latest/tokio/sync/struct.Mutex.html) used to protect access to stdout/stderr to prevent interleaved command output.
+* [tracing](https://docs.rs/tracing/latest/tracing/) used for debug and warning logs.
 
