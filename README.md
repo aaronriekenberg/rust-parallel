@@ -55,7 +55,7 @@ there
 how
 you
 
-cat test | rust-parallel -j1
+$ cat test | rust-parallel -j1
 hi
 there
 how
