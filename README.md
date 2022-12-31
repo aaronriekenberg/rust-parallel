@@ -21,7 +21,7 @@ Arguments:
   [COMMAND_AND_INITIAL_ARGUMENTS]...  Optional command and initial arguments to run for each input line
 
 Options:
-  -i, --input <INPUTS>  Input file or - for stdin.  Defaults to stdin if no inputs are specified
+  -i, --input <INPUT>   Input file or - for stdin.  Defaults to stdin if no inputs are specified
   -j, --jobs <JOBS>     Maximum number of commands to run in parallel, defauts to num cpus [default: 8]
   -0, --null-separator  Use null separator for reading input instead of newline
   -h, --help            Print help information
