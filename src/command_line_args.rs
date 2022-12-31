@@ -21,11 +21,11 @@ pub struct CommandLineArgs {
     jobs: u32,
 
     /// Input file or - for stdin.  Defaults to stdin if no inputs are specified.
-    #[arg(short, long)]
+    #[arg(short, long("input"))]
     inputs: Vec<String>,
 
     /// Use null separator for reading input instead of newline.
-    #[arg(short, long)]
+    #[arg(short('0'), long)]
     null_separator: bool,
 
     /// Optional command and initial arguments to run for each input line.
