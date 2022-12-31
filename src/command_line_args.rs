@@ -14,8 +14,8 @@ fn default_jobs() -> u32 {
 #[command(version, about)]
 pub struct CommandLineArgs {
     /// Input file or - for stdin.  Defaults to stdin if no inputs are specified.
-    #[arg(short, long("input"))]
-    pub inputs: Vec<String>,
+    #[arg(short, long)]
+    pub input: Vec<String>,
 
     /// Maximum number of commands to run in parallel, defauts to num cpus
     #[arg(short, long, default_value_t = default_jobs(), value_parser = clap::value_parser!(u32).range(1..))]

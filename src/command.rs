@@ -180,11 +180,11 @@ impl CommandService {
     }
 
     fn build_inputs(&self) -> Vec<Input> {
-        if self.command_line_args.inputs.is_empty() {
+        if self.command_line_args.input.is_empty() {
             vec![Input::Stdin]
         } else {
             self.command_line_args
-                .inputs
+                .input
                 .iter()
                 .map(|input_name| {
                     if input_name == "-" {
