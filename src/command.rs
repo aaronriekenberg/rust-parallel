@@ -66,7 +66,7 @@ pub struct CommandService {
 impl CommandService {
     pub fn new() -> Self {
         let command_line_args = command_line_args::instance();
-        let jobs: usize = (*command_line_args.jobs()).try_into().unwrap();
+        let jobs: usize = command_line_args.jobs.try_into().unwrap();
         Self {
             command_line_args,
             command_semaphore: Arc::new(Semaphore::new(jobs)),
@@ -101,13 +101,13 @@ impl CommandService {
     }
 
     fn build_command_and_args(&self, line: &str) -> Vec<String> {
-        let mut command_and_args: Vec<String> = if *self.command_line_args.null_separator() {
+        let mut command_and_args: Vec<String> = if self.command_line_args.null_separator {
             vec![line.to_owned()]
         } else {
             line.split_whitespace().map(|s| s.to_owned()).collect()
         };
 
-        let command_and_initial_arguments = self.command_line_args.command_and_initial_arguments();
+        let command_and_initial_arguments = &self.command_line_args.command_and_initial_arguments;
 
         if command_and_initial_arguments.len() > 0 {
             let mut v: Vec<String> = command_and_initial_arguments.clone();
@@ -125,7 +125,7 @@ impl CommandService {
     ) -> anyhow::Result<()> {
         debug!("begin process_one_input input = {:?}", input);
 
-        let line_separator = if *self.command_line_args.null_separator() {
+        let line_separator = if self.command_line_args.null_separator {
             0u8
         } else {
             b'\n'
@@ -180,11 +180,11 @@ impl CommandService {
     }
 
     fn build_inputs(&self) -> Vec<Input> {
-        if self.command_line_args.inputs().is_empty() {
+        if self.command_line_args.inputs.is_empty() {
             vec![Input::Stdin]
         } else {
             self.command_line_args
-                .inputs()
+                .inputs
                 .iter()
                 .map(|input_name| {
                     if input_name == "-" {
@@ -216,7 +216,7 @@ impl CommandService {
 
         let _ = self
             .command_semaphore
-            .acquire_many(*self.command_line_args.jobs())
+            .acquire_many(self.command_line_args.jobs)
             .await
             .context("command_semaphore.acquire_many error")?;
 
