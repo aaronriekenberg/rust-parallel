@@ -109,6 +109,12 @@ MD5 ("abbacy") = 08aeac72800adc98d2aba540b6195921
 MD5 ("Abbadide") = 7add1d6f008790fa6783bc8798d8c803
 ```
 
+Set environment variable `RUST_LOG=debug` to see debug output.
+
+```
+$ head -10 /usr/share/dict/words | RUST_LOG=debug rust-parallel md5 -s
+```
+
 # Goals:
 * Use only safe rust.
 * Use only asynchronous operations supported by [tokio](https://tokio.rs), do not use any blocking operations.
