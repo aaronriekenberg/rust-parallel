@@ -100,14 +100,11 @@ impl CommandService {
         Ok(())
     }
 
-    fn build_command_and_args(&self, trimmed_line: &str) -> Vec<String> {
+    fn build_command_and_args(&self, line: &str) -> Vec<String> {
         let mut command_and_args: Vec<String> = if *self.command_line_args.null_separator() {
-            vec![trimmed_line.to_owned()]
+            vec![line.to_owned()]
         } else {
-            trimmed_line
-                .split_whitespace()
-                .map(|s| s.to_owned())
-                .collect()
+            line.split_whitespace().map(|s| s.to_owned()).collect()
         };
 
         let command_and_initial_arguments = self.command_line_args.command_and_initial_arguments();
@@ -146,11 +143,7 @@ impl CommandService {
 
             line_number += 1;
 
-            let trimmed_line = line.trim();
-
-            debug!("trimmed_line {}", trimmed_line);
-
-            let command_and_args = self.build_command_and_args(trimmed_line);
+            let command_and_args = self.build_command_and_args(&line);
 
             if command_and_args.is_empty() {
                 continue;
