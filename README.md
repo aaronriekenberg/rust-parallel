@@ -47,11 +47,11 @@ Arguments:
   [COMMAND_AND_INITIAL_ARGUMENTS]...  Optional command and initial arguments to run for each input line
 
 Options:
-  -j, --jobs <JOBS>      Maximum number of commands to run in parallel, defauts to num cpus [default: 8]
-  -i, --inputs <INPUTS>  Input file or - for stdin.  Defaults to stdin if no inputs are specified
-  -n, --null-separator   Use null separator for reading input instead of newline
-  -h, --help             Print help information
-  -V, --version          Print version information
+  -i, --input <INPUTS>  Input file or - for stdin.  Defaults to stdin if no inputs are specified
+  -j, --jobs <JOBS>     Maximum number of commands to run in parallel, defauts to num cpus [default: 8]
+  -0, --null-separator  Use null separator for reading input instead of newline
+  -h, --help            Print help information
+  -V, --version         Print version information
 ```
 
 # Demos:
@@ -85,7 +85,7 @@ you
 Specifying command and intial arguments on command line:
 
 ```
-head -100 /usr/share/dict/words | rust-parallel md5 -s
+$ head -100 /usr/share/dict/words | rust-parallel md5 -s
 MD5 ("aal") = ff45e881572ca2c987460932660d320c
 MD5 ("A") = 7fc56270e7a70fa81a5935b72eacbe29
 MD5 ("aardvark") = 88571e5d5e13a4a60f82cea7802f6255
@@ -98,10 +98,10 @@ MD5 ("Aaron") = 1c0a11cc4ddc0dbd3fa4d77232a4e22e
 MD5 ("aardwolf") = 66a4a1a2b442e8d218e8e99100069877
 ```
 
-Working on a set of files from `find` command.  The `-n` option works nicely with `find -print0` to handle filenames with newline or whitespace characters:
+Working on a set of files from `find` command.  The `-0` option works nicely with `find -print0` to handle filenames with newline or whitespace characters:
 
 ```
-find . -type f -print0 | rust-parallel -n gzip -f -k
+$ find . -type f -print0 | rust-parallel -0 gzip -f -k
 ```
 
 Using `awk` to form complete commands:
