@@ -110,9 +110,7 @@ impl CommandService {
         let command_and_initial_arguments = &self.command_line_args.command_and_initial_arguments;
 
         if command_and_initial_arguments.len() > 0 {
-            let mut v: Vec<String> = command_and_initial_arguments.clone();
-            v.append(&mut command_and_args);
-            command_and_args = v;
+            command_and_args = [command_and_initial_arguments.clone(), command_and_args].concat();
         }
 
         command_and_args
