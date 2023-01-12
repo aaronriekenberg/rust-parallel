@@ -177,30 +177,10 @@ impl CommandService {
         Ok(())
     }
 
-    fn build_inputs(&self) -> Vec<Input> {
-        if self.command_line_args.input.is_empty() {
-            vec![Input::Stdin]
-        } else {
-            self.command_line_args
-                .input
-                .iter()
-                .map(|input_name| {
-                    if input_name == "-" {
-                        Input::Stdin
-                    } else {
-                        Input::File {
-                            file_name: input_name,
-                        }
-                    }
-                })
-                .collect()
-        }
-    }
-
     pub async fn run_commands(self) -> anyhow::Result<()> {
         debug!("begin run_commands");
 
-        let inputs = self.build_inputs();
+        let inputs = crate::input::build_input_list();
 
         self.process_inputs(inputs).await?;
 
