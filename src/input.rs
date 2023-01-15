@@ -4,6 +4,8 @@ use tokio::io::{AsyncBufRead, AsyncBufReadExt, BufReader, Split};
 
 use crate::command_line_args;
 
+type AsyncBufReadBox = Box<dyn AsyncBufRead + Unpin>;
+
 #[derive(Debug, Clone, Copy)]
 pub enum Input {
     Stdin,
@@ -12,20 +14,20 @@ pub enum Input {
 }
 
 impl Input {
-    async fn create_input_reader(&self) -> anyhow::Result<Box<dyn AsyncBufRead + Unpin>> {
+    async fn create_buf_reader(&self) -> anyhow::Result<AsyncBufReadBox> {
         match self {
             Input::Stdin => {
-                let input_reader = BufReader::new(tokio::io::stdin());
+                let buf_reader = BufReader::new(tokio::io::stdin());
 
-                Ok(Box::new(input_reader))
+                Ok(Box::new(buf_reader))
             }
             Input::File { file_name } => {
                 let file = tokio::fs::File::open(file_name).await.with_context(|| {
                     format!("error opening input file file_name = '{}'", file_name)
                 })?;
-                let input_reader = BufReader::new(file);
+                let buf_reader = BufReader::new(file);
 
-                Ok(Box::new(input_reader))
+                Ok(Box::new(buf_reader))
             }
         }
     }
@@ -75,7 +77,7 @@ pub fn build_input_list() -> Vec<Input> {
 
 pub struct InputReader {
     input: Input,
-    split: Split<Box<dyn AsyncBufRead + Unpin>>,
+    split: Split<AsyncBufReadBox>,
     next_line_number: u64,
 }
 
@@ -83,7 +85,7 @@ impl InputReader {
     pub async fn new(input: Input) -> anyhow::Result<Self> {
         let command_line_args = command_line_args::instance();
 
-        let input_reader = input.create_input_reader().await?;
+        let buf_reader = input.create_buf_reader().await?;
 
         let line_separator = if command_line_args.null_separator {
             0u8
@@ -91,7 +93,7 @@ impl InputReader {
             b'\n'
         };
 
-        let split = input_reader.split(line_separator);
+        let split = buf_reader.split(line_separator);
 
         Ok(InputReader {
             input,
