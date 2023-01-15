@@ -115,6 +115,22 @@ Set environment variable `RUST_LOG=debug` to see debug output.
 $ head -10 /usr/share/dict/words | RUST_LOG=debug rust-parallel md5 -s
 ```
 
+By default `rust-parallel` reads input from stdin only.  The `-i` option can be used 1 or more times to override this behavior, `-i -` means reads from stdin, `-i ./test` reads from the file `./test`:
+
+```
+$ head -5 /usr/share/dict/words | rust-parallel -i - -i ./test echo
+aa
+A
+a
+aal
+aalii
+echo hi
+echo how
+echo there
+echo are
+echo you
+```
+
 # Features:
 * Use only safe rust.
 * Use only asynchronous operations supported by [tokio](https://tokio.rs), do not use any blocking operations.  This includes writing to stdout and stderr.
