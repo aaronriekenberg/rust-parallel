@@ -115,9 +115,9 @@ Set environment variable `RUST_LOG=debug` to see debug output.
 $ head -10 /usr/share/dict/words | RUST_LOG=debug rust-parallel md5 -s
 ```
 
-# Goals:
+# Features:
 * Use only safe rust.
-* Use only asynchronous operations supported by [tokio](https://tokio.rs), do not use any blocking operations.
+* Use only asynchronous operations supported by [tokio](https://tokio.rs), do not use any blocking operations.  This includes writing to stdout and stderr.
 * Support arbitrarily large number of input lines, avoid `O(number of input lines)` memory usage.  In support of this:
   * [`tokio::sync::Semaphore`](https://docs.rs/tokio/latest/tokio/sync/struct.Semaphore.html) is used carefully to limit the number of commands that run concurrently.  Do not spawn tasks for all input lines immediately to limit memory usage.
 * Support running commands on local machine only, not on remote machines.
