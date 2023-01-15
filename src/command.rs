@@ -141,15 +141,10 @@ impl CommandService {
         {
             let line = String::from_utf8_lossy(&segment);
 
-            let command_and_args = self.build_command_and_args(&line);
-
-            match command_and_args {
-                None => continue,
-                Some(command_and_args) => {
-                    self.spawn_command(command_and_args, input_line_number)
-                        .await?;
-                }
-            };
+            if let Some(command_and_args) = self.build_command_and_args(&line) {
+                self.spawn_command(command_and_args, input_line_number)
+                    .await?;
+            }
         }
 
         debug!("end process_one_input input = {:?}", input);
