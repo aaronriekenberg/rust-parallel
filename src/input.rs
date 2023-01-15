@@ -16,12 +16,12 @@ pub enum Input {
 impl Input {
     async fn create_buf_reader(&self) -> anyhow::Result<AsyncBufReadBox> {
         match self {
-            Input::Stdin => {
+            Self::Stdin => {
                 let buf_reader = BufReader::new(tokio::io::stdin());
 
                 Ok(Box::new(buf_reader))
             }
-            Input::File { file_name } => {
+            Self::File { file_name } => {
                 let file = tokio::fs::File::open(file_name).await.with_context(|| {
                     format!("error opening input file file_name = '{}'", file_name)
                 })?;
