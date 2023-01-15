@@ -139,8 +139,8 @@ impl CommandService {
         Ok(())
     }
 
-    async fn process_inputs(&self, inputs: Vec<Input>) -> anyhow::Result<()> {
-        for input in inputs {
+    async fn process_inputs(&self) -> anyhow::Result<()> {
+        for input in crate::input::build_input_list() {
             self.process_one_input(input).await?;
         }
         Ok(())
@@ -149,9 +149,7 @@ impl CommandService {
     pub async fn run_commands(self) -> anyhow::Result<()> {
         debug!("begin run_commands");
 
-        let inputs = crate::input::build_input_list();
-
-        self.process_inputs(inputs).await?;
+        self.process_inputs().await?;
 
         // At this point all commands have been spawned.
         // When all semaphore permits can be acquired
