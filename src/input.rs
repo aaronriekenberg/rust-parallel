@@ -1,3 +1,7 @@
+use anyhow::Context;
+
+use tokio::io::{AsyncBufRead, AsyncBufReadExt, BufReader, Split};
+
 use crate::command_line_args;
 
 #[derive(Debug, Clone, Copy)]
@@ -5,6 +9,26 @@ pub enum Input {
     Stdin,
 
     File { file_name: &'static str },
+}
+
+impl Input {
+    async fn create_input_reader(&self) -> anyhow::Result<Box<dyn AsyncBufRead + Unpin>> {
+        match self {
+            Input::Stdin => {
+                let input_reader = BufReader::new(tokio::io::stdin());
+
+                Ok(Box::new(input_reader))
+            }
+            Input::File { file_name } => {
+                let file = tokio::fs::File::open(file_name).await.with_context(|| {
+                    format!("error opening input file file_name = '{}'", file_name)
+                })?;
+                let input_reader = BufReader::new(file);
+
+                Ok(Box::new(input_reader))
+            }
+        }
+    }
 }
 
 impl std::fmt::Display for Input {
@@ -46,5 +70,51 @@ pub fn build_input_list() -> Vec<Input> {
                 }
             })
             .collect()
+    }
+}
+
+pub struct InputReader {
+    input: Input,
+    split: Split<Box<dyn AsyncBufRead + Unpin>>,
+    next_line_number: u64,
+}
+
+impl InputReader {
+    pub async fn new(input: Input) -> anyhow::Result<Self> {
+        let command_line_args = command_line_args::instance();
+
+        let input_reader = input.create_input_reader().await?;
+
+        let line_separator = if command_line_args.null_separator {
+            0u8
+        } else {
+            b'\n'
+        };
+
+        let split = input_reader.split(line_separator);
+
+        Ok(InputReader {
+            input,
+            split,
+            next_line_number: 0,
+        })
+    }
+
+    pub async fn next_segment(&mut self) -> std::io::Result<Option<(InputLineNumber, Vec<u8>)>> {
+        let segment = self.split.next_segment().await?;
+
+        match segment {
+            None => Ok(None),
+            Some(segment) => {
+                self.next_line_number += 1;
+
+                let iln = InputLineNumber {
+                    input: self.input,
+                    line_number: self.next_line_number,
+                };
+
+                Ok(Some((iln, segment)))
+            }
+        }
     }
 }

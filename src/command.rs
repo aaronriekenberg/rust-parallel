@@ -1,10 +1,6 @@
 use anyhow::Context;
 
-use tokio::{
-    io::{AsyncBufReadExt, AsyncRead, BufReader},
-    process::Command as TokioCommand,
-    sync::Semaphore,
-};
+use tokio::{process::Command as TokioCommand, sync::Semaphore};
 
 use tracing::{debug, warn};
 
@@ -13,7 +9,7 @@ use std::sync::Arc;
 use crate::{
     command_line_args,
     command_line_args::CommandLineArgs,
-    input::{Input, InputLineNumber},
+    input::{Input, InputLineNumber, InputReader},
     output::OutputWriter,
 };
 
@@ -116,30 +112,17 @@ impl CommandService {
         command_and_args
     }
 
-    async fn process_one_input(
-        &self,
-        input: Input,
-        input_reader: BufReader<impl AsyncRead + Unpin>,
-    ) -> anyhow::Result<()> {
+    async fn process_one_input(&self, input: Input) -> anyhow::Result<()> {
         debug!("begin process_one_input input = {:?}", input);
 
-        let line_separator = if self.command_line_args.null_separator {
-            0u8
-        } else {
-            b'\n'
-        };
+        let mut input_reader = InputReader::new(input).await?;
 
-        let mut segments = input_reader.split(line_separator);
-        let mut line_number = 0u64;
-
-        while let Some(segment) = segments
+        while let Some((input_line_number, segment)) = input_reader
             .next_segment()
             .await
             .context("next_segment error")?
         {
             let line = String::from_utf8_lossy(&segment);
-
-            line_number += 1;
 
             let command_and_args = self.build_command_and_args(&line);
 
@@ -147,7 +130,7 @@ impl CommandService {
                 continue;
             }
 
-            self.spawn_command(command_and_args, InputLineNumber { input, line_number })
+            self.spawn_command(command_and_args, input_line_number)
                 .await?;
         }
 
@@ -158,21 +141,7 @@ impl CommandService {
 
     async fn process_inputs(&self, inputs: Vec<Input>) -> anyhow::Result<()> {
         for input in inputs {
-            match input {
-                Input::Stdin => {
-                    let input_reader = BufReader::new(tokio::io::stdin());
-
-                    self.process_one_input(input, input_reader).await?;
-                }
-                Input::File { file_name } => {
-                    let file = tokio::fs::File::open(file_name).await.with_context(|| {
-                        format!("error opening input file file_name = '{}'", file_name)
-                    })?;
-                    let input_reader = BufReader::new(file);
-
-                    self.process_one_input(input, input_reader).await?;
-                }
-            }
+            self.process_one_input(input).await?;
         }
         Ok(())
     }
