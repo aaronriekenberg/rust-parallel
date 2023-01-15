@@ -102,7 +102,7 @@ impl InputReader {
         })
     }
 
-    pub async fn next_segment(&mut self) -> std::io::Result<Option<(InputLineNumber, Vec<u8>)>> {
+    pub async fn next_segment(&mut self) -> anyhow::Result<Option<(InputLineNumber, Vec<u8>)>> {
         let segment = self.split.next_segment().await?;
 
         match segment {
