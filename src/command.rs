@@ -14,8 +14,20 @@ use crate::{
 };
 
 #[derive(Debug)]
+struct CommandAndArgs {
+    command: String,
+    args: Vec<String>,
+}
+
+impl std::fmt::Display for CommandAndArgs {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "command={},args={:?}", self.command, self.args,)
+    }
+}
+
+#[derive(Debug)]
 struct Command {
-    command_and_args: Vec<String>,
+    command_and_args: CommandAndArgs,
     input_line_number: InputLineNumber,
 }
 
@@ -23,11 +35,10 @@ impl Command {
     async fn run(self, output_writer: Arc<OutputWriter>) {
         debug!("begin run command = {:?}", self);
 
-        let [command, args @ ..] = self.command_and_args.as_slice() else {
-                panic!("invalid command_and_args '{:?}'", self.command_and_args);
-            };
-
-        let command_output = TokioCommand::new(command).args(args).output().await;
+        let command_output = TokioCommand::new(&self.command_and_args.command)
+            .args(&self.command_and_args.args)
+            .output()
+            .await;
 
         match command_output {
             Err(e) => {
@@ -47,7 +58,7 @@ impl std::fmt::Display for Command {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "command_and_args={:?},input_line_number={}",
+            "command_and_args=({}),input_line_number={}",
             self.command_and_args, self.input_line_number,
         )
     }
@@ -72,7 +83,7 @@ impl CommandService {
 
     async fn spawn_command(
         &self,
-        command_and_args: Vec<String>,
+        command_and_args: CommandAndArgs,
         input_line_number: InputLineNumber,
     ) -> anyhow::Result<()> {
         let permit = Arc::clone(&self.command_semaphore)
@@ -96,7 +107,7 @@ impl CommandService {
         Ok(())
     }
 
-    fn build_command_and_args(&self, line: &str) -> Vec<String> {
+    fn build_command_and_args(&self, line: &str) -> Option<CommandAndArgs> {
         let mut command_and_args: Vec<String> = if self.command_line_args.null_separator {
             vec![line.to_owned()]
         } else {
@@ -109,7 +120,13 @@ impl CommandService {
             command_and_args = [command_and_initial_arguments.clone(), command_and_args].concat();
         }
 
-        command_and_args
+        if command_and_args.is_empty() {
+            None
+        } else {
+            let command = command_and_args.remove(0);
+            let args = command_and_args;
+            Some(CommandAndArgs { command, args })
+        }
     }
 
     async fn process_one_input(&self, input: Input) -> anyhow::Result<()> {
@@ -126,12 +143,13 @@ impl CommandService {
 
             let command_and_args = self.build_command_and_args(&line);
 
-            if command_and_args.is_empty() {
-                continue;
-            }
-
-            self.spawn_command(command_and_args, input_line_number)
-                .await?;
+            match command_and_args {
+                None => continue,
+                Some(command_and_args) => {
+                    self.spawn_command(command_and_args, input_line_number)
+                        .await?;
+                }
+            };
         }
 
         debug!("end process_one_input input = {:?}", input);
