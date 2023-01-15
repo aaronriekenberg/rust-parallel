@@ -110,12 +110,12 @@ impl InputReader {
             Some(segment) => {
                 self.next_line_number += 1;
 
-                let iln = InputLineNumber {
+                let input_line_number = InputLineNumber {
                     input: self.input,
                     line_number: self.next_line_number,
                 };
 
-                Ok(Some((iln, segment)))
+                Ok(Some((input_line_number, segment)))
             }
         }
     }
