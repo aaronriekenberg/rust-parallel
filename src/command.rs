@@ -13,17 +13,7 @@ use crate::{
     output::OutputWriter,
 };
 
-#[derive(Debug)]
-struct CommandAndArgs {
-    command: String,
-    args: Vec<String>,
-}
-
-impl std::fmt::Display for CommandAndArgs {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "command={},args={:?}", self.command, self.args,)
-    }
-}
+type CommandAndArgs = (String, Vec<String>);
 
 #[derive(Debug)]
 struct Command {
@@ -35,10 +25,9 @@ impl Command {
     async fn run(self, output_writer: Arc<OutputWriter>) {
         debug!("begin run command = {:?}", self);
 
-        let command_output = TokioCommand::new(&self.command_and_args.command)
-            .args(&self.command_and_args.args)
-            .output()
-            .await;
+        let (command, args) = &self.command_and_args;
+
+        let command_output = TokioCommand::new(command).args(args).output().await;
 
         match command_output {
             Err(e) => {
@@ -58,8 +47,8 @@ impl std::fmt::Display for Command {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "command_and_args=({}),input_line_number={}",
-            self.command_and_args, self.input_line_number,
+            "command={},args={:?},input_line_number={}",
+            self.command_and_args.0, self.command_and_args.1, self.input_line_number,
         )
     }
 }
@@ -125,7 +114,7 @@ impl CommandService {
         } else {
             let command = command_and_args.remove(0);
             let args = command_and_args;
-            Some(CommandAndArgs { command, args })
+            Some((command, args))
         }
     }
 
