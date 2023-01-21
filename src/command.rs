@@ -128,9 +128,11 @@ impl CommandService {
             .await
             .context("next_segment error")?
         {
-            let line = String::from_utf8_lossy(&segment);
+            let Ok(line) = std::str::from_utf8(&segment) else {
+                continue;
+            };
 
-            if let Some(command_and_args) = self.build_command_and_args(&line) {
+            if let Some(command_and_args) = self.build_command_and_args(line) {
                 self.spawn_command(command_and_args, input_line_number)
                     .await?;
             }
