@@ -96,7 +96,7 @@ impl CommandService {
         Ok(())
     }
 
-    fn build_command_and_args(&self, line: &str) -> Option<CommandAndArgs> {
+    fn build_command_and_args(&self, line: String) -> Option<CommandAndArgs> {
         let mut command_and_args: Vec<String> = if self.command_line_args.null_separator {
             vec![line.to_owned()]
         } else {
@@ -128,7 +128,7 @@ impl CommandService {
             .await
             .context("next_segment error")?
         {
-            let Ok(line) = std::str::from_utf8(&segment) else {
+            let Ok(line) = String::from_utf8(segment) else {
                 continue;
             };
 
