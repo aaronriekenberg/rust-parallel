@@ -98,7 +98,7 @@ impl CommandService {
 
     fn build_command_and_args(&self, line: String) -> Option<CommandAndArgs> {
         let mut command_and_args: Vec<String> = if self.command_line_args.null_separator {
-            vec![line.to_owned()]
+            vec![line]
         } else {
             line.split_whitespace().map(|s| s.to_owned()).collect()
         };
