@@ -4,7 +4,7 @@ use tokio::{process::Command as TokioCommand, sync::Semaphore};
 
 use tracing::{debug, warn};
 
-use std::sync::Arc;
+use std::{collections::VecDeque, sync::Arc};
 
 use crate::{
     command_line_args,
@@ -13,7 +13,7 @@ use crate::{
     output::OutputWriter,
 };
 
-type CommandAndArgs = (String, Vec<String>);
+type CommandAndArgs = (String, VecDeque<String>);
 
 #[derive(Debug)]
 struct Command {
@@ -97,8 +97,8 @@ impl CommandService {
     }
 
     fn build_command_and_args(&self, line: String) -> Option<CommandAndArgs> {
-        let mut command_and_args: Vec<String> = if self.command_line_args.null_separator {
-            vec![line]
+        let mut command_and_args: VecDeque<String> = if self.command_line_args.null_separator {
+            VecDeque::from([line])
         } else {
             line.split_whitespace().map(|s| s.to_owned()).collect()
         };
@@ -106,13 +106,21 @@ impl CommandService {
         let command_and_initial_arguments = &self.command_line_args.command_and_initial_arguments;
 
         if command_and_initial_arguments.len() > 0 {
-            command_and_args = [command_and_initial_arguments.clone(), command_and_args].concat();
+            let mut vd = VecDeque::with_capacity(
+                command_and_initial_arguments.len() + command_and_args.len(),
+            );
+
+            vd.extend(command_and_initial_arguments.clone());
+
+            vd.extend(command_and_args);
+
+            command_and_args = vd;
         }
 
         if command_and_args.is_empty() {
             None
         } else {
-            let command = command_and_args.remove(0);
+            let command = command_and_args.pop_front().unwrap();
             let args = command_and_args;
             Some((command, args))
         }
