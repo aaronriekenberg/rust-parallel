@@ -106,15 +106,12 @@ impl CommandService {
         let command_and_initial_arguments = &self.command_line_args.command_and_initial_arguments;
 
         if command_and_initial_arguments.len() > 0 {
-            let mut vd = VecDeque::with_capacity(
-                command_and_initial_arguments.len() + command_and_args.len(),
-            );
+            command_and_args.reserve_exact(command_and_initial_arguments.len());
 
-            vd.extend(command_and_initial_arguments.clone());
-
-            vd.extend(command_and_args);
-
-            command_and_args = vd;
+            command_and_initial_arguments
+                .iter()
+                .rev()
+                .for_each(|s| command_and_args.push_front(s.clone()));
         }
 
         if command_and_args.is_empty() {
