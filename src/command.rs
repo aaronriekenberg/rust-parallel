@@ -96,11 +96,14 @@ impl CommandService {
         Ok(())
     }
 
-    fn build_command_and_args(&self, line: String) -> Option<CommandAndArgs> {
+    fn build_command_and_args(&self, input_line: String) -> Option<CommandAndArgs> {
         let mut deque: VecDeque<String> = if self.command_line_args.null_separator {
-            VecDeque::from([line])
+            VecDeque::from([input_line])
         } else {
-            line.split_whitespace().map(|s| s.to_owned()).collect()
+            input_line
+                .split_whitespace()
+                .map(|s| s.to_owned())
+                .collect()
         };
 
         let command_and_initial_arguments = &self.command_line_args.command_and_initial_arguments;
@@ -134,11 +137,11 @@ impl CommandService {
             .await
             .context("next_segment error")?
         {
-            let Ok(line) = String::from_utf8(segment) else {
+            let Ok(input_line) = String::from_utf8(segment) else {
                 continue;
             };
 
-            if let Some(command_and_args) = self.build_command_and_args(line) {
+            if let Some(command_and_args) = self.build_command_and_args(input_line) {
                 self.spawn_command(command_and_args, input_line_number)
                     .await?;
             }
