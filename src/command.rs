@@ -97,7 +97,7 @@ impl CommandService {
     }
 
     fn build_command_and_args(&self, line: String) -> Option<CommandAndArgs> {
-        let mut command_and_args: VecDeque<String> = if self.command_line_args.null_separator {
+        let mut deque: VecDeque<String> = if self.command_line_args.null_separator {
             VecDeque::from([line])
         } else {
             line.split_whitespace().map(|s| s.to_owned()).collect()
@@ -106,19 +106,20 @@ impl CommandService {
         let command_and_initial_arguments = &self.command_line_args.command_and_initial_arguments;
 
         if command_and_initial_arguments.len() > 0 {
-            command_and_args.reserve_exact(command_and_initial_arguments.len());
+            deque.reserve_exact(command_and_initial_arguments.len());
 
             command_and_initial_arguments
                 .iter()
                 .rev()
-                .for_each(|s| command_and_args.push_front(s.clone()));
+                .cloned()
+                .for_each(|s| deque.push_front(s));
         }
 
-        if command_and_args.is_empty() {
+        if deque.is_empty() {
             None
         } else {
-            let command = command_and_args.pop_front().unwrap();
-            let args = command_and_args;
+            let command = deque.pop_front().unwrap();
+            let args = deque;
             Some((command, args))
         }
     }
