@@ -99,7 +99,7 @@ impl CommandService {
     }
 
     fn build_command_and_args(&self, input_line: String) -> Option<CommandAndArgs> {
-        let mut vec: Vec<String> = if self.command_line_args.null_separator {
+        let mut vec = if self.command_line_args.null_separator {
             vec![input_line]
         } else {
             input_line
