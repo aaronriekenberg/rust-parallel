@@ -9,7 +9,7 @@ use std::sync::Arc;
 use crate::{
     command_line_args,
     command_line_args::CommandLineArgs,
-    input::{Input, InputLineNumber, InputReader},
+    input::{build_input_list, Input, InputLineNumber, InputReader},
     output::OutputWriter,
 };
 
@@ -147,7 +147,7 @@ impl CommandService {
     }
 
     async fn process_inputs(&self) -> anyhow::Result<()> {
-        for input in crate::input::build_input_list() {
+        for input in build_input_list() {
             self.process_one_input(input).await?;
         }
         Ok(())
