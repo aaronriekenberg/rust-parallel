@@ -4,7 +4,7 @@ use tokio::{process::Command as TokioCommand, sync::Semaphore};
 
 use tracing::{debug, warn};
 
-use std::{collections::VecDeque, sync::Arc};
+use std::sync::Arc;
 
 use crate::{
     command_line_args,
@@ -13,7 +13,7 @@ use crate::{
     output::OutputWriter,
 };
 
-type CommandAndArgs = (String, VecDeque<String>);
+type CommandAndArgs = Vec<String>;
 
 #[derive(Debug)]
 struct Command {
@@ -25,7 +25,9 @@ impl Command {
     async fn run(self, output_writer: Arc<OutputWriter>) {
         debug!("begin run command = {:?}", self);
 
-        let (command, args) = &self.command_and_args;
+        let [command, args @ ..] = self.command_and_args.as_slice() else {
+            return;
+        };
 
         let command_output = TokioCommand::new(command).args(args).output().await;
 
@@ -47,8 +49,8 @@ impl std::fmt::Display for Command {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "command={},args={:?},input_line_number={}",
-            self.command_and_args.0, self.command_and_args.1, self.input_line_number,
+            "command_and_args={:?},input_line_number={}",
+            self.command_and_args, self.input_line_number,
         )
     }
 }
@@ -97,8 +99,8 @@ impl CommandService {
     }
 
     fn build_command_and_args(&self, input_line: String) -> Option<CommandAndArgs> {
-        let mut deque: VecDeque<String> = if self.command_line_args.null_separator {
-            VecDeque::from([input_line])
+        let mut vec: Vec<String> = if self.command_line_args.null_separator {
+            vec![input_line]
         } else {
             input_line
                 .split_whitespace()
@@ -109,21 +111,13 @@ impl CommandService {
         let command_and_initial_arguments = &self.command_line_args.command_and_initial_arguments;
 
         if command_and_initial_arguments.len() > 0 {
-            deque.reserve_exact(command_and_initial_arguments.len());
-
-            command_and_initial_arguments
-                .iter()
-                .rev()
-                .cloned()
-                .for_each(|s| deque.push_front(s));
+            vec = [command_and_initial_arguments.clone(), vec].concat();
         }
 
-        if deque.is_empty() {
+        if vec.is_empty() {
             None
         } else {
-            let command = deque.pop_front().unwrap();
-            let args = deque;
-            Some((command, args))
+            Some(vec)
         }
     }
 
