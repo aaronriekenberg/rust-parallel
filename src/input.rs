@@ -4,33 +4,11 @@ use tokio::io::{AsyncBufRead, AsyncBufReadExt, BufReader, Split};
 
 use crate::command_line_args;
 
-type AsyncBufReadBox = Box<dyn AsyncBufRead + Unpin>;
-
 #[derive(Debug, Clone, Copy)]
 pub enum Input {
     Stdin,
 
     File { file_name: &'static str },
-}
-
-impl Input {
-    async fn create_buf_reader(&self) -> anyhow::Result<AsyncBufReadBox> {
-        match self {
-            Self::Stdin => {
-                let buf_reader = BufReader::new(tokio::io::stdin());
-
-                Ok(Box::new(buf_reader))
-            }
-            Self::File { file_name } => {
-                let file = tokio::fs::File::open(file_name).await.with_context(|| {
-                    format!("error opening input file file_name = '{}'", file_name)
-                })?;
-                let buf_reader = BufReader::new(file);
-
-                Ok(Box::new(buf_reader))
-            }
-        }
-    }
 }
 
 impl std::fmt::Display for Input {
@@ -75,6 +53,8 @@ pub fn build_input_list() -> Vec<Input> {
     }
 }
 
+type AsyncBufReadBox = Box<dyn AsyncBufRead + Unpin>;
+
 pub struct InputReader {
     input: Input,
     split: Split<AsyncBufReadBox>,
@@ -85,7 +65,7 @@ impl InputReader {
     pub async fn new(input: Input) -> anyhow::Result<Self> {
         let command_line_args = command_line_args::instance();
 
-        let buf_reader = input.create_buf_reader().await?;
+        let buf_reader = Self::create_buf_reader(input).await?;
 
         let line_separator = if command_line_args.null_separator {
             0u8
@@ -100,6 +80,24 @@ impl InputReader {
             split,
             next_line_number: 0,
         })
+    }
+
+    async fn create_buf_reader(input: Input) -> anyhow::Result<AsyncBufReadBox> {
+        match input {
+            Input::Stdin => {
+                let buf_reader = BufReader::new(tokio::io::stdin());
+
+                Ok(Box::new(buf_reader))
+            }
+            Input::File { file_name } => {
+                let file = tokio::fs::File::open(file_name).await.with_context(|| {
+                    format!("error opening input file file_name = '{}'", file_name)
+                })?;
+                let buf_reader = BufReader::new(file);
+
+                Ok(Box::new(buf_reader))
+            }
+        }
     }
 
     pub async fn next_segment(&mut self) -> anyhow::Result<Option<(InputLineNumber, Vec<u8>)>> {
