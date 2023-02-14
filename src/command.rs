@@ -64,10 +64,10 @@ pub struct CommandService {
 impl CommandService {
     pub fn new() -> Self {
         let command_line_args = command_line_args::instance();
-        let jobs: usize = command_line_args.jobs.try_into().unwrap();
+        let semaphore_permits: usize = command_line_args.jobs.try_into().unwrap();
         Self {
             command_line_args,
-            command_semaphore: Arc::new(Semaphore::new(jobs)),
+            command_semaphore: Arc::new(Semaphore::new(semaphore_permits)),
             output_writer: OutputWriter::new(),
         }
     }
