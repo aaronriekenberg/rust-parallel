@@ -14,7 +14,7 @@ fn default_jobs() -> u32 {
 #[command(verbatim_doc_comment, version)]
 /// Run commands in parallel
 ///
-/// By Aaron Riekenberg aaron.riekenberg@gmail.com
+/// By Aaron Riekenberg <aaron.riekenberg@gmail.com>
 ///
 /// https://github.com/aaronriekenberg/rust-parallel
 /// https://crates.io/crates/rust-parallel
