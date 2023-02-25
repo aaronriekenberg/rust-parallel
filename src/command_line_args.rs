@@ -11,7 +11,13 @@ fn default_jobs() -> u32 {
 }
 
 #[derive(Parser, Debug)]
-#[command(version, about)]
+#[command(verbatim_doc_comment, version)]
+/// Run commands in parallel
+///
+/// By Aaron Riekenberg aaron.riekenberg@gmail.com
+///
+/// https://github.com/aaronriekenberg/rust-parallel
+/// https://crates.io/crates/rust-parallel
 pub struct CommandLineArgs {
     /// Input file or - for stdin.  Defaults to stdin if no inputs are specified.
     #[arg(short, long)]
