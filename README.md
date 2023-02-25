@@ -13,19 +13,37 @@ Being written in asynchronous rust it is quite fast - see [benchmarks](https://g
 
 # Usage:
 ```
+$ rust-parallel --help
 Run commands in parallel
+
+By Aaron Riekenberg <aaron.riekenberg@gmail.com>
+
+https://github.com/aaronriekenberg/rust-parallel
+https://crates.io/crates/rust-parallel
 
 Usage: rust-parallel [OPTIONS] [COMMAND_AND_INITIAL_ARGUMENTS]...
 
 Arguments:
-  [COMMAND_AND_INITIAL_ARGUMENTS]...  Optional command and initial arguments to run for each input line
+  [COMMAND_AND_INITIAL_ARGUMENTS]...
+          Optional command and initial arguments to run for each input line
 
 Options:
-  -i, --input <INPUT>   Input file or - for stdin.  Defaults to stdin if no inputs are specified
-  -j, --jobs <JOBS>     Maximum number of commands to run in parallel, defauts to num cpus [default: 8]
-  -0, --null-separator  Use null separator for reading input instead of newline
-  -h, --help            Print help information
-  -V, --version         Print version information
+  -i, --input <INPUT>
+          Input file or - for stdin.  Defaults to stdin if no inputs are specified
+
+  -j, --jobs <JOBS>
+          Maximum number of commands to run in parallel, defauts to num cpus
+
+          [default: 8]
+
+  -0, --null-separator
+          Use null separator for reading input instead of newline
+
+  -h, --help
+          Print help (see a summary with '-h')
+
+  -V, --version
+          Print version
 ```
 
 # Installation:
