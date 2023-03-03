@@ -10,7 +10,7 @@ fn default_jobs() -> u32 {
     num_cpus::get().try_into().unwrap()
 }
 
-/// Run commands in parallel
+/// Execute commands in parallel
 ///
 /// By Aaron Riekenberg <aaron.riekenberg@gmail.com>
 ///
