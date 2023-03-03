@@ -97,13 +97,7 @@ MD5 ("Aaron") = 1c0a11cc4ddc0dbd3fa4d77232a4e22e
 MD5 ("aardwolf") = 66a4a1a2b442e8d218e8e99100069877
 ```
 
-3. Working on a set of files from `find` command.  The `-0` option works nicely with `find -print0` to handle filenames with newline or whitespace characters:
-
-```
-$ find . -type f -print0 | rust-parallel -0 gzip -f -k
-```
-
-4. Using `awk` to form complete commands:
+3. Using `awk` to form complete commands:
 
 ```
 $ head -100 /usr/share/dict/words | awk '{printf "md5 -s %s\n", $1}' | rust-parallel
@@ -117,7 +111,7 @@ MD5 ("Abbadide") = 7add1d6f008790fa6783bc8798d8c803
 MD5 ("abb") = ea01e5fd8e4d8832825acdd20eac5104
 ```
 
-5. Using as part of a shell pipeline.  stdout and stderr from each command run are copied to stdout/stderr of the rust-parallel process.
+4. Using as part of a shell pipeline.  stdout and stderr from each command run are copied to stdout/stderr of the rust-parallel process.
 
 ```
 $ head -100 /usr/share/dict/words | rust-parallel md5 -s | grep -i abba
@@ -126,6 +120,17 @@ MD5 ("abbacomes") = 76640eb0c929bc97d016731bfbe9a4f8
 MD5 ("abbacy") = 08aeac72800adc98d2aba540b6195921
 MD5 ("Abbadide") = 7add1d6f008790fa6783bc8798d8c803
 ```
+
+5. Working on a set of files from `find` command.  The `-0` option works nicely with `find -print0` to handle filenames with newline or whitespace characters:
+
+```
+$ mkdir testdir
+
+$ touch 'testdir/a b' 'testdir/b c' 'testdir/c d'
+
+$ find testdir -type f -print0 | rust-parallel -0 gzip -f -k
+```
+
 
 6. By default `rust-parallel` reads input from stdin only.  The `-i` option can be used 1 or more times to override this behavior.  `-i -` means read from stdin, `-i ./test` means read from the file `./test`:
 
