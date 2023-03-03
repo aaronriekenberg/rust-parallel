@@ -4,7 +4,7 @@ Command-line utility to execute commands in parallel and aggregate their output.
 
 Similar interface to [GNU Parallel](https://www.gnu.org/software/parallel/parallel_examples.html) or [xargs](https://man.openbsd.org/xargs) but implemented in rust and [tokio](https://tokio.rs).
 
-Always executes 1 command for each input line, similar to xargs `-n1` or `-L1` options.
+Always executes 1 process for each input line, similar to xargs `-n1` or `-L1` options.
 
 Being written in asynchronous rust it is quite fast - see [benchmarks](https://github.com/aaronriekenberg/rust-parallel/wiki/Benchmarks).
 
