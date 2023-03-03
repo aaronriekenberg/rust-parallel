@@ -2,7 +2,7 @@
 
 Command-line utility to execute commands in parallel and aggregate their output.
 
-Similar to [GNU Parallel](https://www.gnu.org/software/parallel/parallel_examples.html) or [xargs](https://man.openbsd.org/xargs) with `-n1` option but implemented in rust and [tokio](https://tokio.rs).
+Similar to [GNU Parallel](https://www.gnu.org/software/parallel/parallel_examples.html) or [xargs](https://man.openbsd.org/xargs) but implemented in rust and [tokio](https://tokio.rs).
 
 Being written in asynchronous rust it is quite fast - see [benchmarks](https://github.com/aaronriekenberg/rust-parallel/wiki/Benchmarks).
 
