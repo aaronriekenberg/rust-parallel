@@ -129,6 +129,9 @@ $ mkdir testdir
 $ touch 'testdir/a b' 'testdir/b c' 'testdir/c d'
 
 $ find testdir -type f -print0 | rust-parallel -0 gzip -f -k
+
+$ ls testdir
+'a b'  'a b.gz'  'b c'  'b c.gz'  'c d'  'c d.gz'
 ```
 
 
