@@ -14,11 +14,11 @@ Being written in asynchronous rust it is quite fast - see [benchmarks](https://g
 [crates-url]: https://crates.io/crates/rust-parallel
 
 # Contents:
-* [Usage](#Usage) 
+* [Usage](#Usage)
 * [Installation](#Installation)
-* [Demos](#Demos)   
-* [Features](#Features)   
-* [Tech Stack](#Tech Stack)
+* [Demos](#Demos)
+* [Features](#Features)
+* [Tech Stack](#tech-stack)
 
 # Usage:
 ```
