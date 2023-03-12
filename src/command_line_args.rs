@@ -7,6 +7,8 @@ use tokio::sync::OnceCell;
 use tracing::debug;
 
 fn default_jobs() -> u32 {
+    // Using u32 instead of usize for jobs argument due to this issue:
+    // https://github.com/tokio-rs/tokio/issues/4446#issuecomment-1365930467
     num_cpus::get().try_into().unwrap()
 }
 
