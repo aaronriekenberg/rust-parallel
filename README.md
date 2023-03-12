@@ -54,6 +54,7 @@ Options:
 ```
 $ cargo install rust-parallel   
 ```
+3. The same `cargo install rust-parallel` command will also update to the latest version after initial installation.
 
 # Demos:
 
