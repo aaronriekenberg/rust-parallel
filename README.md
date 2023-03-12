@@ -192,5 +192,5 @@ See the [wiki page for benchmarks](https://github.com/aaronriekenberg/rust-paral
   * [`tokio::sync::Semaphore`](https://docs.rs/tokio/latest/tokio/sync/struct.Semaphore.html) used to limit number of commands that run concurrently.
      * Life would be a bit easier if `acquire_many` took a `usize` parameter: https://github.com/tokio-rs/tokio/issues/4446
   * [`tokio::sync::Mutex`](https://docs.rs/tokio/latest/tokio/sync/struct.Mutex.html) used to protect access to stdout/stderr to prevent interleaved command output.
-* [tracing](https://docs.rs/tracing/latest/tracing/) used for debug and warning logs.
-
+* [tracing](https://docs.rs/tracing/latest/tracing/) structured debug and warning logs.
+  * [`tracing::Instrument`](https://docs.rs/tracing/latest/tracing/attr.instrument.html) is used to provide structured debug logs on methods in `command::Command` and `command::CommandService`.
