@@ -2,7 +2,7 @@ use anyhow::Context;
 
 use tokio::{process::Command as TokioCommand, sync::Semaphore};
 
-use tracing::{debug, warn};
+use tracing::{debug, instrument, warn};
 
 use std::sync::Arc;
 
@@ -22,8 +22,9 @@ struct Command {
 }
 
 impl Command {
-    async fn run(self, output_writer: Arc<OutputWriter>) {
-        debug!("begin run command = {:?}", self);
+    #[instrument(skip_all, fields(command = %self), level = "debug")]
+    async fn run_command(self, output_writer: Arc<OutputWriter>) {
+        debug!("begin run_command");
 
         let [command, args @ ..] = self.command_and_args.as_slice() else {
             return;
@@ -33,7 +34,7 @@ impl Command {
 
         match command_output {
             Err(e) => {
-                warn!("got error running command: {}: {}", self, e);
+                warn!("got error running command {}: {}", self, e);
             }
             Ok(output) => {
                 debug!("got command status = {}", output.status);
@@ -41,7 +42,7 @@ impl Command {
             }
         };
 
-        debug!("end run command = {:?}", self);
+        debug!("end run_command");
     }
 }
 
@@ -90,7 +91,7 @@ impl CommandService {
         };
 
         tokio::spawn(async move {
-            command.run(output_writer_clone).await;
+            command.run_command(output_writer_clone).await;
 
             drop(permit);
         });
@@ -121,8 +122,9 @@ impl CommandService {
         }
     }
 
+    #[instrument(skip_all, fields(input = %input), level = "debug")]
     async fn process_one_input(&self, input: Input) -> anyhow::Result<()> {
-        debug!("begin process_one_input input = {:?}", input);
+        debug!("begin process_one_input");
 
         let mut input_reader = InputReader::new(input).await?;
 
@@ -141,7 +143,7 @@ impl CommandService {
             }
         }
 
-        debug!("end process_one_input input = {:?}", input);
+        debug!("end process_one_input");
 
         Ok(())
     }
@@ -153,6 +155,7 @@ impl CommandService {
         Ok(())
     }
 
+    #[instrument(skip_all, level = "debug")]
     pub async fn run_commands(self) -> anyhow::Result<()> {
         debug!("begin run_commands");
 
