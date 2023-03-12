@@ -16,7 +16,7 @@ Being written in asynchronous rust it is quite fast - see [benchmarks](https://g
 # Usage:
 ```
 $ rust-parallel --help
-Run commands in parallel
+Execute commands in parallel
 
 By Aaron Riekenberg <aaron.riekenberg@gmail.com>
 
