@@ -17,6 +17,7 @@ Being written in asynchronous rust it is quite fast - see [benchmarks](https://g
 * [Usage](#Usage)
 * [Installation](#Installation)
 * [Demos](#Demos)
+* [Benchmarks](#Benchmarks)
 * [Features](#Features)
 * [Tech Stack](#tech-stack)
 
@@ -170,6 +171,9 @@ baz
 ```
 $ head -10 /usr/share/dict/words | RUST_LOG=debug rust-parallel md5 -s
 ```
+
+## Benchmarks:
+See the [wiki page for benchmarks](https://github.com/aaronriekenberg/rust-parallel/wiki/Benchmarks).
 
 ## Features:
 * Use only safe rust.
