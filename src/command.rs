@@ -34,10 +34,10 @@ impl Command {
 
         match command_output {
             Err(e) => {
-                warn!("got error running command {}: {}", self, e);
+                warn!("error running command {}: {}", self, e);
             }
             Ok(output) => {
-                debug!("got command status = {}", output.status);
+                debug!("command status = {}", output.status);
                 output_writer.write_command_output(&output).await;
             }
         };
