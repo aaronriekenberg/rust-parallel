@@ -15,8 +15,10 @@ Being written in asynchronous rust it is quite fast - see [benchmarks](https://g
 
 # Contents:
 * [Usage](#Usage) 
-* [Installation](#Installation)   
-
+* [Installation](#Installation)
+* [Demos](#Demos)   
+* [Features](#Features)   
+* [Tech Stack](#Tech Stack)
 
 # Usage:
 ```
