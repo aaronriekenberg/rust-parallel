@@ -13,14 +13,14 @@ Being written in asynchronous rust it is quite fast - see [benchmarks](https://g
 [crates-badge]: https://img.shields.io/crates/v/rust-parallel.svg
 [crates-url]: https://crates.io/crates/rust-parallel
 
-# Contents:
+## Contents:
 * [Usage](#Usage)
 * [Installation](#Installation)
 * [Demos](#Demos)
 * [Features](#Features)
 * [Tech Stack](#tech-stack)
 
-# Usage:
+## Usage:
 ```
 $ rust-parallel --help
 Execute commands in parallel
@@ -55,7 +55,7 @@ Options:
           Print version
 ```
 
-# Installation:
+## Installation:
 1. [Install Rust](https://www.rust-lang.org/learn/get-started)
 2. Install the latest version of this app from [crates.io](https://crates.io/crates/rust-parallel):
 ```
@@ -63,7 +63,7 @@ $ cargo install rust-parallel
 ```
 3. The same `cargo install rust-parallel` command will also update to the latest version after initial installation.
 
-# Demos:
+## Demos:
 
 1. Small demo of 5 echo commands.  With `-j5` all 5 commands are run in parallel.  With `-j1` commands are run sequentially:
 
@@ -171,14 +171,14 @@ baz
 $ head -10 /usr/share/dict/words | RUST_LOG=debug rust-parallel md5 -s
 ```
 
-# Features:
+## Features:
 * Use only safe rust.
 * Use only asynchronous operations supported by [tokio](https://tokio.rs), do not use any blocking operations.  This includes writing to stdout and stderr.
 * Support arbitrarily large number of input lines, avoid `O(number of input lines)` memory usage.  In support of this:
   * [`tokio::sync::Semaphore`](https://docs.rs/tokio/latest/tokio/sync/struct.Semaphore.html) is used carefully to limit the number of commands that run concurrently.  Do not spawn tasks for all input lines immediately to limit memory usage.
 * Support running commands on local machine only, not on remote machines.
 
-# Tech Stack:
+## Tech Stack:
 * [anyhow](https://github.com/dtolnay/anyhow) used for application error handling to propogate and format fatal errors.
 * [clap](https://docs.rs/clap/latest/clap/) command line argument parser.
 * [tokio](https://tokio.rs/) asynchronous runtime for rust.  From tokio this app uses:
