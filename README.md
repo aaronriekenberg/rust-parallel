@@ -13,6 +13,11 @@ Being written in asynchronous rust it is quite fast - see [benchmarks](https://g
 [crates-badge]: https://img.shields.io/crates/v/rust-parallel.svg
 [crates-url]: https://crates.io/crates/rust-parallel
 
+# Contents:
+* [Usage](#Usage) 
+* [Installation](#Installation)   
+
+
 # Usage:
 ```
 $ rust-parallel --help
