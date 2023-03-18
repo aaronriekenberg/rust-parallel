@@ -57,6 +57,12 @@ Options:
 ```
 
 ## Installation:
+Recommended:
+
+1. Download a pre-built release from [Github Releases](https://github.com/aaronriekenberg/rust-parallel/releases).
+2. Extract the executable and put somewhere in your $PATH.
+
+For manual installation/update:
 1. [Install Rust](https://www.rust-lang.org/learn/get-started)
 2. Install the latest version of this app from [crates.io](https://crates.io/crates/rust-parallel):
 ```
