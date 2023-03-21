@@ -33,6 +33,14 @@ pub struct CommandLineArgs {
     #[arg(short('0'), long)]
     pub null_separator: bool,
 
+    /// Use shell for running commands.
+    ///
+    /// If $SHELL is set use it else use /bin/sh.
+    ///
+    /// Each line line are passed to $SHELL -c <line> as a single argument.
+    #[arg(short, long)]
+    pub shell: bool,
+
     /// Optional command and initial arguments to run for each input line.
     #[arg(trailing_var_arg(true))]
     pub command_and_initial_arguments: Vec<String>,
