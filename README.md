@@ -179,7 +179,34 @@ foo
 baz
 ```
 
-7. Set environment variable `RUST_LOG=debug` to see debug output.
+7. Calling a bash function, use -s shell mode so that each line is passed to /bin/bash -s as a single argument:
+
+```
+$ doit() {
+  echo Doing it for $1
+  sleep 2
+  echo Done with $1
+}
+
+$ export -f doit
+
+$ cat >./test <<EOL
+doit 1
+doit 2
+doit 3
+EOL
+
+$ cat test | rust-parallel -s
+Doing it for 1
+Done with 1
+Doing it for 3
+Done with 3
+Doing it for 2
+Done with 2
+
+```
+
+8. Set environment variable `RUST_LOG=debug` to see debug output.
 
 ```
 $ head -10 /usr/share/dict/words | RUST_LOG=debug rust-parallel md5 -s
