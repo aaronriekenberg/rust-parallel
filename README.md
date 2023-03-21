@@ -179,7 +179,7 @@ foo
 baz
 ```
 
-7. Calling a bash function, use -s shell mode so that each line is passed to /bin/bash -s as a single argument:
+7. Calling a bash function, use -s shell mode so that each line is passed to `/bin/bash -c` as a single argument:
 
 ```
 $ doit() {
