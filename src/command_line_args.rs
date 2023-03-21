@@ -37,7 +37,7 @@ pub struct CommandLineArgs {
     ///
     /// If $SHELL is set use it else use /bin/sh.
     ///
-    /// Each line line are passed to $SHELL -c <line> as a single argument.
+    /// Each input line is passed to $SHELL -c <line> as a single argument.
     #[arg(short, long)]
     pub shell: bool,
 
