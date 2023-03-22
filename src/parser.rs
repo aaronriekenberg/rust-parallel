@@ -1,4 +1,4 @@
-use crate::command_line_args;
+use crate::command_line_args::CommandLineArgs;
 
 pub type CommandAndArgs = Vec<String>;
 
@@ -8,9 +8,7 @@ pub struct InputLineParser {
 }
 
 impl InputLineParser {
-    pub fn new() -> Self {
-        let command_line_args = command_line_args::instance();
-
+    pub fn new(command_line_args: &CommandLineArgs) -> Self {
         let split_whitespace = !(command_line_args.null_separator || command_line_args.shell);
 
         let mut prepend_command_and_args: Vec<String> = Vec::new();
@@ -50,5 +48,30 @@ impl InputLineParser {
         } else {
             Some(vec)
         }
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn test_route_key_equality() {
+        let command_line_args = CommandLineArgs {
+            input: vec![],
+            jobs: 1,
+            null_separator: false,
+            shell: false,
+            command_and_initial_arguments: vec![],
+        };
+
+        let parser = InputLineParser::new(&command_line_args);
+
+        let result = parser.parse_line("echo hi there".to_owned());
+
+        assert_eq!(
+            result,
+            Some(vec!["echo".to_owned(), "hi".to_owned(), "there".to_owned()],),
+        )
     }
 }
