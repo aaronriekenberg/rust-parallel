@@ -4,14 +4,18 @@ pub type CommandAndArgs = Vec<String>;
 
 pub struct InputLineParser {
     split_whitespace: bool,
-    prepend_command_and_args: Vec<String>,
+    prepend_command_and_args: CommandAndArgs,
 }
 
 impl InputLineParser {
     pub fn new(command_line_args: &CommandLineArgs) -> Self {
-        let split_whitespace = !(command_line_args.null_separator || command_line_args.shell);
+        let split_whitespace = if command_line_args.null_separator || command_line_args.shell {
+            false
+        } else {
+            true
+        };
 
-        let mut prepend_command_and_args: Vec<String> = Vec::new();
+        let mut prepend_command_and_args = CommandAndArgs::new();
 
         if command_line_args.command_and_initial_arguments.len() > 0 {
             prepend_command_and_args = command_line_args.command_and_initial_arguments.clone();
@@ -88,5 +92,56 @@ mod test {
         let result = parser.parse_line("".to_owned());
 
         assert_eq!(result, None);
+    }
+
+    #[test]
+    fn test_null_separator() {
+        let command_line_args = CommandLineArgs {
+            input: vec![],
+            jobs: 1,
+            null_separator: true,
+            shell: false,
+            command_and_initial_arguments: vec![],
+        };
+
+        let parser = InputLineParser::new(&command_line_args);
+
+        let result = parser.parse_line("gzip -k file with spaces".to_owned());
+
+        assert_eq!(result, Some(vec!["gzip -k file with spaces".to_owned()]),);
+
+        // let result = parser.parse_line("".to_owned());
+
+        // assert_eq!(result, None);
+    }
+
+    #[test]
+    fn test_shell() {
+        let command_line_args = CommandLineArgs {
+            input: vec![],
+            jobs: 1,
+            null_separator: false,
+            shell: true,
+            command_and_initial_arguments: vec![],
+        };
+
+        std::env::remove_var("SHELL");
+
+        let parser = InputLineParser::new(&command_line_args);
+
+        let result = parser.parse_line("awesomebashfunction 1 2 3".to_owned());
+
+        assert_eq!(
+            result,
+            Some(vec![
+                "/bin/sh".to_owned(),
+                "-c".to_owned(),
+                "awesomebashfunction 1 2 3".to_owned(),
+            ]),
+        );
+
+        // let result = parser.parse_line("".to_owned());
+
+        // assert_eq!(result, None);
     }
 }
