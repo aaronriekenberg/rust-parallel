@@ -39,19 +39,21 @@ impl InputLineParser {
                 .split_whitespace()
                 .map(|s| s.to_owned())
                 .collect()
-        } else {
+        } else if !input_line.is_empty() {
             vec![input_line]
+        } else {
+            vec![]
         };
+
+        if vec.is_empty() {
+            return None;
+        }
 
         if self.prepend_command_and_args.len() > 0 {
             vec = [self.prepend_command_and_args.clone(), vec].concat();
         }
 
-        if vec.is_empty() {
-            None
-        } else {
-            Some(vec)
-        }
+        Some(vec)
     }
 }
 
@@ -110,9 +112,9 @@ mod test {
 
         assert_eq!(result, Some(vec!["gzip -k file with spaces".to_owned()]),);
 
-        // let result = parser.parse_line("".to_owned());
+        let result = parser.parse_line("".to_owned());
 
-        // assert_eq!(result, None);
+        assert_eq!(result, None);
     }
 
     #[test]
@@ -140,8 +142,23 @@ mod test {
             ]),
         );
 
-        // let result = parser.parse_line("".to_owned());
+        std::env::set_var("SHELL", "/bin/bash");
 
-        // assert_eq!(result, None);
+        let parser = InputLineParser::new(&command_line_args);
+
+        let result = parser.parse_line(" awesomebashfunction 1 2 3 ".to_owned());
+
+        assert_eq!(
+            result,
+            Some(vec![
+                "/bin/bash".to_owned(),
+                "-c".to_owned(),
+                " awesomebashfunction 1 2 3 ".to_owned(),
+            ]),
+        );
+
+        let result = parser.parse_line("".to_owned());
+
+        assert_eq!(result, None);
     }
 }
