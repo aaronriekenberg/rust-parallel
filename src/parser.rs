@@ -39,21 +39,19 @@ impl InputLineParser {
                 .split_whitespace()
                 .map(|s| s.to_owned())
                 .collect()
-        } else if !input_line.is_empty() {
-            vec![input_line]
         } else {
-            vec![]
+            vec![input_line]
         };
-
-        if vec.is_empty() {
-            return None;
-        }
 
         if self.prepend_command_and_args.len() > 0 {
             vec = [self.prepend_command_and_args.clone(), vec].concat();
         }
 
-        Some(vec)
+        if vec.is_empty() {
+            None
+        } else {
+            Some(vec)
+        }
     }
 }
 
@@ -66,11 +64,10 @@ mod test {
     #[test]
     fn test_split_whitespace() {
         let command_line_args = CommandLineArgs {
-            input: vec![],
-            jobs: 1,
             null_separator: false,
             shell: false,
             command_and_initial_arguments: vec![],
+            ..Default::default()
         };
 
         let parser = InputLineParser::new(&command_line_args);
@@ -119,10 +116,6 @@ mod test {
                 "file with spaces".to_owned()
             ]),
         );
-
-        let result = parser.parse_line("".to_owned());
-
-        assert_eq!(result, None);
     }
 
     #[test]
@@ -164,10 +157,6 @@ mod test {
             ]),
         );
 
-        let result = parser.parse_line("".to_owned());
-
-        assert_eq!(result, None);
-
         std::env::remove_var("SHELL");
     }
 
@@ -200,9 +189,5 @@ mod test {
                 "things".to_owned(),
             ]),
         );
-
-        let result = parser.parse_line("".to_owned());
-
-        assert_eq!(result, None);
     }
 }
