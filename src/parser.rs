@@ -56,7 +56,7 @@ mod test {
     use super::*;
 
     #[test]
-    fn test_route_key_equality() {
+    fn test_split_whitespace() {
         let command_line_args = CommandLineArgs {
             input: vec![],
             jobs: 1,
