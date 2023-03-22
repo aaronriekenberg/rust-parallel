@@ -56,57 +56,6 @@ impl std::fmt::Display for Command {
     }
 }
 
-struct InputLineParser {
-    split_whitespace: bool,
-    prepend_command_and_args: Vec<String>,
-}
-
-impl InputLineParser {
-    fn new() -> Self {
-        let command_line_args = command_line_args::instance();
-
-        let split_whitespace = !(command_line_args.null_separator || command_line_args.shell);
-
-        let mut prepend_command_and_args: Vec<String> = Vec::new();
-
-        if command_line_args.command_and_initial_arguments.len() > 0 {
-            prepend_command_and_args = command_line_args.command_and_initial_arguments.clone();
-        }
-
-        if command_line_args.shell {
-            let shell = std::env::var("SHELL").unwrap_or_else(|_| "/bin/sh".to_owned());
-            let shell_command_and_args = vec![shell, "-c".to_owned()];
-            prepend_command_and_args = [shell_command_and_args, prepend_command_and_args].concat();
-        }
-
-        Self {
-            split_whitespace,
-            prepend_command_and_args,
-        }
-    }
-
-    fn parse_line(&self, input_line: String) -> Option<CommandAndArgs> {
-        let mut vec = if self.split_whitespace {
-            input_line
-                .split_whitespace()
-                .map(|s| s.to_owned())
-                .collect()
-        } else {
-            vec![input_line]
-        };
-
-        if self.prepend_command_and_args.len() > 0 {
-            vec = [self.prepend_command_and_args.clone(), vec].concat();
-        }
-
-        if vec.is_empty() {
-            None
-        } else {
-            Some(vec)
-        }
-    }
-}
-
 pub struct CommandService {
     command_line_args: &'static CommandLineArgs,
     input_line_parser: InputLineParser,
@@ -208,5 +157,56 @@ impl CommandService {
         debug!("end run_commands");
 
         Ok(())
+    }
+}
+
+struct InputLineParser {
+    split_whitespace: bool,
+    prepend_command_and_args: Vec<String>,
+}
+
+impl InputLineParser {
+    fn new() -> Self {
+        let command_line_args = command_line_args::instance();
+
+        let split_whitespace = !(command_line_args.null_separator || command_line_args.shell);
+
+        let mut prepend_command_and_args: Vec<String> = Vec::new();
+
+        if command_line_args.command_and_initial_arguments.len() > 0 {
+            prepend_command_and_args = command_line_args.command_and_initial_arguments.clone();
+        }
+
+        if command_line_args.shell {
+            let shell = std::env::var("SHELL").unwrap_or_else(|_| "/bin/sh".to_owned());
+            let shell_command_and_args = vec![shell, "-c".to_owned()];
+            prepend_command_and_args = [shell_command_and_args, prepend_command_and_args].concat();
+        }
+
+        Self {
+            split_whitespace,
+            prepend_command_and_args,
+        }
+    }
+
+    fn parse_line(&self, input_line: String) -> Option<CommandAndArgs> {
+        let mut vec = if self.split_whitespace {
+            input_line
+                .split_whitespace()
+                .map(|s| s.to_owned())
+                .collect()
+        } else {
+            vec![input_line]
+        };
+
+        if self.prepend_command_and_args.len() > 0 {
+            vec = [self.prepend_command_and_args.clone(), vec].concat();
+        }
+
+        if vec.is_empty() {
+            None
+        } else {
+            Some(vec)
+        }
     }
 }
