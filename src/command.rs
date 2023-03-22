@@ -68,7 +68,7 @@ impl CommandService {
         let semaphore_permits: usize = command_line_args.jobs.try_into().unwrap();
         Self {
             command_line_args,
-            input_line_parser: InputLineParser::new(),
+            input_line_parser: InputLineParser::new(command_line_args),
             command_semaphore: Arc::new(Semaphore::new(semaphore_permits)),
             output_writer: OutputWriter::new(),
         }
