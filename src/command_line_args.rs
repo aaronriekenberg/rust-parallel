@@ -18,7 +18,7 @@ fn default_jobs() -> u32 {
 ///
 /// https://github.com/aaronriekenberg/rust-parallel
 /// https://crates.io/crates/rust-parallel
-#[derive(Parser, Debug)]
+#[derive(Parser, Debug, Default)]
 #[command(verbatim_doc_comment, version)]
 pub struct CommandLineArgs {
     /// Input file or - for stdin.  Defaults to stdin if no inputs are specified.
