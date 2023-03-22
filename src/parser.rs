@@ -71,18 +71,22 @@ mod test {
 
         assert_eq!(
             result,
-            Some(vec!["echo".to_owned(), "hi".to_owned(), "there".to_owned()],),
+            Some(vec!["echo".to_owned(), "hi".to_owned(), "there".to_owned()]),
         );
 
         let result = parser.parse_line(" echo  hi    there  ".to_owned());
 
         assert_eq!(
             result,
-            Some(vec!["echo".to_owned(), "hi".to_owned(), "there".to_owned()],),
+            Some(vec!["echo".to_owned(), "hi".to_owned(), "there".to_owned()]),
         );
 
         let result = parser.parse_line(" /bin/echo ".to_owned());
 
-        assert_eq!(result, Some(vec!["/bin/echo".to_owned()],),);
+        assert_eq!(result, Some(vec!["/bin/echo".to_owned()]));
+
+        let result = parser.parse_line("".to_owned());
+
+        assert_eq!(result, None);
     }
 }
