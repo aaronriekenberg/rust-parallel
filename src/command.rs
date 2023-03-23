@@ -11,17 +11,9 @@ use crate::{
     command_line_args::CommandLineArgs,
     input::{build_input_list, Input, InputLineNumber, InputReader},
     output::OutputWriter,
-    parser::{CommandAndArgs, InputLineParser},
+    parser::InputLineParser,
+    types::OwnedCommandAndArgs,
 };
-
-#[derive(Debug)]
-struct OwnedCommandAndArgs(Vec<String>);
-
-impl From<CommandAndArgs<'_>> for OwnedCommandAndArgs {
-    fn from(a: CommandAndArgs<'_>) -> OwnedCommandAndArgs {
-        OwnedCommandAndArgs(a.into_iter().map(|s| s.to_owned()).collect())
-    }
-}
 
 #[derive(Debug)]
 struct Command {
