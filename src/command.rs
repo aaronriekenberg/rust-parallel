@@ -12,7 +12,7 @@ use crate::{
     input::{build_input_list, Input, InputLineNumber, InputReader},
     output::OutputWriter,
     parser::InputLineParser,
-    types::OwnedCommandAndArgs,
+    types::{BorrowedCommandAndArgs, OwnedCommandAndArgs},
 };
 
 #[derive(Debug)]
@@ -77,20 +77,20 @@ impl CommandService {
 
     async fn spawn_command(
         &self,
-        command_and_args: OwnedCommandAndArgs,
+        command_and_args: BorrowedCommandAndArgs<'_>,
         input_line_number: InputLineNumber,
     ) -> anyhow::Result<()> {
-        let permit = Arc::clone(&self.command_semaphore)
-            .acquire_owned()
-            .await
-            .context("command_semaphore.acquire_owned error")?;
-
         let output_writer_clone = Arc::clone(&self.output_writer);
 
         let command = Command {
             input_line_number,
-            command_and_args,
+            command_and_args: command_and_args.into(),
         };
+
+        let permit = Arc::clone(&self.command_semaphore)
+            .acquire_owned()
+            .await
+            .context("command_semaphore.acquire_owned error")?;
 
         tokio::spawn(async move {
             command.run_command(output_writer_clone).await;
@@ -117,7 +117,7 @@ impl CommandService {
             };
 
             if let Some(command_and_args) = self.input_line_parser.parse_line(input_line) {
-                self.spawn_command(command_and_args.into(), input_line_number)
+                self.spawn_command(command_and_args, input_line_number)
                     .await?;
             }
         }
