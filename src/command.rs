@@ -11,12 +11,14 @@ use crate::{
     command_line_args::CommandLineArgs,
     input::{build_input_list, Input, InputLineNumber, InputReader},
     output::OutputWriter,
-    parser::{CommandAndArgs, InputLineParser},
+    parser::InputLineParser,
 };
+
+type OwnedCommandAndArgs = Vec<String>;
 
 #[derive(Debug)]
 struct Command {
-    command_and_args: CommandAndArgs,
+    command_and_args: OwnedCommandAndArgs,
     input_line_number: InputLineNumber,
 }
 
@@ -76,7 +78,7 @@ impl CommandService {
 
     async fn spawn_command(
         &self,
-        command_and_args: CommandAndArgs,
+        command_and_args: OwnedCommandAndArgs,
         input_line_number: InputLineNumber,
     ) -> anyhow::Result<()> {
         let permit = Arc::clone(&self.command_semaphore)
@@ -111,11 +113,12 @@ impl CommandService {
             .await
             .context("next_segment error")?
         {
-            let Ok(input_line) = String::from_utf8(segment) else {
+            let Ok(input_line) = std::str::from_utf8(&segment) else {
                 continue;
             };
 
             if let Some(command_and_args) = self.input_line_parser.parse_line(input_line) {
+                let command_and_args = command_and_args.into_iter().map(|s| s.to_owned()).collect();
                 self.spawn_command(command_and_args, input_line_number)
                     .await?;
             }

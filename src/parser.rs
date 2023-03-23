@@ -1,10 +1,10 @@
 use crate::command_line_args::CommandLineArgs;
 
-pub type CommandAndArgs = Vec<String>;
+pub type CommandAndArgs<'a> = Vec<&'a str>;
 
 pub struct InputLineParser {
     split_whitespace: bool,
-    prepend_command_and_args: CommandAndArgs,
+    prepend_command_and_args: Vec<String>,
 }
 
 impl InputLineParser {
@@ -15,7 +15,7 @@ impl InputLineParser {
             true
         };
 
-        let mut prepend_command_and_args = CommandAndArgs::new();
+        let mut prepend_command_and_args = vec![];
 
         if command_line_args.command_and_initial_arguments.len() > 0 {
             prepend_command_and_args = command_line_args.command_and_initial_arguments.clone();
@@ -33,18 +33,22 @@ impl InputLineParser {
         }
     }
 
-    pub fn parse_line(&self, input_line: String) -> Option<CommandAndArgs> {
-        let mut vec = if self.split_whitespace {
-            input_line
-                .split_whitespace()
-                .map(|s| s.to_owned())
-                .collect()
+    pub fn parse_line<'a>(&'a self, input_line: &'a str) -> Option<CommandAndArgs<'a>> {
+        let mut vec: CommandAndArgs<'a> = if self.split_whitespace {
+            input_line.split_whitespace().collect()
         } else {
-            vec![input_line]
+            vec![&input_line]
         };
 
         if self.prepend_command_and_args.len() > 0 {
-            vec = [self.prepend_command_and_args.clone(), vec].concat();
+            vec = [
+                self.prepend_command_and_args
+                    .iter()
+                    .map(|s| s.as_ref())
+                    .collect(),
+                vec,
+            ]
+            .concat();
         }
 
         if vec.is_empty() {
@@ -72,25 +76,19 @@ mod test {
 
         let parser = InputLineParser::new(&command_line_args);
 
-        let result = parser.parse_line("echo hi there".to_owned());
+        let result = parser.parse_line("echo hi there");
 
-        assert_eq!(
-            result,
-            Some(vec!["echo".to_owned(), "hi".to_owned(), "there".to_owned()]),
-        );
+        assert_eq!(result, Some(vec!["echo", "hi", "there"]),);
 
-        let result = parser.parse_line(" echo  hi    there  ".to_owned());
+        let result = parser.parse_line(" echo  hi    there  ");
 
-        assert_eq!(
-            result,
-            Some(vec!["echo".to_owned(), "hi".to_owned(), "there".to_owned()]),
-        );
+        assert_eq!(result, Some(vec!["echo", "hi", "there"]),);
 
-        let result = parser.parse_line(" /bin/echo ".to_owned());
+        let result = parser.parse_line(" /bin/echo ");
 
-        assert_eq!(result, Some(vec!["/bin/echo".to_owned()]));
+        assert_eq!(result, Some(vec!["/bin/echo"]));
 
-        let result = parser.parse_line("".to_owned());
+        let result = parser.parse_line("");
 
         assert_eq!(result, None);
     }
@@ -106,16 +104,9 @@ mod test {
 
         let parser = InputLineParser::new(&command_line_args);
 
-        let result = parser.parse_line("file with spaces".to_owned());
+        let result = parser.parse_line("file with spaces");
 
-        assert_eq!(
-            result,
-            Some(vec![
-                "gzip".to_owned(),
-                "-k".to_owned(),
-                "file with spaces".to_owned()
-            ]),
-        );
+        assert_eq!(result, Some(vec!["gzip", "-k", "file with spaces"]),);
     }
 
     #[test]
@@ -131,30 +122,22 @@ mod test {
 
         let parser = InputLineParser::new(&command_line_args);
 
-        let result = parser.parse_line("awesomebashfunction 1 2 3".to_owned());
+        let result = parser.parse_line("awesomebashfunction 1 2 3");
 
         assert_eq!(
             result,
-            Some(vec![
-                "/bin/sh".to_owned(),
-                "-c".to_owned(),
-                "awesomebashfunction 1 2 3".to_owned(),
-            ]),
+            Some(vec!["/bin/sh", "-c", "awesomebashfunction 1 2 3",]),
         );
 
         std::env::set_var("SHELL", "/bin/bash");
 
         let parser = InputLineParser::new(&command_line_args);
 
-        let result = parser.parse_line(" awesomebashfunction 1 2 3 ".to_owned());
+        let result = parser.parse_line(" awesomebashfunction 1 2 3 ");
 
         assert_eq!(
             result,
-            Some(vec![
-                "/bin/bash".to_owned(),
-                "-c".to_owned(),
-                " awesomebashfunction 1 2 3 ".to_owned(),
-            ]),
+            Some(vec!["/bin/bash", "-c", " awesomebashfunction 1 2 3 ",]),
         );
 
         std::env::remove_var("SHELL");
@@ -171,23 +154,12 @@ mod test {
 
         let parser = InputLineParser::new(&command_line_args);
 
-        let result = parser.parse_line("stuff".to_owned());
+        let result = parser.parse_line("stuff");
 
-        assert_eq!(
-            result,
-            Some(vec!["md5".to_owned(), "-s".to_owned(), "stuff".to_owned()]),
-        );
+        assert_eq!(result, Some(vec!["md5", "-s", "stuff"]),);
 
-        let result = parser.parse_line(" stuff things ".to_owned());
+        let result = parser.parse_line(" stuff things ");
 
-        assert_eq!(
-            result,
-            Some(vec![
-                "md5".to_owned(),
-                "-s".to_owned(),
-                "stuff".to_owned(),
-                "things".to_owned(),
-            ]),
-        );
+        assert_eq!(result, Some(vec!["md5", "-s", "stuff", "things",]),);
     }
 }
