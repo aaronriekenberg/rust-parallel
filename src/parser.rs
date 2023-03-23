@@ -72,11 +72,11 @@ mod test {
 
         let result = parser.parse_line("echo hi there");
 
-        assert_eq!(result, Some(vec!["echo", "hi", "there"]),);
+        assert_eq!(result, Some(vec!["echo", "hi", "there"]));
 
         let result = parser.parse_line(" echo  hi    there  ");
 
-        assert_eq!(result, Some(vec!["echo", "hi", "there"]),);
+        assert_eq!(result, Some(vec!["echo", "hi", "there"]));
 
         let result = parser.parse_line(" /bin/echo ");
 
@@ -100,7 +100,7 @@ mod test {
 
         let result = parser.parse_line("file with spaces");
 
-        assert_eq!(result, Some(vec!["gzip", "-k", "file with spaces"]),);
+        assert_eq!(result, Some(vec!["gzip", "-k", "file with spaces"]));
     }
 
     #[test]
@@ -120,7 +120,7 @@ mod test {
 
         assert_eq!(
             result,
-            Some(vec!["/bin/sh", "-c", "awesomebashfunction 1 2 3",]),
+            Some(vec!["/bin/sh", "-c", "awesomebashfunction 1 2 3"]),
         );
 
         std::env::set_var("SHELL", "/bin/bash");
@@ -131,7 +131,7 @@ mod test {
 
         assert_eq!(
             result,
-            Some(vec!["/bin/bash", "-c", " awesomebashfunction 1 2 3 ",]),
+            Some(vec!["/bin/bash", "-c", " awesomebashfunction 1 2 3 "]),
         );
 
         std::env::remove_var("SHELL");
@@ -150,10 +150,10 @@ mod test {
 
         let result = parser.parse_line("stuff");
 
-        assert_eq!(result, Some(vec!["md5", "-s", "stuff"]),);
+        assert_eq!(result, Some(vec!["md5", "-s", "stuff"]));
 
         let result = parser.parse_line(" stuff things ");
 
-        assert_eq!(result, Some(vec!["md5", "-s", "stuff", "things",]),);
+        assert_eq!(result, Some(vec!["md5", "-s", "stuff", "things"]));
     }
 }
