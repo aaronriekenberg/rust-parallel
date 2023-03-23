@@ -11,10 +11,17 @@ use crate::{
     command_line_args::CommandLineArgs,
     input::{build_input_list, Input, InputLineNumber, InputReader},
     output::OutputWriter,
-    parser::InputLineParser,
+    parser::{CommandAndArgs, InputLineParser},
 };
 
-type OwnedCommandAndArgs = Vec<String>;
+#[derive(Debug)]
+struct OwnedCommandAndArgs(Vec<String>);
+
+impl From<CommandAndArgs<'_>> for OwnedCommandAndArgs {
+    fn from(a: CommandAndArgs<'_>) -> OwnedCommandAndArgs {
+        OwnedCommandAndArgs(a.into_iter().map(|s| s.to_owned()).collect())
+    }
+}
 
 #[derive(Debug)]
 struct Command {
@@ -27,7 +34,7 @@ impl Command {
     async fn run_command(self, output_writer: Arc<OutputWriter>) {
         debug!("begin run_command");
 
-        let [command, args @ ..] = self.command_and_args.as_slice() else {
+        let [command, args @ ..] = self.command_and_args.0.as_slice() else {
             return;
         };
 
@@ -52,7 +59,7 @@ impl std::fmt::Display for Command {
         write!(
             f,
             "command_and_args={:?},input_line_number={}",
-            self.command_and_args, self.input_line_number,
+            self.command_and_args.0, self.input_line_number,
         )
     }
 }
@@ -118,8 +125,7 @@ impl CommandService {
             };
 
             if let Some(command_and_args) = self.input_line_parser.parse_line(input_line) {
-                let command_and_args = command_and_args.into_iter().map(|s| s.to_owned()).collect();
-                self.spawn_command(command_and_args, input_line_number)
+                self.spawn_command(command_and_args.into(), input_line_number)
                     .await?;
             }
         }
