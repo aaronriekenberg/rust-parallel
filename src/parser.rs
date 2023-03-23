@@ -37,7 +37,7 @@ impl InputLineParser {
         let mut vec: CommandAndArgs<'a> = if self.split_whitespace {
             input_line.split_whitespace().collect()
         } else {
-            vec![&input_line]
+            vec![input_line]
         };
 
         if self.prepend_command_and_args.len() > 0 {
