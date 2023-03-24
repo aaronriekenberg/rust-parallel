@@ -1,11 +1,8 @@
-use crate::{
-    command_line_args::CommandLineArgs,
-    types::{BorrowedCommandAndArgs, OwnedCommandAndArgs},
-};
+use crate::command_line_args::CommandLineArgs;
 
 pub struct InputLineParser {
     split_whitespace: bool,
-    prepend_command_and_args: OwnedCommandAndArgs,
+    prepend_command_and_args: Vec<String>,
 }
 
 impl InputLineParser {
@@ -30,19 +27,26 @@ impl InputLineParser {
 
         Self {
             split_whitespace,
-            prepend_command_and_args: OwnedCommandAndArgs(prepend_command_and_args),
+            prepend_command_and_args,
         }
     }
 
-    pub fn parse_line<'a>(&'a self, input_line: &'a str) -> Option<BorrowedCommandAndArgs<'a>> {
+    fn get_prepend_command_and_args(&self) -> Vec<&str> {
+        self.prepend_command_and_args
+            .iter()
+            .map(|s| s.as_ref())
+            .collect()
+    }
+
+    pub fn parse_line<'a>(&'a self, input_line: &'a str) -> Option<Vec<&'a str>> {
         let mut vec = if self.split_whitespace {
             input_line.split_whitespace().collect()
         } else {
             vec![input_line]
         };
 
-        if self.prepend_command_and_args.0.len() > 0 {
-            vec = [(&self.prepend_command_and_args).into(), vec].concat();
+        if self.prepend_command_and_args.len() > 0 {
+            vec = [self.get_prepend_command_and_args(), vec].concat();
         }
 
         if vec.is_empty() {
