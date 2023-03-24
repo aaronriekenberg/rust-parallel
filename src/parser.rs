@@ -137,10 +137,10 @@ mod test {
 
         assert_eq!(
             result,
-            Some(vec!["/bin/sh", "-c", "awesomebashfunction 1 2 3"]),
+            Some(vec!["/bin/bash", "-c", "awesomebashfunction 1 2 3"]),
         );
 
-        std::env::set_var("SHELL", "/bin/bash");
+        std::env::set_var("SHELL", "/bin/zsh");
 
         let parser = InputLineParser::new(&command_line_args);
 
@@ -148,7 +148,7 @@ mod test {
 
         assert_eq!(
             result,
-            Some(vec!["/bin/bash", "-c", " awesomebashfunction 1 2 3 "]),
+            Some(vec!["/bin/zsh", "-c", " awesomebashfunction 1 2 3 "]),
         );
 
         std::env::remove_var("SHELL");
