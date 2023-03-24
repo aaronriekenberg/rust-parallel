@@ -78,8 +78,16 @@ $ cargo install rust-parallel
 3. The same `cargo install rust-parallel` command will also update to the latest version after initial installation.
 
 ## Demos:
+1. [Small demo of 5 echo commands](#small-demo-of-5-echo-commands)
+1. [Debug Logging](#debug-logging)
+1. [Specifying command and intial arguments on command line](#specifying-command-and-intial-arguments-on-command-line)
+1. [Using awk to form complete commands](#using-awk-to-form-complete-commands)
+1. [Using as part of a shell pipeline](#using-as-part-of-a-shell-pipeline)
+1. [Working on a set of files from find command](#working-on-a-set-of-files-from-find-command)
+1. [Reading multiple inputs](#reading-multiple-inputs)
+1. [Calling a bash function](#calling-a-bash-function)
 
-### 1. Small demo of 5 echo commands.  
+### Small demo of 5 echo commands.  
 
 With `-j5` all 5 commands are run in parallel.  With `-j1` commands are run sequentially:
 
@@ -107,7 +115,7 @@ are
 you
 ```
 
-### 2. Debug logging.
+### Debug logging.
 
 Set environment variable `RUST_LOG=debug` to see debug output.
 
@@ -119,7 +127,7 @@ Recommend enabling debug logging for all demos to understand what is happening i
 $ cat test | RUST_LOG=debug rust-parallel
 ```
 
-### 3. Specifying command and intial arguments on command line:
+### Specifying command and intial arguments on command line:
 
 ```
 $ head -100 /usr/share/dict/words | rust-parallel md5 -s
@@ -135,7 +143,7 @@ MD5 ("Aaron") = 1c0a11cc4ddc0dbd3fa4d77232a4e22e
 MD5 ("aardwolf") = 66a4a1a2b442e8d218e8e99100069877
 ```
 
-### 4. Using `awk` to form complete commands:
+### Using `awk` to form complete commands:
 
 ```
 $ head -100 /usr/share/dict/words | awk '{printf "md5 -s %s\n", $1}' | rust-parallel
@@ -149,7 +157,7 @@ MD5 ("Abbadide") = 7add1d6f008790fa6783bc8798d8c803
 MD5 ("abb") = ea01e5fd8e4d8832825acdd20eac5104
 ```
 
-### 5. Using as part of a shell pipeline.  
+### Using as part of a shell pipeline.  
 
 stdout and stderr from each command run are copied to stdout/stderr of the rust-parallel process.
 
@@ -161,7 +169,7 @@ MD5 ("abbacy") = 08aeac72800adc98d2aba540b6195921
 MD5 ("Abbadide") = 7add1d6f008790fa6783bc8798d8c803
 ```
 
-### 6. Working on a set of files from `find` command.  
+### Working on a set of files from `find` command.  
 
 The `-0` option works nicely with `find -print0` to handle filenames with newline or whitespace characters:
 
@@ -177,7 +185,7 @@ $ ls testdir
 ```
 
 
-### 7. Reading multiple inputs.
+### Reading multiple inputs.
 
 By default `rust-parallel` reads input from stdin only.  The `-i` option can be used 1 or more times to override this behavior.  `-i -` means read from stdin, `-i ./test` means read from the file `./test`:
 
@@ -199,7 +207,7 @@ foo
 baz
 ```
 
-### 8. Calling a bash function.
+### Calling a bash function.
 
 Use `-s` shell mode so that each line is passed to `/bin/bash -c` as a single argument:
 
