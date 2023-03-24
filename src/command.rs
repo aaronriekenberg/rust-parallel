@@ -12,8 +12,16 @@ use crate::{
     input::{build_input_list, Input, InputLineNumber, InputReader},
     output::OutputWriter,
     parser::InputLineParser,
-    types::{BorrowedCommandAndArgs, OwnedCommandAndArgs},
 };
+
+#[derive(Debug)]
+struct OwnedCommandAndArgs(Vec<String>);
+
+impl From<Vec<&str>> for OwnedCommandAndArgs {
+    fn from(v: Vec<&str>) -> OwnedCommandAndArgs {
+        OwnedCommandAndArgs(v.into_iter().map(|s| s.to_owned()).collect())
+    }
+}
 
 #[derive(Debug)]
 struct Command {
@@ -77,15 +85,14 @@ impl CommandService {
 
     async fn spawn_command(
         &self,
-        command_and_args: BorrowedCommandAndArgs<'_>,
+        command_and_args: OwnedCommandAndArgs,
         input_line_number: InputLineNumber,
     ) -> anyhow::Result<()> {
-        let output_writer_clone = Arc::clone(&self.output_writer);
-
         let command = Command {
             input_line_number,
-            command_and_args: command_and_args.into(),
+            command_and_args,
         };
+        let output_writer_clone = Arc::clone(&self.output_writer);
 
         let permit = Arc::clone(&self.command_semaphore)
             .acquire_owned()
@@ -117,7 +124,7 @@ impl CommandService {
             };
 
             if let Some(command_and_args) = self.input_line_parser.parse_line(input_line) {
-                self.spawn_command(command_and_args, input_line_number)
+                self.spawn_command(command_and_args.into(), input_line_number)
                     .await?;
             }
         }
