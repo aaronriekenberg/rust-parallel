@@ -107,7 +107,19 @@ are
 you
 ```
 
-### 2. Specifying command and intial arguments on command line:
+### 2. Debug logging.
+
+Set environment variable `RUST_LOG=debug` to see debug output.
+
+This will log information about command line arguments and commands being run.
+
+Recommend enabling debug logging for all demos to understand what is happening in more detail.
+
+```
+$ cat test | RUST_LOG=debug rust-parallel
+```
+
+### 3. Specifying command and intial arguments on command line:
 
 ```
 $ head -100 /usr/share/dict/words | rust-parallel md5 -s
@@ -123,7 +135,7 @@ MD5 ("Aaron") = 1c0a11cc4ddc0dbd3fa4d77232a4e22e
 MD5 ("aardwolf") = 66a4a1a2b442e8d218e8e99100069877
 ```
 
-### 3. Using `awk` to form complete commands:
+### 4. Using `awk` to form complete commands:
 
 ```
 $ head -100 /usr/share/dict/words | awk '{printf "md5 -s %s\n", $1}' | rust-parallel
@@ -137,7 +149,7 @@ MD5 ("Abbadide") = 7add1d6f008790fa6783bc8798d8c803
 MD5 ("abb") = ea01e5fd8e4d8832825acdd20eac5104
 ```
 
-### 4. Using as part of a shell pipeline.  
+### 5. Using as part of a shell pipeline.  
 
 stdout and stderr from each command run are copied to stdout/stderr of the rust-parallel process.
 
@@ -149,7 +161,7 @@ MD5 ("abbacy") = 08aeac72800adc98d2aba540b6195921
 MD5 ("Abbadide") = 7add1d6f008790fa6783bc8798d8c803
 ```
 
-### 5. Working on a set of files from `find` command.  
+### 6. Working on a set of files from `find` command.  
 
 The `-0` option works nicely with `find -print0` to handle filenames with newline or whitespace characters:
 
@@ -165,7 +177,7 @@ $ ls testdir
 ```
 
 
-### 6. Reading multiple inputs.
+### 7. Reading multiple inputs.
 
 By default `rust-parallel` reads input from stdin only.  The `-i` option can be used 1 or more times to override this behavior.  `-i -` means read from stdin, `-i ./test` means read from the file `./test`:
 
@@ -187,7 +199,7 @@ foo
 baz
 ```
 
-### 7. Calling a bash function.
+### 8. Calling a bash function.
 
 Use `-s` shell mode so that each line is passed to `/bin/bash -c` as a single argument:
 
@@ -214,14 +226,6 @@ Done with 3
 Doing it for 2
 Done with 2
 
-```
-
-### 8. Debug logging.
-
-Set environment variable `RUST_LOG=debug` to see debug output.
-
-```
-$ head -10 /usr/share/dict/words | RUST_LOG=debug rust-parallel md5 -s
 ```
 
 ## Benchmarks:
