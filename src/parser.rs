@@ -1,5 +1,9 @@
 use crate::command_line_args::CommandLineArgs;
 
+use tracing::debug;
+
+const DEFAULT_SHELL: &str = "/bin/bash";
+
 pub struct InputLineParser {
     split_whitespace: bool,
     prepend_command_and_args: Vec<String>,
@@ -20,7 +24,16 @@ impl InputLineParser {
         }
 
         if command_line_args.shell {
-            let shell = std::env::var("SHELL").unwrap_or_else(|_| "/bin/sh".to_owned());
+            let shell = match std::env::var("SHELL") {
+                Ok(shell) => {
+                    debug!("using $SHELL from environment: '{}'", shell);
+                    shell
+                }
+                Err(_) => {
+                    debug!("using default shell '{}'", DEFAULT_SHELL);
+                    DEFAULT_SHELL.to_owned()
+                }
+            };
             let shell_command_and_args = vec![shell, "-c".to_owned()];
             prepend_command_and_args = [shell_command_and_args, prepend_command_and_args].concat();
         }

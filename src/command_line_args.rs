@@ -35,7 +35,7 @@ pub struct CommandLineArgs {
 
     /// Use shell for running commands.
     ///
-    /// If $SHELL environment variable is set use it else use /bin/sh.
+    /// If $SHELL environment variable is set use it else use /bin/bash.
     ///
     /// Each input line is passed to $SHELL -c <line> as a single argument.
     #[arg(short, long)]
