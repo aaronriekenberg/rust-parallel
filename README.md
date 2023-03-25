@@ -129,6 +129,8 @@ $ cat test | RUST_LOG=debug rust-parallel
 
 ### Specifying command and intial arguments on command line:
 
+Here `md5 -s` will be prepended to each input line to form a command like `md5 -s aal`
+
 ```
 $ head -100 /usr/share/dict/words | rust-parallel md5 -s
 MD5 ("aal") = ff45e881572ca2c987460932660d320c
@@ -209,7 +211,7 @@ baz
 
 ### Calling a bash function.
 
-Use `-s` shell mode so that each line is passed to `/bin/bash -c` as a single argument:
+Use `-s` shell mode so that each input line is passed to `/bin/bash -c` as a single argument:
 
 ```
 $ doit() {
