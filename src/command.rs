@@ -92,6 +92,7 @@ impl CommandService {
             input_line_number,
             command_and_args,
         };
+
         let output_writer_clone = Arc::clone(&self.output_writer);
 
         let permit = Arc::clone(&self.command_semaphore)
