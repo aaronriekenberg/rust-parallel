@@ -8,10 +8,13 @@ Always executes 1 process for each input line, similar to xargs `-n1` or `-L1` o
 
 Being written in asynchronous rust it is quite fast - see [benchmarks](https://github.com/aaronriekenberg/rust-parallel/wiki/Benchmarks).
 
-[![Crates.io][crates-badge]][crates-url]
-
 [crates-badge]: https://img.shields.io/crates/v/rust-parallel.svg
 [crates-url]: https://crates.io/crates/rust-parallel
+
+[ci-badge]: https://github.com/aaronriekenberg/rust-parallel/actions/workflows/CI.yml/badge.svg
+[ci-url]: https://github.com/aaronriekenberg/rust-parallel/actions/workflows/CI.yml 
+
+[![Crates.io][crates-badge]][crates-url] [![CI workflow][ci-badge]][ci-url]
 
 ## Contents:
 * [Usage](#usage)
