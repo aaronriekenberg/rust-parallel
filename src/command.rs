@@ -31,7 +31,7 @@ struct Command {
 
 impl Command {
     #[instrument(skip_all, fields(command = %self), level = "debug")]
-    async fn run_command(self, output_writer: Arc<OutputWriter>) {
+    async fn run_command(self, output_sender: tokio::sync::mpsc::Sender<std::process::Output>) {
         debug!("begin run_command");
 
         let [command, args @ ..] = self.command_and_args.0.as_slice() else {
@@ -46,7 +46,7 @@ impl Command {
             }
             Ok(output) => {
                 debug!("command status = {}", output.status);
-                output_writer.write_command_output(&output).await;
+                let _ = output_sender.send(output).await;
             }
         };
 
@@ -68,18 +68,21 @@ pub struct CommandService {
     command_line_args: &'static CommandLineArgs,
     input_line_parser: InputLineParser,
     command_semaphore: Arc<Semaphore>,
-    output_writer: Arc<OutputWriter>,
+    output_writer: OutputWriter,
 }
 
 impl CommandService {
     pub fn new() -> Self {
         let command_line_args = command_line_args::instance();
         let semaphore_permits: usize = command_line_args.jobs.try_into().unwrap();
+
+        let output_writer = OutputWriter::new();
+
         Self {
             command_line_args,
             input_line_parser: InputLineParser::new(command_line_args),
             command_semaphore: Arc::new(Semaphore::new(semaphore_permits)),
-            output_writer: OutputWriter::new(),
+            output_writer,
         }
     }
 
@@ -93,7 +96,7 @@ impl CommandService {
             command_and_args,
         };
 
-        let output_writer_clone = Arc::clone(&self.output_writer);
+        let output_sender = self.output_writer.sender();
 
         let permit = Arc::clone(&self.command_semaphore)
             .acquire_owned()
@@ -101,7 +104,7 @@ impl CommandService {
             .context("command_semaphore.acquire_owned error")?;
 
         tokio::spawn(async move {
-            command.run_command(output_writer_clone).await;
+            command.run_command(output_sender).await;
 
             drop(permit);
         });
@@ -148,19 +151,9 @@ impl CommandService {
 
         self.process_inputs().await?;
 
-        // At this point all commands have been spawned.
-        // When all semaphore permits can be acquired
-        // we know all commands have completed.
-        debug!(
-            "before acquire_many command_semaphore = {:?}",
-            self.command_semaphore,
-        );
+        debug!("before output_writer.wait_for_completion",);
 
-        let _ = self
-            .command_semaphore
-            .acquire_many(self.command_line_args.jobs)
-            .await
-            .context("command_semaphore.acquire_many error")?;
+        self.output_writer.wait_for_completion().await;
 
         debug!("end run_commands");
 
