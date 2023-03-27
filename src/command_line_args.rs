@@ -39,6 +39,10 @@ pub struct CommandLineArgs {
     #[arg(short, long)]
     pub shell: bool,
 
+    /// Output buffer channel capacity.
+    #[arg(long, default_value_t = 1, value_parser = clap::value_parser!(u64).range(1..))]
+    pub output_buffer_channel_capacity: u64,
+
     /// Optional command and initial arguments to run for each input line.
     #[arg(trailing_var_arg(true))]
     pub command_and_initial_arguments: Vec<String>,
