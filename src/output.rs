@@ -8,6 +8,51 @@ use tracing::{debug, trace, warn};
 
 use std::process::Output;
 
+pub struct OutputSender {
+    sender: Sender<Output>,
+}
+
+impl OutputSender {
+    pub async fn send(self, output: Output) {
+        if let Err(e) = self.sender.send(output).await {
+            warn!("sender.send error {}", e);
+        };
+    }
+}
+
+pub struct OutputWriter {
+    sender: Sender<Output>,
+    receiver_task_join_handle: JoinHandle<()>,
+}
+
+impl OutputWriter {
+    pub fn new() -> Self {
+        let (sender, receiver) = channel::<Output>(1);
+        debug!("created channel with capacity 1");
+
+        let receiver_task_join_handle = tokio::spawn(run_receiver_task(receiver));
+
+        Self {
+            sender,
+            receiver_task_join_handle,
+        }
+    }
+
+    pub fn sender(&self) -> OutputSender {
+        OutputSender {
+            sender: self.sender.clone(),
+        }
+    }
+
+    pub async fn wait_for_completion(self) {
+        drop(self.sender);
+
+        if let Err(e) = self.receiver_task_join_handle.await {
+            warn!("receiver_task_join_handle.await error: {}", e);
+        }
+    }
+}
+
 async fn run_receiver_task(mut receiver: Receiver<Output>) {
     let mut stdout = tokio::io::stdout();
     let mut stderr = tokio::io::stderr();
@@ -30,35 +75,4 @@ async fn run_receiver_task(mut receiver: Receiver<Output>) {
     }
 
     debug!("receiver task after loop, exiting");
-}
-
-pub struct OutputWriter {
-    sender: Sender<Output>,
-    receiver_task_join_handle: JoinHandle<()>,
-}
-
-impl OutputWriter {
-    pub fn new() -> Self {
-        let (sender, receiver) = channel::<Output>(1);
-        debug!("created channel with capacity 1");
-
-        let receiver_task_join_handle = tokio::task::spawn(run_receiver_task(receiver));
-
-        Self {
-            sender,
-            receiver_task_join_handle,
-        }
-    }
-
-    pub fn sender(&self) -> Sender<Output> {
-        self.sender.clone()
-    }
-
-    pub async fn wait_for_completion(self) {
-        drop(self.sender);
-
-        if let Err(e) = self.receiver_task_join_handle.await {
-            warn!("receiver_task_join_handle.await error: {}", e);
-        }
-    }
 }

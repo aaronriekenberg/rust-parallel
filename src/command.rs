@@ -8,9 +8,8 @@ use std::sync::Arc;
 
 use crate::{
     command_line_args,
-    command_line_args::CommandLineArgs,
     input::{build_input_list, Input, InputLineNumber, InputReader},
-    output::OutputWriter,
+    output::{OutputSender, OutputWriter},
     parser::InputLineParser,
 };
 
@@ -31,7 +30,7 @@ struct Command {
 
 impl Command {
     #[instrument(skip_all, fields(command = %self), level = "debug")]
-    async fn run_command(self, output_sender: tokio::sync::mpsc::Sender<std::process::Output>) {
+    async fn run_command(self, output_sender: OutputSender) {
         debug!("begin run_command");
 
         let [command, args @ ..] = self.command_and_args.0.as_slice() else {
@@ -46,7 +45,7 @@ impl Command {
             }
             Ok(output) => {
                 debug!("command status = {}", output.status);
-                let _ = output_sender.send(output).await;
+                output_sender.send(output).await;
             }
         };
 
@@ -65,7 +64,6 @@ impl std::fmt::Display for Command {
 }
 
 pub struct CommandService {
-    command_line_args: &'static CommandLineArgs,
     input_line_parser: InputLineParser,
     command_semaphore: Arc<Semaphore>,
     output_writer: OutputWriter,
@@ -76,13 +74,10 @@ impl CommandService {
         let command_line_args = command_line_args::instance();
         let semaphore_permits: usize = command_line_args.jobs.try_into().unwrap();
 
-        let output_writer = OutputWriter::new();
-
         Self {
-            command_line_args,
             input_line_parser: InputLineParser::new(command_line_args),
             command_semaphore: Arc::new(Semaphore::new(semaphore_permits)),
-            output_writer,
+            output_writer: OutputWriter::new(),
         }
     }
 
