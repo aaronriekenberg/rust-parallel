@@ -1,38 +1,85 @@
 use tokio::{
-    io::{AsyncWrite, Stderr, Stdout},
-    sync::Mutex,
+    io::AsyncWrite,
+    sync::mpsc::{channel, Receiver, Sender},
+    task::JoinHandle,
 };
 
-use tracing::trace;
+use tracing::{debug, trace, warn};
 
-use std::{process::Output, sync::Arc};
+use std::process::Output;
+
+use crate::command_line_args;
+
+pub struct OutputSender {
+    sender: Sender<Output>,
+}
+
+impl OutputSender {
+    pub async fn send(self, output: Output) {
+        if let Err(e) = self.sender.send(output).await {
+            warn!("sender.send error {}", e);
+        };
+    }
+}
 
 pub struct OutputWriter {
-    stdout: Mutex<Stdout>,
-    stderr: Mutex<Stderr>,
+    sender: Sender<Output>,
+    receiver_task_join_handle: JoinHandle<()>,
 }
 
 impl OutputWriter {
-    pub fn new() -> Arc<Self> {
-        Arc::new(Self {
-            stdout: Mutex::new(tokio::io::stdout()),
-            stderr: Mutex::new(tokio::io::stderr()),
-        })
+    pub fn new() -> Self {
+        let command_line_args = command_line_args::instance();
+
+        let (sender, receiver) = channel(command_line_args.output_buffer_channel_capacity);
+        debug!(
+            "created channel with capacity {}",
+            command_line_args.output_buffer_channel_capacity,
+        );
+
+        let receiver_task_join_handle = tokio::spawn(run_receiver_task(receiver));
+
+        Self {
+            sender,
+            receiver_task_join_handle,
+        }
     }
 
-    pub async fn write_command_output(&self, command_output: &Output) {
-        async fn write(mut buffer: &[u8], output_stream_mutex: &Mutex<impl AsyncWrite + Unpin>) {
-            let mut output_stream = output_stream_mutex.lock().await;
-
-            let result = tokio::io::copy(&mut buffer, &mut *output_stream).await;
-            trace!("write_command_output copy result = {:?}", result);
+    pub fn sender(&self) -> OutputSender {
+        OutputSender {
+            sender: self.sender.clone(),
         }
+    }
 
+    pub async fn wait_for_completion(self) {
+        drop(self.sender);
+
+        if let Err(e) = self.receiver_task_join_handle.await {
+            warn!("receiver_task_join_handle.await error: {}", e);
+        }
+    }
+}
+
+async fn run_receiver_task(mut receiver: Receiver<Output>) {
+    let mut stdout = tokio::io::stdout();
+    let mut stderr = tokio::io::stderr();
+
+    async fn copy<T>(mut buffer: &[u8], output_stream: &mut T)
+    where
+        T: AsyncWrite + Unpin,
+    {
+        let result = tokio::io::copy(&mut buffer, &mut *output_stream).await;
+        trace!("write_command_output copy result = {:?}", result);
+    }
+
+    while let Some(command_output) = receiver.recv().await {
         if !command_output.stdout.is_empty() {
-            write(&command_output.stdout, &self.stdout).await;
+            copy(&command_output.stdout, &mut stdout).await;
         }
         if !command_output.stderr.is_empty() {
-            write(&command_output.stderr, &self.stderr).await;
+            copy(&command_output.stderr, &mut stderr).await;
         }
     }
+
+    debug!("receiver task after loop, exiting");
 }
