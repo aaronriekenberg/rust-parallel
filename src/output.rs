@@ -8,6 +8,8 @@ use tracing::{debug, trace, warn};
 
 use std::process::Output;
 
+use crate::command_line_args;
+
 pub struct OutputSender {
     sender: Sender<Output>,
 }
@@ -27,8 +29,16 @@ pub struct OutputWriter {
 
 impl OutputWriter {
     pub fn new() -> Self {
-        let (sender, receiver) = channel::<Output>(1);
-        debug!("created channel with capacity 1");
+        let output_buffer_channel_capacity: usize = command_line_args::instance()
+            .output_buffer_channel_capacity
+            .try_into()
+            .unwrap();
+
+        let (sender, receiver) = channel(output_buffer_channel_capacity);
+        debug!(
+            "created channel with capacity {}",
+            output_buffer_channel_capacity
+        );
 
         let receiver_task_join_handle = tokio::spawn(run_receiver_task(receiver));
 
