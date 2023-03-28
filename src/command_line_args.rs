@@ -6,8 +6,13 @@ use tokio::sync::OnceCell;
 
 use tracing::debug;
 
-fn default_jobs() -> usize {
-    num_cpus::get()
+fn default_jobs() -> u64 {
+    num_cpus::get().try_into().unwrap()
+}
+
+fn jobs_range() -> std::ops::RangeInclusive<u64> {
+    let max_permits: u64 = tokio::sync::Semaphore::MAX_PERMITS.try_into().unwrap();
+    1..=max_permits
 }
 
 /// Execute commands in parallel
@@ -24,8 +29,8 @@ pub struct CommandLineArgs {
     pub input: Vec<String>,
 
     /// Maximum number of commands to run in parallel, defauts to num cpus
-    #[arg(short, long, default_value_t = default_jobs())]
-    pub jobs: usize,
+    #[arg(short, long, default_value_t = default_jobs(), value_parser = clap::value_parser!(u64).range(jobs_range()))]
+    pub jobs: u64,
 
     /// Use null separator for reading input instead of newline.
     #[arg(short('0'), long)]
@@ -40,8 +45,8 @@ pub struct CommandLineArgs {
     pub shell: bool,
 
     /// Output buffer channel capacity.
-    #[arg(long, default_value_t = 1)]
-    pub output_buffer_channel_capacity: usize,
+    #[arg(long, default_value_t = 100, value_parser = clap::value_parser!(u64).range(1..))]
+    pub output_buffer_channel_capacity: u64,
 
     /// Optional command and initial arguments to run for each input line.
     #[arg(trailing_var_arg(true))]
