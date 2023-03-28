@@ -86,5 +86,5 @@ async fn run_receiver_task(mut receiver: Receiver<Output>) {
         }
     }
 
-    debug!("receiver task after loop, exiting");
+    debug!("run_receiver_task after loop, exiting");
 }
