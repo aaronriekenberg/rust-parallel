@@ -61,13 +61,13 @@ impl OutputWriter {
 }
 
 async fn run_receiver_task(mut receiver: Receiver<Output>) {
-    let mut stdout = tokio::io::stdout();
-    let mut stderr = tokio::io::stderr();
-
     async fn copy(mut buffer: &[u8], output_stream: &mut (impl AsyncWrite + Unpin)) {
         let result = tokio::io::copy(&mut buffer, &mut *output_stream).await;
         trace!("run_receiver_task copy result = {:?}", result);
     }
+
+    let mut stdout = tokio::io::stdout();
+    let mut stderr = tokio::io::stderr();
 
     while let Some(command_output) = receiver.recv().await {
         if !command_output.stdout.is_empty() {
