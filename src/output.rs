@@ -31,10 +31,15 @@ impl OutputWriter {
     pub fn new() -> Self {
         let command_line_args = command_line_args::instance();
 
-        let (sender, receiver) = channel(command_line_args.output_buffer_channel_capacity);
+        let output_buffer_channel_capacity: usize = command_line_args
+            .output_buffer_channel_capacity
+            .try_into()
+            .unwrap();
+
+        let (sender, receiver) = channel(output_buffer_channel_capacity);
         debug!(
             "created channel with capacity {}",
-            command_line_args.output_buffer_channel_capacity,
+            output_buffer_channel_capacity,
         );
 
         let receiver_task_join_handle = tokio::spawn(run_receiver_task(receiver));

@@ -72,7 +72,7 @@ pub struct CommandService {
 impl CommandService {
     pub fn new() -> Self {
         let command_line_args = command_line_args::instance();
-        let semaphore_permits = command_line_args.jobs;
+        let semaphore_permits: usize = command_line_args.jobs.try_into().unwrap();
 
         Self {
             input_line_parser: InputLineParser::new(command_line_args),
