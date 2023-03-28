@@ -22,7 +22,7 @@ pub struct CommandLineArgs {
     pub input: Vec<String>,
 
     /// Maximum number of commands to run in parallel, defauts to num cpus
-    #[arg(short, long, default_value_t = num_cpus(), value_parser = clap::value_parser!(u64).range(jobs_range()))]
+    #[arg(short, long, default_value_t = num_cpus(), value_parser = clap::value_parser!(u64).range(semaphore_permits_range()))]
     pub jobs: u64,
 
     /// Use null separator for reading input instead of newline.
@@ -38,7 +38,7 @@ pub struct CommandLineArgs {
     pub shell: bool,
 
     /// Output channel capacity, defauts to num cpus
-    #[arg(long, default_value_t = num_cpus(), value_parser = clap::value_parser!(u64).range(1..))]
+    #[arg(long, default_value_t = num_cpus(), value_parser = clap::value_parser!(u64).range(semaphore_permits_range()))]
     pub output_channel_capacity: u64,
 
     /// Optional command and initial arguments to run for each input line.
@@ -60,7 +60,7 @@ fn num_cpus() -> u64 {
     num_cpus::get().try_into().unwrap()
 }
 
-fn jobs_range() -> impl RangeBounds<u64> {
+fn semaphore_permits_range() -> impl RangeBounds<u64> {
     let max_permits: u64 = tokio::sync::Semaphore::MAX_PERMITS.try_into().unwrap();
     1..=max_permits
 }
