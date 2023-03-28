@@ -6,15 +6,6 @@ use tokio::sync::OnceCell;
 
 use tracing::debug;
 
-fn default_jobs() -> u64 {
-    num_cpus::get().try_into().unwrap()
-}
-
-fn jobs_range() -> std::ops::RangeInclusive<u64> {
-    let max_permits: u64 = tokio::sync::Semaphore::MAX_PERMITS.try_into().unwrap();
-    1..=max_permits
-}
-
 /// Execute commands in parallel
 ///
 /// By Aaron Riekenberg <aaron.riekenberg@gmail.com>
@@ -29,7 +20,7 @@ pub struct CommandLineArgs {
     pub input: Vec<String>,
 
     /// Maximum number of commands to run in parallel, defauts to num cpus
-    #[arg(short, long, default_value_t = default_jobs(), value_parser = clap::value_parser!(u64).range(jobs_range()))]
+    #[arg(short, long, default_value_t = num_cpus(), value_parser = clap::value_parser!(u64).range(jobs_range()))]
     pub jobs: u64,
 
     /// Use null separator for reading input instead of newline.
@@ -44,13 +35,32 @@ pub struct CommandLineArgs {
     #[arg(short, long)]
     pub shell: bool,
 
-    /// Output buffer channel capacity.
-    #[arg(long, default_value_t = 100, value_parser = clap::value_parser!(u64).range(1..))]
-    pub output_buffer_channel_capacity: u64,
+    /// Output channel capacity, defauts to num cpus
+    #[arg(long, default_value_t = num_cpus(), value_parser = clap::value_parser!(u64).range(1..))]
+    pub output_channel_capacity: u64,
 
     /// Optional command and initial arguments to run for each input line.
     #[arg(trailing_var_arg(true))]
     pub command_and_initial_arguments: Vec<String>,
+}
+
+impl CommandLineArgs {
+    pub fn jobs_usize(&self) -> usize {
+        self.jobs.try_into().unwrap()
+    }
+
+    pub fn output_channel_capacity_usize(&self) -> usize {
+        self.output_channel_capacity.try_into().unwrap()
+    }
+}
+
+fn num_cpus() -> u64 {
+    num_cpus::get().try_into().unwrap()
+}
+
+fn jobs_range() -> std::ops::RangeInclusive<u64> {
+    let max_permits: u64 = tokio::sync::Semaphore::MAX_PERMITS.try_into().unwrap();
+    1..=max_permits
 }
 
 static INSTANCE: OnceCell<CommandLineArgs> = OnceCell::const_new();
