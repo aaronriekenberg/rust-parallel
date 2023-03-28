@@ -6,6 +6,8 @@ use tokio::sync::OnceCell;
 
 use tracing::debug;
 
+use std::ops::RangeBounds;
+
 /// Execute commands in parallel
 ///
 /// By Aaron Riekenberg <aaron.riekenberg@gmail.com>
@@ -58,7 +60,7 @@ fn num_cpus() -> u64 {
     num_cpus::get().try_into().unwrap()
 }
 
-fn jobs_range() -> std::ops::RangeInclusive<u64> {
+fn jobs_range() -> impl RangeBounds<u64> {
     let max_permits: u64 = tokio::sync::Semaphore::MAX_PERMITS.try_into().unwrap();
     1..=max_permits
 }
