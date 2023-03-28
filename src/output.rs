@@ -18,7 +18,7 @@ impl OutputSender {
     pub async fn send(self, output: Output) {
         if let Err(e) = self.sender.send(output).await {
             warn!("sender.send error {}", e);
-        };
+        }
     }
 }
 
