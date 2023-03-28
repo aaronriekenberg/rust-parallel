@@ -71,7 +71,7 @@ async fn run_receiver_task(mut receiver: Receiver<Output>) {
 
     async fn copy(mut buffer: &[u8], output_stream: &mut (impl AsyncWrite + Unpin)) {
         let result = tokio::io::copy(&mut buffer, &mut *output_stream).await;
-        trace!("write_command_output copy result = {:?}", result);
+        trace!("run_receiver_task copy result = {:?}", result);
     }
 
     while let Some(command_output) = receiver.recv().await {
