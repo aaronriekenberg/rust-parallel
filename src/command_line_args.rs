@@ -6,7 +6,7 @@ use tokio::sync::OnceCell;
 
 use tracing::debug;
 
-use std::ops::RangeBounds;
+use std::ops::RangeInclusive;
 
 /// Execute commands in parallel
 ///
@@ -22,8 +22,8 @@ pub struct CommandLineArgs {
     pub input: Vec<String>,
 
     /// Maximum number of commands to run in parallel, defauts to num cpus
-    #[arg(short, long, default_value_t = num_cpus(), value_parser = clap::value_parser!(u64).range(semaphore_permits_range()))]
-    pub jobs: u64,
+    #[arg(short, long, default_value_t = num_cpus(), value_parser = parse_semaphore_permits)]
+    pub jobs: usize,
 
     /// Use null separator for reading input instead of newline.
     #[arg(short('0'), long)]
@@ -37,32 +37,28 @@ pub struct CommandLineArgs {
     #[arg(short, long)]
     pub shell: bool,
 
-    /// Output channel capacity, defauts to num cpus
-    #[arg(long, default_value_t = num_cpus(), value_parser = clap::value_parser!(u64).range(semaphore_permits_range()))]
-    pub output_channel_capacity: u64,
+    /// Output channel capacity, defauts to the same value as jobs argument
+    #[arg(long, value_parser = parse_semaphore_permits)]
+    pub output_channel_capacity: Option<usize>,
 
     /// Optional command and initial arguments to run for each input line.
     #[arg(trailing_var_arg(true))]
     pub command_and_initial_arguments: Vec<String>,
 }
 
-impl CommandLineArgs {
-    pub fn jobs_usize(&self) -> usize {
-        self.jobs.try_into().unwrap()
-    }
-
-    pub fn output_channel_capacity_usize(&self) -> usize {
-        self.output_channel_capacity.try_into().unwrap()
-    }
+fn num_cpus() -> usize {
+    num_cpus::get()
 }
 
-fn num_cpus() -> u64 {
-    num_cpus::get().try_into().unwrap()
-}
+const SEMAPHORE_PERMITS_RANGE: RangeInclusive<usize> = 1..=tokio::sync::Semaphore::MAX_PERMITS;
 
-fn semaphore_permits_range() -> impl RangeBounds<u64> {
-    let max_permits: u64 = tokio::sync::Semaphore::MAX_PERMITS.try_into().unwrap();
-    1..=max_permits
+fn parse_semaphore_permits(s: &str) -> Result<usize, String> {
+    let value: usize = s.parse().map_err(|_| format!("`{s}` isn't a number"))?;
+    if SEMAPHORE_PERMITS_RANGE.contains(&value) {
+        Ok(value as usize)
+    } else {
+        Err(format!("value not in range {:?}", SEMAPHORE_PERMITS_RANGE))
+    }
 }
 
 static INSTANCE: OnceCell<CommandLineArgs> = OnceCell::const_new();
