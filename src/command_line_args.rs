@@ -55,7 +55,7 @@ const SEMAPHORE_PERMITS_RANGE: RangeInclusive<usize> = 1..=tokio::sync::Semaphor
 fn parse_semaphore_permits(s: &str) -> Result<usize, String> {
     let value: usize = s.parse().map_err(|_| format!("`{s}` isn't a number"))?;
     if SEMAPHORE_PERMITS_RANGE.contains(&value) {
-        Ok(value as usize)
+        Ok(value)
     } else {
         Err(format!("value not in range {:?}", SEMAPHORE_PERMITS_RANGE))
     }
