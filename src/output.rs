@@ -16,6 +16,9 @@ pub struct OutputSender {
 
 impl OutputSender {
     pub async fn send(self, output: Output) {
+        if output.stdout.is_empty() && output.stderr.is_empty() {
+            return;
+        }
         if let Err(e) = self.sender.send(output).await {
             warn!("sender.send error {}", e);
         }
