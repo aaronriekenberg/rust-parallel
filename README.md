@@ -47,7 +47,7 @@ Options:
   -j, --jobs <JOBS>
           Maximum number of commands to run in parallel, defauts to num cpus
 
-          [default: 12]
+          [default: 8]
 
   -0, --null-separator
           Use null separator for reading input instead of newline
@@ -58,6 +58,9 @@ Options:
           If $SHELL environment variable is set use it else use /bin/bash.
 
           Each input line is passed to $SHELL -c <line> as a single argument.
+
+      --output-channel-capacity <OUTPUT_CHANNEL_CAPACITY>
+          Output channel capacity, defauts to the same value as jobs argument
 
   -h, --help
           Print help (see a summary with '-h')
