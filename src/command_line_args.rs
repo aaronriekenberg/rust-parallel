@@ -22,7 +22,7 @@ pub struct CommandLineArgs {
     pub input: Vec<String>,
 
     /// Maximum number of commands to run in parallel, defauts to num cpus
-    #[arg(short, long, default_value_t = num_cpus(), value_parser = parse_semaphore_permits)]
+    #[arg(short, long, default_value_t = num_cpus::get(), value_parser = parse_semaphore_permits)]
     pub jobs: usize,
 
     /// Use null separator for reading input instead of newline.
@@ -46,9 +46,6 @@ pub struct CommandLineArgs {
     pub command_and_initial_arguments: Vec<String>,
 }
 
-fn num_cpus() -> usize {
-    num_cpus::get()
-}
 
 const SEMAPHORE_PERMITS_RANGE: RangeInclusive<usize> = 1..=tokio::sync::Semaphore::MAX_PERMITS;
 
