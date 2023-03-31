@@ -60,7 +60,9 @@ Options:
           Each input line is passed to $SHELL -c <line> as a single argument.
 
       --output-channel-capacity <OUTPUT_CHANNEL_CAPACITY>
-          Output channel capacity, defauts to the same value as jobs argument
+          Output channel capacity
+
+          [default: 1]
 
   -h, --help
           Print help (see a summary with '-h')
