@@ -46,7 +46,6 @@ pub struct CommandLineArgs {
     pub command_and_initial_arguments: Vec<String>,
 }
 
-
 const SEMAPHORE_PERMITS_RANGE: RangeInclusive<usize> = 1..=tokio::sync::Semaphore::MAX_PERMITS;
 
 fn parse_semaphore_permits(s: &str) -> Result<usize, String> {
