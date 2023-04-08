@@ -179,7 +179,7 @@ impl CommandService {
 
         debug!("before output_writer.wait_for_completion",);
 
-        self.output_writer.wait_for_completion().await;
+        self.output_writer.wait_for_completion().await?;
 
         debug!("end run_commands");
 
