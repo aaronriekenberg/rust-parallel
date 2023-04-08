@@ -58,8 +58,8 @@ impl Command {
     }
 
     #[instrument(skip_all, fields(
-        cmd = %self.command_and_args,
-        input_line = %self.input_line_number,
+        cmd_args = %self.command_and_args,
+        line = %self.input_line_number,
         child_pid,
     ), level = "debug")]
     async fn run_command(self, output_sender: OutputSender) {
@@ -89,7 +89,7 @@ impl std::fmt::Display for Command {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "cmd={},input_line={}",
+            "cmd_args={},line={}",
             self.command_and_args, self.input_line_number,
         )
     }
