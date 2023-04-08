@@ -1,3 +1,4 @@
+use anyhow::Context;
 use tokio::{
     io::AsyncWrite,
     sync::mpsc::{channel, Receiver, Sender},
@@ -54,12 +55,14 @@ impl OutputWriter {
         }
     }
 
-    pub async fn wait_for_completion(self) {
+    pub async fn wait_for_completion(self) -> anyhow::Result<()> {
         drop(self.sender);
 
-        if let Err(e) = self.receiver_task_join_handle.await {
-            warn!("receiver_task_join_handle.await error: {}", e);
-        }
+        self.receiver_task_join_handle
+            .await
+            .context("receiver_task_join_handle.await error")?;
+
+        Ok(())
     }
 }
 
