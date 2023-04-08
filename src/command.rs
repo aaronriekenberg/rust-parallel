@@ -25,6 +25,12 @@ impl From<Vec<&str>> for OwnedCommandAndArgs {
     }
 }
 
+impl std::fmt::Display for OwnedCommandAndArgs {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "[{}]", self.0.join(","))
+    }
+}
+
 #[derive(Debug)]
 struct Command {
     command_and_args: OwnedCommandAndArgs,
@@ -52,7 +58,7 @@ impl Command {
     }
 
     #[instrument(skip_all, fields(
-        cmd = ?self.command_and_args.0,
+        cmd = %self.command_and_args,
         input_line = %self.input_line_number,
         child_pid,
     ), level = "debug")]
@@ -83,8 +89,8 @@ impl std::fmt::Display for Command {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "command_and_args={:?},input_line_number={}",
-            self.command_and_args.0, self.input_line_number,
+            "cmd={},input_line={}",
+            self.command_and_args, self.input_line_number,
         )
     }
 }
@@ -112,8 +118,8 @@ impl CommandService {
         input_line_number: InputLineNumber,
     ) -> anyhow::Result<()> {
         let command = Command {
-            input_line_number,
             command_and_args,
+            input_line_number,
         };
 
         let output_sender = self.output_writer.sender();
