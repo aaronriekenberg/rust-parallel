@@ -2,9 +2,12 @@ use anyhow::Context;
 
 use tokio::{process::Command as TokioCommand, sync::Semaphore};
 
-use tracing::{debug, instrument, warn};
+use tracing::{debug, instrument, span_enabled, warn, Level, Span};
 
-use std::sync::Arc;
+use std::{
+    process::{Output, Stdio},
+    sync::Arc,
+};
 
 use crate::{
     command_line_args,
@@ -29,7 +32,30 @@ struct Command {
 }
 
 impl Command {
-    #[instrument(skip_all, fields(command = %self), level = "debug")]
+    async fn spawn_child_process(&self, command: &str, args: &[String]) -> std::io::Result<Output> {
+        let child = TokioCommand::new(command)
+            .args(args)
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .spawn()?;
+
+        if span_enabled!(Level::DEBUG) {
+            let child_pid = child.id();
+            Span::current().record("child_pid", &child_pid);
+        }
+
+        debug!("spawned child process, awaiting output");
+
+        let command_output = child.wait_with_output().await?;
+
+        Ok(command_output)
+    }
+
+    #[instrument(skip_all, fields(
+        cmd = ?self.command_and_args.0,
+        input_line = %self.input_line_number,
+        child_pid,
+    ), level = "debug")]
     async fn run_command(self, output_sender: OutputSender) {
         debug!("begin run_command");
 
@@ -37,11 +63,11 @@ impl Command {
             return;
         };
 
-        let command_output = TokioCommand::new(command).args(args).output().await;
+        let command_output = self.spawn_child_process(command, args).await;
 
         match command_output {
             Err(e) => {
-                warn!("error running command {}: {}", self, e);
+                warn!("error running command: {}: {}", self, e);
             }
             Ok(output) => {
                 debug!("command status = {}", output.status);
