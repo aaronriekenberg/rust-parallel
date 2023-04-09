@@ -27,7 +27,7 @@ impl From<Vec<&str>> for OwnedCommandAndArgs {
 
 impl std::fmt::Display for OwnedCommandAndArgs {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "[{}]", self.0.join(","))
+        write!(f, "[{}]", self.0.join(", "))
     }
 }
 
@@ -62,8 +62,8 @@ impl Command {
         line = %self.input_line_number,
         child_pid,
     ), level = "debug")]
-    async fn run_command(self, output_sender: OutputSender) {
-        debug!("begin run_command");
+    async fn run(self, output_sender: OutputSender) {
+        debug!("begin run");
 
         let [command, args @ ..] = self.command_and_args.0.as_slice() else {
             return;
@@ -81,7 +81,7 @@ impl Command {
             }
         };
 
-        debug!("end run_command");
+        debug!("end run");
     }
 }
 
@@ -130,7 +130,7 @@ impl CommandService {
             .context("command_semaphore.acquire_owned error")?;
 
         tokio::spawn(async move {
-            command.run_command(output_sender).await;
+            command.run(output_sender).await;
 
             drop(permit);
         });
