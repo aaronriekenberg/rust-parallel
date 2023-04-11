@@ -21,7 +21,7 @@ impl OutputSender {
             return;
         }
         if let Err(e) = self.sender.send(output).await {
-            warn!("sender.send error {}", e);
+            warn!("sender.send error: {}", e);
         }
     }
 }
@@ -70,13 +70,13 @@ impl OutputWriter {
 async fn run_receiver_task(mut receiver: Receiver<Output>) {
     async fn copy(mut buffer: &[u8], output_stream: &mut (impl AsyncWrite + Unpin)) {
         let result = tokio::io::copy(&mut buffer, &mut *output_stream).await;
-        trace!("run_receiver_task copy result = {:?}", result);
+        trace!("copy result = {:?}", result);
     }
 
     let mut stdout = tokio::io::stdout();
     let mut stderr = tokio::io::stderr();
 
-    debug!("start receiver task");
+    debug!("start receiver");
 
     while let Some(command_output) = receiver.recv().await {
         if !command_output.stdout.is_empty() {
@@ -87,5 +87,5 @@ async fn run_receiver_task(mut receiver: Receiver<Output>) {
         }
     }
 
-    debug!("exiting");
+    debug!("receiver exiting");
 }
