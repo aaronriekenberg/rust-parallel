@@ -5,7 +5,7 @@ use tokio::{
     task::JoinHandle,
 };
 
-use tracing::{debug, trace, warn};
+use tracing::{debug, instrument, trace, warn};
 
 use std::process::Output;
 
@@ -66,6 +66,7 @@ impl OutputWriter {
     }
 }
 
+#[instrument(skip_all, level = "debug")]
 async fn run_receiver_task(mut receiver: Receiver<Output>) {
     async fn copy(mut buffer: &[u8], output_stream: &mut (impl AsyncWrite + Unpin)) {
         let result = tokio::io::copy(&mut buffer, &mut *output_stream).await;
@@ -74,6 +75,8 @@ async fn run_receiver_task(mut receiver: Receiver<Output>) {
 
     let mut stdout = tokio::io::stdout();
     let mut stderr = tokio::io::stderr();
+
+    debug!("start receiver task");
 
     while let Some(command_output) = receiver.recv().await {
         if !command_output.stdout.is_empty() {
@@ -84,5 +87,5 @@ async fn run_receiver_task(mut receiver: Receiver<Output>) {
         }
     }
 
-    debug!("run_receiver_task after loop, exiting");
+    debug!("exiting");
 }

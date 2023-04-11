@@ -6,8 +6,6 @@ use tokio::sync::OnceCell;
 
 use tracing::debug;
 
-use std::ops::RangeInclusive;
-
 /// Execute commands in parallel
 ///
 /// By Aaron Riekenberg <aaron.riekenberg@gmail.com>
@@ -47,13 +45,13 @@ pub struct CommandLineArgs {
 }
 
 fn parse_semaphore_permits(s: &str) -> Result<usize, String> {
-    const RANGE: RangeInclusive<usize> = 1..=tokio::sync::Semaphore::MAX_PERMITS;
+    let range = 1..=tokio::sync::Semaphore::MAX_PERMITS;
 
     let value: usize = s.parse().map_err(|_| format!("`{s}` isn't a number"))?;
-    if RANGE.contains(&value) {
+    if range.contains(&value) {
         Ok(value)
     } else {
-        Err(format!("value not in range {:?}", RANGE))
+        Err(format!("value not in range {:?}", range))
     }
 }
 

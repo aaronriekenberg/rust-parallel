@@ -57,11 +57,15 @@ impl Command {
         Ok(command_output)
     }
 
-    #[instrument(skip_all, fields(
-        cmd_args = %self.command_and_args,
-        line = %self.input_line_number,
-        child_pid,
-    ), level = "debug")]
+    #[instrument(
+        name = "Command::run",
+        skip_all,
+        fields(
+            cmd_args = %self.command_and_args,
+            line = %self.input_line_number,
+            child_pid,
+        ),
+        level = "debug")]
     async fn run(self, output_sender: OutputSender) {
         debug!("begin run");
 
@@ -138,7 +142,11 @@ impl CommandService {
         Ok(())
     }
 
-    #[instrument(skip_all, fields(input = %input), level = "debug")]
+    #[instrument(
+        name = "CommandService::process_one_input",
+        skip_all,
+        fields(input = %input),
+        level = "debug")]
     async fn process_one_input(&self, input: Input) -> anyhow::Result<()> {
         debug!("begin process_one_input");
 
@@ -171,7 +179,7 @@ impl CommandService {
         Ok(())
     }
 
-    #[instrument(skip_all, level = "debug")]
+    #[instrument(name = "CommandService::run_commands", skip_all, level = "debug")]
     pub async fn run_commands(self) -> anyhow::Result<()> {
         debug!("begin run_commands");
 
