@@ -27,7 +27,7 @@ impl From<Vec<&str>> for OwnedCommandAndArgs {
 
 impl std::fmt::Display for OwnedCommandAndArgs {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "[{}]", self.0.join(","))
+        write!(f, "{:?}", self.0)
     }
 }
 
