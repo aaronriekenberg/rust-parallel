@@ -266,4 +266,4 @@ See the [wiki page for benchmarks](https://github.com/aaronriekenberg/rust-paral
   * [`tokio::sync::Semaphore`](https://docs.rs/tokio/latest/tokio/sync/struct.Semaphore.html) used to limit number of commands that run concurrently.
   * [`tokio::sync::mpsc::channel`](https://docs.rs/tokio/latest/tokio/sync/mpsc/fn.channel.html) used to send command output to an output writer task.
 * [tracing](https://docs.rs/tracing/latest/tracing/) structured debug and warning logs.
-  * [`tracing::Instrument`](https://docs.rs/tracing/latest/tracing/attr.instrument.html) is used to provide structured debug logs on methods in `command::Command` and `command::CommandService`.
+  * [`tracing::Instrument`](https://docs.rs/tracing/latest/tracing/attr.instrument.html) is used to provide structured debug logs.
