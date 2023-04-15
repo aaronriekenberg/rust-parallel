@@ -48,9 +48,9 @@ impl Command {
         if span_enabled!(Level::DEBUG) {
             let child_pid = child.id();
             Span::current().record("child_pid", &child_pid);
-        }
 
-        debug!("spawned child process, awaiting output");
+            debug!("spawned child process, awaiting output");
+        }
 
         let command_output = child.wait_with_output().await?;
 
