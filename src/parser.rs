@@ -13,11 +13,7 @@ impl InputLineParser {
     pub fn new(command_line_args: &CommandLineArgs) -> Self {
         let split_whitespace = !(command_line_args.null_separator || command_line_args.shell);
 
-        let mut prepend_command_and_args = vec![];
-
-        if !command_line_args.command_and_initial_arguments.is_empty() {
-            prepend_command_and_args = command_line_args.command_and_initial_arguments.clone();
-        }
+        let mut prepend_command_and_args = command_line_args.command_and_initial_arguments.clone();
 
         if command_line_args.shell {
             let shell = match std::env::var("SHELL") {
