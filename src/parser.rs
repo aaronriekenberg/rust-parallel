@@ -11,15 +11,11 @@ pub struct InputLineParser {
 
 impl InputLineParser {
     pub fn new(command_line_args: &CommandLineArgs) -> Self {
-        let split_whitespace = if command_line_args.null_separator || command_line_args.shell {
-            false
-        } else {
-            true
-        };
+        let split_whitespace = !(command_line_args.null_separator || command_line_args.shell);
 
         let mut prepend_command_and_args = vec![];
 
-        if command_line_args.command_and_initial_arguments.len() > 0 {
+        if !command_line_args.command_and_initial_arguments.is_empty() {
             prepend_command_and_args = command_line_args.command_and_initial_arguments.clone();
         }
 
@@ -58,7 +54,7 @@ impl InputLineParser {
             vec![input_line]
         };
 
-        if self.prepend_command_and_args.len() > 0 {
+        if !self.prepend_command_and_args.is_empty() {
             vec = [self.get_prepend_command_and_args(), vec].concat();
         }
 
