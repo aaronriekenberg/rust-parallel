@@ -48,9 +48,10 @@ pub struct CommandLineArgs {
     pub command_and_initial_arguments: Vec<String>,
 }
 
-#[derive(Copy, Clone, Debug, ValueEnum)]
+#[derive(Clone, Copy, Debug, Default, ValueEnum)]
 pub enum DiscardOutput {
     /// Capture stdout and stderr for commands
+    #[default]
     None,
     /// Redirect stdout for commands to /dev/null
     Stdout,
@@ -58,12 +59,6 @@ pub enum DiscardOutput {
     Stderr,
     /// Redirect stdout and stderr for commands to /dev/null
     All,
-}
-
-impl Default for DiscardOutput {
-    fn default() -> Self {
-        Self::None
-    }
 }
 
 fn parse_semaphore_permits(s: &str) -> Result<usize, String> {
