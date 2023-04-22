@@ -10,7 +10,7 @@ use std::{
 };
 
 use crate::{
-    command_line_args::{self, CommandLineArgs, DiscardOutputMode},
+    command_line_args::{self, CommandLineArgs, DiscardOutput},
     input::{build_input_list, Input, InputLineNumber, InputReader},
     output::{OutputSender, OutputWriter},
     parser::InputLineParser,
@@ -41,12 +41,12 @@ impl CommandOutputMode {
     fn new(command_line_args: &CommandLineArgs) -> Self {
         Self {
             discard_stdout: matches!(
-                command_line_args.discard_output_mode,
-                DiscardOutputMode::All | DiscardOutputMode::Stdout
+                command_line_args.discard_output,
+                DiscardOutput::All | DiscardOutput::Stdout
             ),
             discard_stderr: matches!(
-                command_line_args.discard_output_mode,
-                DiscardOutputMode::All | DiscardOutputMode::Stderr
+                command_line_args.discard_output,
+                DiscardOutput::All | DiscardOutput::Stderr
             ),
         }
     }
