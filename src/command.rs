@@ -73,9 +73,7 @@ impl Command {
             return;
         };
 
-        let command_output = self.spawn_child_process(command, args).await;
-
-        match command_output {
+        match self.spawn_child_process(command, args).await {
             Err(e) => {
                 warn!("error running command: {}: {}", self, e);
             }
