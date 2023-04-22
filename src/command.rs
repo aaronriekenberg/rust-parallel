@@ -31,7 +31,7 @@ impl std::fmt::Display for OwnedCommandAndArgs {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 struct CommandOutputMode {
     discard_stdout: bool,
     discard_stderr: bool,
@@ -40,14 +40,14 @@ struct CommandOutputMode {
 impl CommandOutputMode {
     fn new(command_line_args: &CommandLineArgs) -> Self {
         Self {
-            discard_stdout: match command_line_args.discard_output_mode {
-                DiscardOutputMode::All | DiscardOutputMode::Stdout => true,
-                _ => false,
-            },
-            discard_stderr: match command_line_args.discard_output_mode {
-                DiscardOutputMode::All | DiscardOutputMode::Stdout => true,
-                _ => false,
-            },
+            discard_stdout: matches!(
+                command_line_args.discard_output_mode,
+                DiscardOutputMode::All | DiscardOutputMode::Stdout
+            ),
+            discard_stderr: matches!(
+                command_line_args.discard_output_mode,
+                DiscardOutputMode::All | DiscardOutputMode::Stderr
+            ),
         }
     }
 
@@ -148,8 +148,8 @@ impl std::fmt::Display for Command {
 }
 
 pub struct CommandService {
-    command_line_args: &'static CommandLineArgs,
     input_line_parser: InputLineParser,
+    command_output_mode: CommandOutputMode,
     command_semaphore: Arc<Semaphore>,
     output_writer: OutputWriter,
 }
@@ -159,8 +159,8 @@ impl CommandService {
         let command_line_args = command_line_args::instance();
 
         Self {
-            command_line_args,
             input_line_parser: InputLineParser::new(command_line_args),
+            command_output_mode: CommandOutputMode::new(command_line_args),
             command_semaphore: Arc::new(Semaphore::new(command_line_args.jobs)),
             output_writer: OutputWriter::new(),
         }
@@ -174,7 +174,7 @@ impl CommandService {
         let command = Command {
             command_and_args,
             input_line_number,
-            command_output_mode: CommandOutputMode::new(self.command_line_args),
+            command_output_mode: self.command_output_mode,
         };
 
         let output_sender = self.output_writer.sender();
