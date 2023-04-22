@@ -41,16 +41,16 @@ Arguments:
           Optional command and initial arguments to run for each input line
 
 Options:
-  -d, --discard-output-mode <DISCARD_OUTPUT_MODE>
-          Discard output mode for commands
+  -d, --discard-output <DISCARD_OUTPUT>
+          Discard output for commands
 
           [default: none]
 
           Possible values:
-          - none:   Capture stdout and stderr for child processes
-          - stdout: Redirect stdout for child processes to /dev/null
-          - stderr: Redirect stderr for child processes to /dev/null
-          - all:    Redirect stdout and stderr for child processes to /dev/null
+          - none:   Capture stdout and stderr for commands
+          - stdout: Redirect stdout for commands to /dev/null
+          - stderr: Redirect stderr for commands to /dev/null
+          - all:    Redirect stdout and stderr for commands to /dev/null
 
   -i, --input <INPUT>
           Input file or - for stdin.  Defaults to stdin if no inputs are specified
