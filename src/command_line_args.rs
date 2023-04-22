@@ -15,9 +15,9 @@ use tracing::debug;
 #[derive(Parser, Debug, Default)]
 #[command(verbatim_doc_comment, version)]
 pub struct CommandLineArgs {
-    /// Discard output mode for commands
-    #[arg(short, long, value_enum, default_value_t = DiscardOutputMode::None)]
-    pub discard_output_mode: DiscardOutputMode,
+    /// Discard output for commands
+    #[arg(short, long, value_enum, default_value_t = DiscardOutput::default())]
+    pub discard_output: DiscardOutput,
 
     /// Input file or - for stdin.  Defaults to stdin if no inputs are specified.
     #[arg(short, long)]
@@ -48,6 +48,24 @@ pub struct CommandLineArgs {
     pub command_and_initial_arguments: Vec<String>,
 }
 
+#[derive(Copy, Clone, Debug, ValueEnum)]
+pub enum DiscardOutput {
+    /// Capture stdout and stderr for commands
+    None,
+    /// Redirect stdout for commands to /dev/null
+    Stdout,
+    /// Redirect stderr for commands to /dev/null
+    Stderr,
+    /// Redirect stdout and stderr for commands to /dev/null
+    All,
+}
+
+impl Default for DiscardOutput {
+    fn default() -> Self {
+        Self::None
+    }
+}
+
 fn parse_semaphore_permits(s: &str) -> Result<usize, String> {
     let range = 1..=tokio::sync::Semaphore::MAX_PERMITS;
 
@@ -56,24 +74,6 @@ fn parse_semaphore_permits(s: &str) -> Result<usize, String> {
         Ok(value)
     } else {
         Err(format!("value not in range {:?}", range))
-    }
-}
-
-#[derive(Copy, Clone, Debug, ValueEnum)]
-pub enum DiscardOutputMode {
-    /// Capture stdout and stderr for child processes
-    None,
-    /// Redirect stdout for child processes to /dev/null
-    Stdout,
-    /// Redirect stderr for child processes to /dev/null
-    Stderr,
-    /// Redirect stdout and stderr for child processes to /dev/null
-    All,
-}
-
-impl Default for DiscardOutputMode {
-    fn default() -> Self {
-        Self::None
     }
 }
 
