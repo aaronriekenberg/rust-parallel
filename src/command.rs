@@ -10,7 +10,7 @@ use std::{
 };
 
 use crate::{
-    command_line_args,
+    command_line_args::{self, CommandLineArgs, DiscardOutputMode},
     input::{build_input_list, Input, InputLineNumber, InputReader},
     output::{OutputSender, OutputWriter},
     parser::InputLineParser,
@@ -32,17 +32,59 @@ impl std::fmt::Display for OwnedCommandAndArgs {
 }
 
 #[derive(Debug)]
+struct CommandOutputMode {
+    discard_stdout: bool,
+    discard_stderr: bool,
+}
+
+impl CommandOutputMode {
+    fn new(command_line_args: &CommandLineArgs) -> Self {
+        Self {
+            discard_stdout: match command_line_args.discard_output_mode {
+                DiscardOutputMode::All | DiscardOutputMode::Stdout => true,
+                _ => false,
+            },
+            discard_stderr: match command_line_args.discard_output_mode {
+                DiscardOutputMode::All | DiscardOutputMode::Stdout => true,
+                _ => false,
+            },
+        }
+    }
+
+    fn stdout(&self) -> Stdio {
+        if self.discard_stdout {
+            Stdio::null()
+        } else {
+            Stdio::piped()
+        }
+    }
+
+    fn stderr(&self) -> Stdio {
+        if self.discard_stderr {
+            Stdio::null()
+        } else {
+            Stdio::piped()
+        }
+    }
+
+    fn discard_all_output(&self) -> bool {
+        self.discard_stdout && self.discard_stderr
+    }
+}
+
+#[derive(Debug)]
 struct Command {
     command_and_args: OwnedCommandAndArgs,
     input_line_number: InputLineNumber,
+    command_output_mode: CommandOutputMode,
 }
 
 impl Command {
     async fn spawn_child_process(&self, command: &str, args: &[String]) -> std::io::Result<Output> {
-        let child = TokioCommand::new(command)
+        let mut child = TokioCommand::new(command)
             .args(args)
-            .stdout(Stdio::piped())
-            .stderr(Stdio::piped())
+            .stdout(self.command_output_mode.stdout())
+            .stderr(self.command_output_mode.stderr())
             .spawn()?;
 
         if span_enabled!(Level::DEBUG) {
@@ -52,9 +94,17 @@ impl Command {
             debug!("spawned child process, awaiting output");
         }
 
-        let command_output = child.wait_with_output().await?;
+        let output = if self.command_output_mode.discard_all_output() {
+            Output {
+                status: child.wait().await?,
+                stdout: vec![],
+                stderr: vec![],
+            }
+        } else {
+            child.wait_with_output().await?
+        };
 
-        Ok(command_output)
+        Ok(output)
     }
 
     #[instrument(
@@ -98,6 +148,7 @@ impl std::fmt::Display for Command {
 }
 
 pub struct CommandService {
+    command_line_args: &'static CommandLineArgs,
     input_line_parser: InputLineParser,
     command_semaphore: Arc<Semaphore>,
     output_writer: OutputWriter,
@@ -108,6 +159,7 @@ impl CommandService {
         let command_line_args = command_line_args::instance();
 
         Self {
+            command_line_args,
             input_line_parser: InputLineParser::new(command_line_args),
             command_semaphore: Arc::new(Semaphore::new(command_line_args.jobs)),
             output_writer: OutputWriter::new(),
@@ -122,6 +174,7 @@ impl CommandService {
         let command = Command {
             command_and_args,
             input_line_number,
+            command_output_mode: CommandOutputMode::new(self.command_line_args),
         };
 
         let output_sender = self.output_writer.sender();
