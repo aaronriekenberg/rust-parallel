@@ -83,6 +83,7 @@ impl Command {
     async fn spawn_child_process(&self, command: &str, args: &[String]) -> std::io::Result<Output> {
         let mut child = TokioCommand::new(command)
             .args(args)
+            .stdin(Stdio::null())
             .stdout(self.command_output_mode.stdout())
             .stderr(self.command_output_mode.stderr())
             .spawn()?;
