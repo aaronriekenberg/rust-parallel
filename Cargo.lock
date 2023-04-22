@@ -339,7 +339,7 @@ dependencies = [
 
 [[package]]
 name = "rust-parallel"
-version = "0.5.3"
+version = "0.6.0"
 dependencies = [
  "anyhow",
  "clap",
