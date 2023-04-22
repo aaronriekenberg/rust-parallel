@@ -97,7 +97,9 @@ $ cargo install rust-parallel
 
 ### Small demo of 5 echo commands.  
 
-With `-j5` all 5 commands are run in parallel.  With `-j1` commands are run sequentially:
+With `-j5` all 5 commands are run in parallel.  With `-j1` commands are run sequentially.
+
+As each child process completes all output for the child will be written to stdout and stderr.  It is guaranteed that output from 1 child will not be interleaved/mixed with output from other processes.
 
 ```
 $ cat >./test <<EOL
