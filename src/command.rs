@@ -106,7 +106,7 @@ impl CommandService {
             input_line_parser: InputLineParser::new(command_line_args),
             child_process_factory: ChildProcessFactory::new(command_line_args),
             command_semaphore: Arc::new(Semaphore::new(command_line_args.jobs)),
-            output_writer: OutputWriter::new(),
+            output_writer: OutputWriter::new(command_line_args),
         }
     }
 

@@ -10,7 +10,7 @@ use tracing::{debug, instrument, trace, warn};
 
 use std::process::Output;
 
-use crate::command_line_args;
+use crate::command_line_args::CommandLineArgs;
 
 pub struct OutputSender {
     sender: Sender<Output>,
@@ -33,9 +33,7 @@ pub struct OutputWriter {
 }
 
 impl OutputWriter {
-    pub fn new() -> Self {
-        let command_line_args = command_line_args::instance();
-
+    pub fn new(command_line_args: &CommandLineArgs) -> Self {
         let (sender, receiver) = channel(command_line_args.output_channel_capacity);
         debug!(
             "created channel with capacity {}",
