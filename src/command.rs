@@ -15,21 +15,6 @@ use crate::{
 };
 
 #[derive(Debug)]
-struct OwnedCommandAndArgs(Vec<String>);
-
-impl From<Vec<&str>> for OwnedCommandAndArgs {
-    fn from(v: Vec<&str>) -> OwnedCommandAndArgs {
-        OwnedCommandAndArgs(v.into_iter().map(|s| s.to_owned()).collect())
-    }
-}
-
-impl std::fmt::Display for OwnedCommandAndArgs {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:?}", self.0)
-    }
-}
-
-#[derive(Debug)]
 struct Command {
     command_and_args: OwnedCommandAndArgs,
     input_line_number: InputLineNumber,
@@ -48,7 +33,7 @@ impl Command {
     async fn run(self, child_process_factory: ChildProcessFactory, output_sender: OutputSender) {
         debug!("begin run");
 
-        let [command, args @ ..] = self.command_and_args.0.as_slice() else {
+        let [command, args @ ..] = self.command_and_args.as_slice() else {
             return;
         };
 
@@ -188,5 +173,28 @@ impl CommandService {
         debug!("end run_commands");
 
         Ok(())
+    }
+}
+
+#[derive(Debug)]
+struct OwnedCommandAndArgs(Vec<String>);
+
+impl From<Vec<&str>> for OwnedCommandAndArgs {
+    fn from(v: Vec<&str>) -> OwnedCommandAndArgs {
+        OwnedCommandAndArgs(v.into_iter().map(|s| s.to_owned()).collect())
+    }
+}
+
+impl std::ops::Deref for OwnedCommandAndArgs {
+    type Target = Vec<String>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl std::fmt::Display for OwnedCommandAndArgs {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}", self.0)
     }
 }
