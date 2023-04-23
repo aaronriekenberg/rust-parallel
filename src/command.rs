@@ -1,19 +1,17 @@
 use anyhow::Context;
 
-use tokio::{process::Command as TokioCommand, sync::Semaphore};
+use tokio::sync::Semaphore;
 
 use tracing::{debug, instrument, span_enabled, warn, Level, Span};
 
-use std::{
-    process::{Output, Stdio},
-    sync::Arc,
-};
+use std::sync::Arc;
 
 use crate::{
-    command_line_args::{self, CommandLineArgs, DiscardOutput},
+    command_line_args,
     input::{build_input_list, Input, InputLineNumber, InputReader},
     output::{OutputSender, OutputWriter},
     parser::InputLineParser,
+    process::ChildProcessFactory,
 };
 
 #[derive(Debug)]
@@ -31,83 +29,13 @@ impl std::fmt::Display for OwnedCommandAndArgs {
     }
 }
 
-#[derive(Debug, Clone, Copy)]
-struct CommandOutputMode {
-    discard_stdout: bool,
-    discard_stderr: bool,
-}
-
-impl CommandOutputMode {
-    fn new(command_line_args: &CommandLineArgs) -> Self {
-        Self {
-            discard_stdout: matches!(
-                command_line_args.discard_output,
-                DiscardOutput::All | DiscardOutput::Stdout
-            ),
-            discard_stderr: matches!(
-                command_line_args.discard_output,
-                DiscardOutput::All | DiscardOutput::Stderr
-            ),
-        }
-    }
-
-    fn stdout(&self) -> Stdio {
-        if self.discard_stdout {
-            Stdio::null()
-        } else {
-            Stdio::piped()
-        }
-    }
-
-    fn stderr(&self) -> Stdio {
-        if self.discard_stderr {
-            Stdio::null()
-        } else {
-            Stdio::piped()
-        }
-    }
-
-    fn discard_all_output(&self) -> bool {
-        self.discard_stdout && self.discard_stderr
-    }
-}
-
 #[derive(Debug)]
 struct Command {
     command_and_args: OwnedCommandAndArgs,
     input_line_number: InputLineNumber,
-    command_output_mode: CommandOutputMode,
 }
 
 impl Command {
-    async fn spawn_child_process(&self, command: &str, args: &[String]) -> std::io::Result<Output> {
-        let mut child = TokioCommand::new(command)
-            .args(args)
-            .stdin(Stdio::null())
-            .stdout(self.command_output_mode.stdout())
-            .stderr(self.command_output_mode.stderr())
-            .spawn()?;
-
-        if span_enabled!(Level::DEBUG) {
-            let child_pid = child.id();
-            Span::current().record("child_pid", child_pid);
-
-            debug!("spawned child process, awaiting output");
-        }
-
-        let output = if self.command_output_mode.discard_all_output() {
-            Output {
-                status: child.wait().await?,
-                stdout: vec![],
-                stderr: vec![],
-            }
-        } else {
-            child.wait_with_output().await?
-        };
-
-        Ok(output)
-    }
-
     #[instrument(
         name = "Command::run",
         skip_all,
@@ -117,19 +45,37 @@ impl Command {
             child_pid,
         ),
         level = "debug")]
-    async fn run(self, output_sender: OutputSender) {
+    async fn run(self, child_process_factory: ChildProcessFactory, output_sender: OutputSender) {
         debug!("begin run");
 
         let [command, args @ ..] = self.command_and_args.0.as_slice() else {
             return;
         };
 
-        match self.spawn_child_process(command, args).await {
+        let child_process = match child_process_factory
+            .spawn_child_process(command, args)
+            .await
+        {
             Err(e) => {
-                warn!("error running command: {}: {}", self, e);
+                warn!("spawn_child_process error command: {}: {}", self, e);
+                return;
+            }
+            Ok(child_process) => child_process,
+        };
+
+        if span_enabled!(Level::DEBUG) {
+            let child_pid = child_process.id();
+            Span::current().record("child_pid", child_pid);
+
+            debug!("spawned child process, awaiting output");
+        }
+
+        match child_process.await_output().await {
+            Err(e) => {
+                warn!("await_output error command: {}: {}", self, e);
             }
             Ok(output) => {
-                debug!("command status = {}", output.status);
+                debug!("command exit status = {}", output.status);
                 output_sender.send(output).await;
             }
         };
@@ -150,7 +96,7 @@ impl std::fmt::Display for Command {
 
 pub struct CommandService {
     input_line_parser: InputLineParser,
-    command_output_mode: CommandOutputMode,
+    child_process_factory: ChildProcessFactory,
     command_semaphore: Arc<Semaphore>,
     output_writer: OutputWriter,
 }
@@ -161,7 +107,7 @@ impl CommandService {
 
         Self {
             input_line_parser: InputLineParser::new(command_line_args),
-            command_output_mode: CommandOutputMode::new(command_line_args),
+            child_process_factory: ChildProcessFactory::new(command_line_args),
             command_semaphore: Arc::new(Semaphore::new(command_line_args.jobs)),
             output_writer: OutputWriter::new(),
         }
@@ -175,8 +121,9 @@ impl CommandService {
         let command = Command {
             command_and_args,
             input_line_number,
-            command_output_mode: self.command_output_mode,
         };
+
+        let child_process_factory = self.child_process_factory.clone();
 
         let output_sender = self.output_writer.sender();
 
@@ -186,7 +133,7 @@ impl CommandService {
             .context("command_semaphore.acquire_owned error")?;
 
         tokio::spawn(async move {
-            command.run(output_sender).await;
+            command.run(child_process_factory, output_sender).await;
 
             drop(permit);
         });
