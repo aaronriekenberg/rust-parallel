@@ -52,12 +52,9 @@ impl Command {
             return;
         };
 
-        let child_process = match child_process_factory
-            .spawn_child_process(command, args)
-            .await
-        {
+        let child_process = match child_process_factory.spawn(command, args).await {
             Err(e) => {
-                warn!("spawn_child_process error command: {}: {}", self, e);
+                warn!("spawn error command: {}: {}", self, e);
                 return;
             }
             Ok(child_process) => child_process,
