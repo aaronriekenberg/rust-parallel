@@ -44,11 +44,11 @@ impl ChildProcessFactory {
         Self {
             discard_stdout: matches!(
                 command_line_args.discard_output,
-                DiscardOutput::All | DiscardOutput::Stdout
+                Some(DiscardOutput::All) | Some(DiscardOutput::Stdout)
             ),
             discard_stderr: matches!(
                 command_line_args.discard_output,
-                DiscardOutput::All | DiscardOutput::Stderr
+                Some(DiscardOutput::All) | Some(DiscardOutput::Stderr)
             ),
         }
     }
