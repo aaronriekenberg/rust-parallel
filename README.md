@@ -140,12 +140,17 @@ you
 
 Set environment variable `RUST_LOG=debug` to see debug output.
 
-This will log information about command line arguments and commands being run.
+This logs structured information about command line arguments and commands being run.
 
 Recommend enabling debug logging for all demos to understand what is happening in more detail.
 
 ```
-$ cat test | RUST_LOG=debug rust-parallel
+$ cat test | RUST_LOG=debug rust-parallel | grep -i 'stdin:1'
+
+2023-04-24T15:30:47.902327Z DEBUG Command::run{cmd_args=["echo", "hi"] line=stdin:1}: rust_parallel::command: begin run
+2023-04-24T15:30:47.904943Z DEBUG Command::run{cmd_args=["echo", "hi"] line=stdin:1 child_pid=96015}: rust_parallel::command: spawned child process, awaiting output
+2023-04-24T15:30:47.910602Z DEBUG Command::run{cmd_args=["echo", "hi"] line=stdin:1 child_pid=96015}: rust_parallel::command: command status = exit status: 0
+2023-04-24T15:30:47.910612Z DEBUG Command::run{cmd_args=["echo", "hi"] line=stdin:1 child_pid=96015}: rust_parallel::command: end run
 ```
 
 ### Specifying command and intial arguments on command line:
