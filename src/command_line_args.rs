@@ -16,8 +16,8 @@ use tracing::debug;
 #[command(verbatim_doc_comment, version)]
 pub struct CommandLineArgs {
     /// Discard output for commands
-    #[arg(short, long, value_enum, default_value_t = DiscardOutput::default())]
-    pub discard_output: DiscardOutput,
+    #[arg(short, long, value_enum)]
+    pub discard_output: Option<DiscardOutput>,
 
     /// Input file or - for stdin.  Defaults to stdin if no inputs are specified.
     #[arg(short, long)]
@@ -48,11 +48,8 @@ pub struct CommandLineArgs {
     pub command_and_initial_arguments: Vec<String>,
 }
 
-#[derive(Clone, Copy, Debug, Default, ValueEnum)]
+#[derive(Clone, Copy, Debug, ValueEnum)]
 pub enum DiscardOutput {
-    /// Capture stdout and stderr for commands
-    #[default]
-    None,
     /// Redirect stdout for commands to /dev/null
     Stdout,
     /// Redirect stderr for commands to /dev/null
