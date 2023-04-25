@@ -44,10 +44,7 @@ Options:
   -d, --discard-output <DISCARD_OUTPUT>
           Discard output for commands
 
-          [default: none]
-
           Possible values:
-          - none:   Capture stdout and stderr for commands
           - stdout: Redirect stdout for commands to /dev/null
           - stderr: Redirect stderr for commands to /dev/null
           - all:    Redirect stdout and stderr for commands to /dev/null
@@ -58,7 +55,7 @@ Options:
   -j, --jobs <JOBS>
           Maximum number of commands to run in parallel, defauts to num cpus
 
-          [default: 8]
+          [default: 12]
 
   -0, --null-separator
           Use null separator for reading input instead of newline
