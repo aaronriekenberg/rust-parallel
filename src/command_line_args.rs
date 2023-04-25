@@ -16,7 +16,7 @@ use tracing::debug;
 #[command(verbatim_doc_comment, version)]
 pub struct CommandLineArgs {
     /// Discard output for commands
-    #[arg(short, long, value_enum)]
+    #[arg(short, long)]
     pub discard_output: Option<DiscardOutput>,
 
     /// Input file or - for stdin.  Defaults to stdin if no inputs are specified.
@@ -85,4 +85,16 @@ pub fn initialize() -> anyhow::Result<()> {
 
 pub fn instance() -> &'static CommandLineArgs {
     INSTANCE.get().unwrap()
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn verify_clap_configuation() {
+        use clap::CommandFactory;
+
+        CommandLineArgs::command().debug_assert()
+    }
 }
