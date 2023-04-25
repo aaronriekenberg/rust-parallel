@@ -92,7 +92,7 @@ mod test {
     use super::*;
 
     #[test]
-    fn verify_clap_configuation() {
+    fn test_clap_configuation() {
         use clap::CommandFactory;
 
         CommandLineArgs::command().debug_assert()
