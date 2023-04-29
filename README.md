@@ -55,7 +55,7 @@ Options:
   -j, --jobs <JOBS>
           Maximum number of commands to run in parallel, defauts to num cpus
 
-          [default: 12]
+          [default: 8]
 
   -0, --null-separator
           Use null separator for reading input instead of newline
