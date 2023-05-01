@@ -107,7 +107,7 @@ $ cargo install rust-parallel
 
 With `-j5` all 5 commands are run in parallel.  With `-j1` commands are run sequentially.
 
-As each child process completes all output for the child will be written to stdout and stderr.  It is guaranteed that output from 1 child will not be interleaved/mixed with output from other processes.
+As each child process completes all output for the child will be written to stdout and stderr.  It is guaranteed that output from 1 child will not be interleaved with output from other processes.
 
 ```
 $ cat >./test <<EOL
@@ -269,7 +269,9 @@ Done with 2
 See the [wiki page for benchmarks](https://github.com/aaronriekenberg/rust-parallel/wiki/Benchmarks).
 
 ## Features:
-* Use only safe rust.
+* Use only safe rust.  
+  * main.rs contains `#![forbid(unsafe_code)]`)
+* Prevent [output interleaving](https://github.com/aaronriekenberg/rust-parallel/wiki/Output-Interleaving).
 * Use only asynchronous operations supported by [tokio](https://tokio.rs), do not use any blocking operations.  This includes writing to stdout and stderr.
 * Support arbitrarily large number of input lines, avoid `O(number of input lines)` memory usage.  In support of this:
   * [`tokio::sync::Semaphore`](https://docs.rs/tokio/latest/tokio/sync/struct.Semaphore.html) is used carefully to limit the number of commands that run concurrently.  Do not spawn tasks for all input lines immediately to limit memory usage.
