@@ -6,9 +6,7 @@ Similar interface to [GNU Parallel](https://www.gnu.org/software/parallel/parall
 
 Always executes 1 process for each input line, similar to xargs `-n1` or `-L1` options.
 
-Prevents [output interleaving](https://github.com/aaronriekenberg/rust-parallel/wiki/Output-Interleaving) while still being faster than xargs or GNU parallel.
-
-Being written in asynchronous rust it is quite fast - see [benchmarks](https://github.com/aaronriekenberg/rust-parallel/wiki/Benchmarks).
+Prevents [output interleaving](https://github.com/aaronriekenberg/rust-parallel/wiki/Output-Interleaving) while still being [very fast](https://github.com/aaronriekenberg/rust-parallel/wiki/Benchmarks).
 
 [crates-badge]: https://img.shields.io/crates/v/rust-parallel.svg
 [crates-url]: https://crates.io/crates/rust-parallel
