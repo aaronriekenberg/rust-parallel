@@ -180,8 +180,8 @@ impl CommandService {
 struct OwnedCommandAndArgs(Vec<String>);
 
 impl From<Vec<&str>> for OwnedCommandAndArgs {
-    fn from(v: Vec<&str>) -> OwnedCommandAndArgs {
-        OwnedCommandAndArgs(v.into_iter().map(|s| s.to_owned()).collect())
+    fn from(v: Vec<&str>) -> Self {
+        Self(v.into_iter().map(|s| s.to_owned()).collect())
     }
 }
 
