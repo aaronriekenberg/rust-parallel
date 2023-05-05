@@ -4,9 +4,11 @@ Command-line utility to execute commands in parallel and aggregate their output.
 
 Similar interface to [GNU Parallel](https://www.gnu.org/software/parallel/parallel_examples.html) or [xargs](https://man7.org/linux/man-pages/man1/xargs.1.html) but implemented in rust and [tokio](https://tokio.rs).
 
-Always executes 1 process for each input line, similar to xargs `-n1` or `-L1` options.
-
 Prevents [output interleaving](https://github.com/aaronriekenberg/rust-parallel/wiki/Output-Interleaving) while still being [very fast](https://github.com/aaronriekenberg/rust-parallel/wiki/Benchmarks).
+
+Attempting to build a small, simple, fast command that supports common use-cases for parallel execution.  
+
+See the [demos](#demos) for working and tested features.
 
 [crates-badge]: https://img.shields.io/crates/v/rust-parallel.svg
 [crates-url]: https://crates.io/crates/rust-parallel
