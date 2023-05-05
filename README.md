@@ -6,7 +6,7 @@ Similar interface to [GNU Parallel](https://www.gnu.org/software/parallel/parall
 
 Prevents [output interleaving](https://github.com/aaronriekenberg/rust-parallel/wiki/Output-Interleaving) while still being [very fast](https://github.com/aaronriekenberg/rust-parallel/wiki/Benchmarks).
 
-Attempting to build a simple command that supports common use-cases for parallel execution.  See the [demos](#demos) for working and tested features.
+Building a simple command that supports common use-cases for parallel execution.  See the [demos](#demos) for working features.
 
 [crates-badge]: https://img.shields.io/crates/v/rust-parallel.svg
 [crates-url]: https://crates.io/crates/rust-parallel
