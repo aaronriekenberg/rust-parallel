@@ -82,7 +82,7 @@ Options:
 ## Installation:
 Recommended:
 
-1. Download a pre-built release from [Github Releases](https://github.com/aaronriekenberg/rust-parallel/releases).
+1. Download a pre-built release from [Github Releases](https://github.com/aaronriekenberg/rust-parallel/releases) for Linux or MacOS.
 2. Extract the executable and put somewhere in your $PATH.
 
 For manual installation/update:
