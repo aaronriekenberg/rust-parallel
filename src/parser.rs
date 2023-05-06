@@ -36,7 +36,7 @@ impl InputLineParser {
         }
     }
 
-    fn get_prepend_command_and_args(&self) -> Vec<&str> {
+    fn prepend_command_and_args(&self) -> Vec<&str> {
         self.prepend_command_and_args
             .iter()
             .map(|s| s.as_ref())
@@ -51,7 +51,7 @@ impl InputLineParser {
         };
 
         if !self.prepend_command_and_args.is_empty() {
-            vec = [self.get_prepend_command_and_args(), vec].concat();
+            vec = [self.prepend_command_and_args(), vec].concat();
         }
 
         if vec.is_empty() {
