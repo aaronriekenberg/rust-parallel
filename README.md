@@ -95,7 +95,7 @@ $ cargo install rust-parallel
 
 ## Demos:
 1. [Small demo of 5 echo commands](#small-demo-of-5-echo-commands)
-1. [Debug Logging](#debug-logging)
+1. [Debug logging](#debug-logging)
 1. [Specifying command and intial arguments on command line](#specifying-command-and-intial-arguments-on-command-line)
 1. [Using awk to form complete commands](#using-awk-to-form-complete-commands)
 1. [Using as part of a shell pipeline](#using-as-part-of-a-shell-pipeline)
