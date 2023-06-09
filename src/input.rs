@@ -2,11 +2,11 @@ use anyhow::Context;
 
 use tokio::{
     io::{AsyncBufRead, AsyncBufReadExt, BufReader, Split},
-    sync::mpsc::{channel, Receiver, Sender},
+    sync::mpsc::Sender,
     task::JoinHandle,
 };
 
-use tracing::{debug, info, warn};
+use tracing::{debug, warn};
 
 use crate::{command_line_args, parser::InputLineParser};
 
@@ -38,7 +38,7 @@ impl std::fmt::Display for InputLineNumber {
     }
 }
 
-pub fn build_input_list() -> Vec<Input> {
+fn build_input_list() -> Vec<Input> {
     let command_line_args = command_line_args::instance();
     if command_line_args.input.is_empty() {
         vec![Input::Stdin]
@@ -137,7 +137,8 @@ pub struct InputProducer {
 
 impl InputProducer {
     pub fn new(input_line_parser: InputLineParser, sender: Sender<InputMessage>) -> Self {
-        let sender_task_join_handle = tokio::spawn(run_sender_task(sender, input_line_parser));
+        let sender_task_join_handle =
+            tokio::spawn(Self::run_sender_task(sender, input_line_parser));
 
         Self {
             sender_task_join_handle,
@@ -151,52 +152,53 @@ impl InputProducer {
 
         Ok(())
     }
-}
 
-async fn run_sender_task(sender: Sender<InputMessage>, input_line_parser: InputLineParser) {
-    info!("begin run_sender_task");
+    async fn run_sender_task(sender: Sender<InputMessage>, input_line_parser: InputLineParser) {
+        debug!("begin run_sender_task");
 
-    let inputs = build_input_list();
-    for input in inputs {
-        let mut input_reader = match InputReader::new(input).await {
-            Ok(input_reader) => input_reader,
-            Err(e) => {
-                warn!("InputReader::new error input = {}: {}", input, e);
-                continue;
-            }
-        };
+        let inputs = build_input_list();
+        for input in inputs {
+            debug!("processing input {}", input);
+            let mut input_reader = match InputReader::new(input).await {
+                Ok(input_reader) => input_reader,
+                Err(e) => {
+                    warn!("InputReader::new error input = {}: {}", input, e);
+                    continue;
+                }
+            };
 
-        loop {
-            match input_reader.next_segment().await {
-                Ok(Some((input_line_number, segment))) => {
-                    let Ok(input_line) = std::str::from_utf8(&segment) else {
-                        continue;
-                    };
-
-                    if let Some(command_and_args) = input_line_parser.parse_line(input_line) {
-                        let input_message = InputMessage {
-                            command_and_args: command_and_args
-                                .into_iter()
-                                .map(|s| s.to_owned())
-                                .collect(),
-                            input_line_number: input_line_number,
+            loop {
+                match input_reader.next_segment().await {
+                    Ok(Some((input_line_number, segment))) => {
+                        let Ok(input_line) = std::str::from_utf8(&segment) else {
+                            continue;
                         };
-                        if let Err(e) = sender.send(input_message).await {
-                            warn!("input sender send error: {}", e);
+
+                        if let Some(command_and_args) = input_line_parser.parse_line(input_line) {
+                            let input_message = InputMessage {
+                                command_and_args: command_and_args
+                                    .into_iter()
+                                    .map(|s| s.to_owned())
+                                    .collect(),
+                                input_line_number,
+                            };
+                            if let Err(e) = sender.send(input_message).await {
+                                warn!("input sender send error: {}", e);
+                            }
                         }
                     }
-                }
-                Ok(None) => {
-                    info!("input_reader.next_segment EOF");
-                    break;
-                }
-                Err(e) => {
-                    warn!("input_reader.next_segment error: {}", e);
-                    break;
+                    Ok(None) => {
+                        debug!("input_reader.next_segment EOF");
+                        break;
+                    }
+                    Err(e) => {
+                        warn!("input_reader.next_segment error: {}", e);
+                        break;
+                    }
                 }
             }
         }
-    }
 
-    info!("end run_sender_task");
+        debug!("end run_sender_task");
+    }
 }
