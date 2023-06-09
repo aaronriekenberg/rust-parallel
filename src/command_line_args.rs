@@ -15,6 +15,10 @@ use tracing::debug;
 #[derive(Parser, Debug, Default)]
 #[command(verbatim_doc_comment, version)]
 pub struct CommandLineArgs {
+    /// Run commands from arguments only.
+    #[arg(short, long)]
+    pub commands_from_args: bool,
+
     /// Discard output for commands
     #[arg(short, long)]
     pub discard_output: Option<DiscardOutput>,

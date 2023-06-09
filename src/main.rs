@@ -15,7 +15,7 @@ async fn try_main() -> anyhow::Result<()> {
 
     command_line_args::initialize()?;
 
-    let command_service = command::CommandService::new();
+    let command_service = command::CommandService::new().await;
 
     command_service.run_commands().await?;
 
