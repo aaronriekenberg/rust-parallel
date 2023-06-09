@@ -1,9 +1,6 @@
 use anyhow::Context;
 
-use tokio::sync::{
-    mpsc::{channel, Receiver},
-    Semaphore,
-};
+use tokio::sync::{mpsc::channel, Semaphore};
 
 use tracing::{debug, instrument, span_enabled, warn, Level, Span};
 
@@ -11,7 +8,7 @@ use std::sync::Arc;
 
 use crate::{
     command_line_args,
-    input::{build_input_list, Input, InputLineNumber, InputMessage, InputProducer, InputReader},
+    input::{InputLineNumber, InputProducer},
     output::{OutputSender, OutputWriter},
     parser::InputLineParser,
     process::ChildProcessFactory,
