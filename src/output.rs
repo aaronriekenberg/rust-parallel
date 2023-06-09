@@ -36,7 +36,7 @@ impl OutputWriter {
     pub fn new(command_line_args: &CommandLineArgs) -> Self {
         let (sender, receiver) = channel(command_line_args.output_channel_capacity);
         debug!(
-            "created channel with capacity {}",
+            "created output channel with capacity {}",
             command_line_args.output_channel_capacity,
         );
 
