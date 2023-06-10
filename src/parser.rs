@@ -4,13 +4,15 @@ use tracing::debug;
 
 const DEFAULT_SHELL: &str = "/bin/bash";
 
-pub struct InputLineParser {
+pub struct BufferedInputLineParser {
     split_whitespace: bool,
     prepend_command_and_args: Vec<String>,
 }
 
-impl InputLineParser {
+impl BufferedInputLineParser {
     pub fn new(command_line_args: &CommandLineArgs) -> Self {
+        debug!("begin BufferedInputLineParser::new");
+
         let split_whitespace = !(command_line_args.null_separator || command_line_args.shell);
 
         let mut prepend_command_and_args = command_line_args.command_and_initial_arguments.clone();
@@ -80,7 +82,7 @@ mod test {
             ..Default::default()
         };
 
-        let parser = InputLineParser::new(&command_line_args);
+        let parser = BufferedInputLineParser::new(&command_line_args);
 
         let result = parser.parse_line("echo hi there");
 
@@ -108,7 +110,7 @@ mod test {
             ..Default::default()
         };
 
-        let parser = InputLineParser::new(&command_line_args);
+        let parser = BufferedInputLineParser::new(&command_line_args);
 
         let result = parser.parse_line("file with spaces");
 
@@ -126,7 +128,7 @@ mod test {
 
         std::env::remove_var("SHELL");
 
-        let parser = InputLineParser::new(&command_line_args);
+        let parser = BufferedInputLineParser::new(&command_line_args);
 
         let result = parser.parse_line("awesomebashfunction 1 2 3");
 
@@ -137,7 +139,7 @@ mod test {
 
         std::env::set_var("SHELL", "/bin/zsh");
 
-        let parser = InputLineParser::new(&command_line_args);
+        let parser = BufferedInputLineParser::new(&command_line_args);
 
         let result = parser.parse_line(" awesomebashfunction 1 2 3 ");
 
@@ -158,7 +160,7 @@ mod test {
             ..Default::default()
         };
 
-        let parser = InputLineParser::new(&command_line_args);
+        let parser = BufferedInputLineParser::new(&command_line_args);
 
         let result = parser.parse_line("stuff");
 
