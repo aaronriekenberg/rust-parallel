@@ -187,49 +187,45 @@ impl InputSender {
         }
     }
 
-    async fn process_one_buffered_input(&self, buffered_input: BufferedInput) {
+    async fn process_one_buffered_input(
+        &self,
+        buffered_input: BufferedInput,
+    ) -> anyhow::Result<()> {
         debug!(
             "begin process_one_buffered_input buffered_input {}",
             buffered_input
         );
-        let mut input_reader = match BufferedInputReader::new(buffered_input).await {
-            Ok(input_reader) => input_reader,
-            Err(e) => {
-                warn!(
-                    "BufferedInputReader::new error input = {}: {}",
-                    buffered_input, e
-                );
-                return;
-            }
-        };
+        let mut input_reader = BufferedInputReader::new(buffered_input).await?;
 
         loop {
-            match input_reader.next_segment().await {
-                Ok(Some((input_line_number, segment))) => {
-                    let Ok(input_line) = std::str::from_utf8(&segment) else {
-                        continue;
-                    };
-
-                    if let Some(command_and_args) = self.input_line_parser.parse_line(input_line) {
-                        let input_message = InputMessage {
-                            command_and_args,
-                            input_line_number,
-                        };
-                        if let Err(e) = self.sender.send(input_message).await {
-                            warn!("input sender send error: {}", e);
+            match input_reader
+                .next_segment()
+                .await
+                .context("next_segment error")?
+            {
+                Some((input_line_number, segment)) => {
+                    if let Ok(input_line) = std::str::from_utf8(&segment) {
+                        if let Some(command_and_args) =
+                            self.input_line_parser.parse_line(input_line)
+                        {
+                            let input_message = InputMessage {
+                                command_and_args,
+                                input_line_number,
+                            };
+                            if let Err(e) = self.sender.send(input_message).await {
+                                warn!("input sender send error: {}", e);
+                            }
                         }
                     }
                 }
-                Ok(None) => {
+                None => {
                     debug!("input_reader.next_segment EOF");
-                    break;
-                }
-                Err(e) => {
-                    warn!("input_reader.next_segment error: {}", e);
                     break;
                 }
             }
         }
+
+        Ok(())
     }
 
     async fn process_command_line_args_input(&self) {
@@ -286,7 +282,12 @@ impl InputSender {
         for input in inputs {
             match input {
                 Input::Buffered(buffered_input) => {
-                    self.process_one_buffered_input(buffered_input).await
+                    if let Err(e) = self.process_one_buffered_input(buffered_input).await {
+                        warn!(
+                            "process_one_buffered_input error buffered_input = {}: {}",
+                            buffered_input, e
+                        );
+                    }
                 }
                 Input::CommandLineArgs => self.process_command_line_args_input().await,
             }
