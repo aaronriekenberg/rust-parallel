@@ -1,5 +1,7 @@
 use anyhow::Context;
 
+use itertools::Itertools;
+
 use tokio::{
     io::{AsyncBufRead, AsyncBufReadExt, BufReader, Split},
     sync::mpsc::Sender,
@@ -11,17 +13,33 @@ use tracing::{debug, warn};
 use crate::{command_line_args, common::OwnedCommandAndArgs, parser::InputLineParser};
 
 #[derive(Debug, Clone, Copy)]
-pub enum Input {
+pub enum BufferedInput {
     Stdin,
 
     File { file_name: &'static str },
 }
 
-impl std::fmt::Display for Input {
+impl std::fmt::Display for BufferedInput {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Stdin => write!(f, "stdin"),
             Self::File { file_name } => write!(f, "{}", file_name),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy)]
+pub enum Input {
+    Buffered(BufferedInput),
+
+    CommandLineArgs,
+}
+
+impl std::fmt::Display for Input {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Buffered(b) => write!(f, "{}", b),
+            Self::CommandLineArgs => write!(f, "command_line_args"),
         }
     }
 }
@@ -40,19 +58,21 @@ impl std::fmt::Display for InputLineNumber {
 
 fn build_input_list() -> Vec<Input> {
     let command_line_args = command_line_args::instance();
-    if command_line_args.input.is_empty() {
-        vec![Input::Stdin]
+    if command_line_args.commands_from_args {
+        vec![Input::CommandLineArgs]
+    } else if command_line_args.input.is_empty() {
+        vec![Input::Buffered(BufferedInput::Stdin)]
     } else {
         command_line_args
             .input
             .iter()
             .map(|input_name| {
                 if input_name == "-" {
-                    Input::Stdin
+                    Input::Buffered(BufferedInput::Stdin)
                 } else {
-                    Input::File {
+                    Input::Buffered(BufferedInput::File {
                         file_name: input_name,
-                    }
+                    })
                 }
             })
             .collect()
@@ -61,17 +81,17 @@ fn build_input_list() -> Vec<Input> {
 
 type AsyncBufReadBox = Box<dyn AsyncBufRead + Unpin + Send>;
 
-pub struct InputReader {
-    input: Input,
+pub struct BufferedInputReader {
+    buffered_input: BufferedInput,
     split: Split<AsyncBufReadBox>,
     next_line_number: u64,
 }
 
-impl InputReader {
-    pub async fn new(input: Input) -> anyhow::Result<Self> {
+impl BufferedInputReader {
+    pub async fn new(buffered_input: BufferedInput) -> anyhow::Result<Self> {
         let command_line_args = command_line_args::instance();
 
-        let buf_reader = Self::create_buf_reader(input).await?;
+        let buf_reader = Self::create_buf_reader(buffered_input).await?;
 
         let line_separator = if command_line_args.null_separator {
             0u8
@@ -81,21 +101,21 @@ impl InputReader {
 
         let split = buf_reader.split(line_separator);
 
-        Ok(InputReader {
-            input,
+        Ok(Self {
+            buffered_input,
             split,
             next_line_number: 0,
         })
     }
 
-    async fn create_buf_reader(input: Input) -> anyhow::Result<AsyncBufReadBox> {
-        match input {
-            Input::Stdin => {
+    async fn create_buf_reader(buffered_input: BufferedInput) -> anyhow::Result<AsyncBufReadBox> {
+        match buffered_input {
+            BufferedInput::Stdin => {
                 let buf_reader = BufReader::new(tokio::io::stdin());
 
                 Ok(Box::new(buf_reader))
             }
-            Input::File { file_name } => {
+            BufferedInput::File { file_name } => {
                 let file = tokio::fs::File::open(file_name).await.with_context(|| {
                     format!("error opening input file file_name = '{}'", file_name)
                 })?;
@@ -115,7 +135,7 @@ impl InputReader {
                 self.next_line_number += 1;
 
                 let input_line_number = InputLineNumber {
-                    input: self.input,
+                    input: Input::Buffered(self.buffered_input),
                     line_number: self.next_line_number,
                 };
 
@@ -167,12 +187,18 @@ impl InputSender {
         }
     }
 
-    async fn process_one_input(&self, input: Input) {
-        debug!("begin process_one_input input {}", input);
-        let mut input_reader = match InputReader::new(input).await {
+    async fn process_one_buffered_input(&self, buffered_input: BufferedInput) {
+        debug!(
+            "begin process_one_buffered_input buffered_input {}",
+            buffered_input
+        );
+        let mut input_reader = match BufferedInputReader::new(buffered_input).await {
             Ok(input_reader) => input_reader,
             Err(e) => {
-                warn!("InputReader::new error input = {}: {}", input, e);
+                warn!(
+                    "BufferedInputReader::new error input = {}: {}",
+                    buffered_input, e
+                );
                 return;
             }
         };
@@ -206,12 +232,64 @@ impl InputSender {
         }
     }
 
+    async fn process_command_line_args_input(&self) {
+        debug!("begin process_command_line_args_input");
+
+        let command_line_args = crate::command_line_args::instance();
+
+        let mut split_commands: Vec<Vec<String>> = vec![];
+
+        let mut current_vec: Vec<String> = vec![];
+
+        for string in &command_line_args.command_and_initial_arguments {
+            if string == ":::" {
+                if !current_vec.is_empty() {
+                    split_commands.push(current_vec);
+                    current_vec = vec![];
+                }
+            } else {
+                current_vec.push(string.clone());
+            }
+        }
+
+        if !current_vec.is_empty() {
+            split_commands.push(current_vec);
+        }
+
+        debug!(
+            "process_command_line_args_input split_commands = {:?}",
+            split_commands
+        );
+
+        for (i, result) in split_commands
+            .into_iter()
+            .multi_cartesian_product()
+            .enumerate()
+        {
+            let input_message = InputMessage {
+                command_and_args: result.into(),
+                input_line_number: InputLineNumber {
+                    input: Input::CommandLineArgs,
+                    line_number: i.try_into().unwrap_or_default(),
+                },
+            };
+            if let Err(e) = self.sender.send(input_message).await {
+                warn!("input sender send error: {}", e);
+            }
+        }
+    }
+
     async fn run(self) {
         debug!("begin InputSender.run");
 
         let inputs = build_input_list();
         for input in inputs {
-            self.process_one_input(input).await;
+            match input {
+                Input::Buffered(buffered_input) => {
+                    self.process_one_buffered_input(buffered_input).await
+                }
+                Input::CommandLineArgs => self.process_command_line_args_input().await,
+            }
         }
 
         debug!("end InputSender.run");
