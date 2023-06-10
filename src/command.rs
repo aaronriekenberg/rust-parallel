@@ -8,7 +8,8 @@ use std::sync::Arc;
 
 use crate::{
     command_line_args,
-    input::{InputLineNumber, InputProducer},
+    common::OwnedCommandAndArgs,
+    input::{InputLineNumber, InputMessage, InputProducer},
     output::{OutputSender, OutputWriter},
     parser::InputLineParser,
     process::ChildProcessFactory,
@@ -126,12 +127,13 @@ impl CommandService {
         let command_line_args = command_line_args::instance();
         let input_producer = InputProducer::new(InputLineParser::new(command_line_args), sender);
 
-        while let Some(input_message) = receiver.recv().await {
-            self.spawn_command(
-                input_message.command_and_args.into(),
-                input_message.input_line_number,
-            )
-            .await?;
+        while let Some(InputMessage {
+            command_and_args,
+            input_line_number,
+        }) = receiver.recv().await
+        {
+            self.spawn_command(command_and_args, input_line_number)
+                .await?;
         }
 
         input_producer.wait_for_completion().await?;
@@ -152,28 +154,5 @@ impl CommandService {
         debug!("end run_commands");
 
         Ok(())
-    }
-}
-
-#[derive(Debug)]
-struct OwnedCommandAndArgs(Vec<String>);
-
-impl From<Vec<String>> for OwnedCommandAndArgs {
-    fn from(v: Vec<String>) -> Self {
-        Self(v)
-    }
-}
-
-impl std::ops::Deref for OwnedCommandAndArgs {
-    type Target = Vec<String>;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-
-impl std::fmt::Display for OwnedCommandAndArgs {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:?}", self.0)
     }
 }
