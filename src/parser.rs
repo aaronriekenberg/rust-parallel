@@ -79,6 +79,8 @@ impl CommandLineArgsParser {
     }
 
     pub fn parse_command_line_args(&self) -> Vec<OwnedCommandAndArgs> {
+        //TODO: handle shell command line option
+
         let mut split_commands: Vec<Vec<String>> = vec![];
 
         let mut current_vec: Vec<String> = vec![];
