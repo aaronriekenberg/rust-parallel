@@ -1,4 +1,4 @@
-use crate::command_line_args::CommandLineArgs;
+use crate::{command_line_args::CommandLineArgs, common::OwnedCommandAndArgs};
 
 use tracing::debug;
 
@@ -36,18 +36,21 @@ impl InputLineParser {
         }
     }
 
-    fn prepend_command_and_args(&self) -> Vec<&str> {
+    fn prepend_command_and_args(&self) -> Vec<String> {
         self.prepend_command_and_args
             .iter()
-            .map(|s| s.as_ref())
+            .map(|s| s.to_owned())
             .collect()
     }
 
-    pub fn parse_line<'a>(&'a self, input_line: &'a str) -> Option<Vec<&'a str>> {
-        let mut vec = if self.split_whitespace {
-            input_line.split_whitespace().collect()
+    pub fn parse_line(&self, input_line: &str) -> Option<OwnedCommandAndArgs> {
+        let mut vec: Vec<String> = if self.split_whitespace {
+            input_line
+                .split_whitespace()
+                .map(|s| s.to_owned())
+                .collect()
         } else {
-            vec![input_line]
+            vec![input_line.to_owned()]
         };
 
         if !self.prepend_command_and_args.is_empty() {
@@ -57,7 +60,7 @@ impl InputLineParser {
         if vec.is_empty() {
             None
         } else {
-            Some(vec)
+            Some(vec.into())
         }
     }
 }
@@ -81,15 +84,15 @@ mod test {
 
         let result = parser.parse_line("echo hi there");
 
-        assert_eq!(result, Some(vec!["echo", "hi", "there"]));
+        assert_eq!(result, Some(vec!["echo", "hi", "there"].into()));
 
         let result = parser.parse_line(" echo  hi    there  ");
 
-        assert_eq!(result, Some(vec!["echo", "hi", "there"]));
+        assert_eq!(result, Some(vec!["echo", "hi", "there"].into()));
 
         let result = parser.parse_line(" /bin/echo ");
 
-        assert_eq!(result, Some(vec!["/bin/echo"]));
+        assert_eq!(result, Some(vec!["/bin/echo"].into()));
 
         let result = parser.parse_line("");
 
@@ -109,7 +112,7 @@ mod test {
 
         let result = parser.parse_line("file with spaces");
 
-        assert_eq!(result, Some(vec!["gzip", "-k", "file with spaces"]));
+        assert_eq!(result, Some(vec!["gzip", "-k", "file with spaces"].into()));
     }
 
     #[test]
@@ -129,7 +132,7 @@ mod test {
 
         assert_eq!(
             result,
-            Some(vec!["/bin/bash", "-c", "awesomebashfunction 1 2 3"]),
+            Some(vec!["/bin/bash", "-c", "awesomebashfunction 1 2 3"].into()),
         );
 
         std::env::set_var("SHELL", "/bin/zsh");
@@ -140,7 +143,7 @@ mod test {
 
         assert_eq!(
             result,
-            Some(vec!["/bin/zsh", "-c", " awesomebashfunction 1 2 3 "]),
+            Some(vec!["/bin/zsh", "-c", " awesomebashfunction 1 2 3 "].into()),
         );
 
         std::env::remove_var("SHELL");
@@ -159,10 +162,10 @@ mod test {
 
         let result = parser.parse_line("stuff");
 
-        assert_eq!(result, Some(vec!["md5", "-s", "stuff"]));
+        assert_eq!(result, Some(vec!["md5", "-s", "stuff"].into()));
 
         let result = parser.parse_line(" stuff things ");
 
-        assert_eq!(result, Some(vec!["md5", "-s", "stuff", "things"]));
+        assert_eq!(result, Some(vec!["md5", "-s", "stuff", "things"].into()));
     }
 }

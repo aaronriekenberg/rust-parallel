@@ -5,6 +5,7 @@ use tracing::{debug, error};
 
 mod command;
 mod command_line_args;
+mod common;
 mod input;
 mod output;
 mod parser;

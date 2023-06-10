@@ -8,7 +8,7 @@ use tokio::{
 
 use tracing::{debug, warn};
 
-use crate::{command_line_args, parser::InputLineParser};
+use crate::{command_line_args, common::OwnedCommandAndArgs, parser::InputLineParser};
 
 #[derive(Debug, Clone, Copy)]
 pub enum Input {
@@ -127,7 +127,7 @@ impl InputReader {
 
 #[derive(Debug)]
 pub struct InputMessage {
-    pub command_and_args: Vec<String>,
+    pub command_and_args: OwnedCommandAndArgs,
     pub input_line_number: InputLineNumber,
 }
 
@@ -192,10 +192,7 @@ impl InputSender {
                             self.input_line_parser.parse_line(input_line)
                         {
                             let input_message = InputMessage {
-                                command_and_args: command_and_args
-                                    .into_iter()
-                                    .map(|s| s.to_owned())
-                                    .collect(),
+                                command_and_args,
                                 input_line_number,
                             };
                             if let Err(e) = self.sender.send(input_message).await {
