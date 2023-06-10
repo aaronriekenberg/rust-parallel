@@ -167,49 +167,51 @@ impl InputSender {
         }
     }
 
+    async fn process_one_input(&self, input: Input) {
+        debug!("begin process_one_input input {}", input);
+        let mut input_reader = match InputReader::new(input).await {
+            Ok(input_reader) => input_reader,
+            Err(e) => {
+                warn!("InputReader::new error input = {}: {}", input, e);
+                return;
+            }
+        };
+
+        loop {
+            match input_reader.next_segment().await {
+                Ok(Some((input_line_number, segment))) => {
+                    let Ok(input_line) = std::str::from_utf8(&segment) else {
+                        continue;
+                    };
+
+                    if let Some(command_and_args) = self.input_line_parser.parse_line(input_line) {
+                        let input_message = InputMessage {
+                            command_and_args,
+                            input_line_number,
+                        };
+                        if let Err(e) = self.sender.send(input_message).await {
+                            warn!("input sender send error: {}", e);
+                        }
+                    }
+                }
+                Ok(None) => {
+                    debug!("input_reader.next_segment EOF");
+                    break;
+                }
+                Err(e) => {
+                    warn!("input_reader.next_segment error: {}", e);
+                    break;
+                }
+            }
+        }
+    }
+
     async fn run(self) {
         debug!("begin InputSender.run");
 
         let inputs = build_input_list();
         for input in inputs {
-            debug!("processing input {}", input);
-            let mut input_reader = match InputReader::new(input).await {
-                Ok(input_reader) => input_reader,
-                Err(e) => {
-                    warn!("InputReader::new error input = {}: {}", input, e);
-                    continue;
-                }
-            };
-
-            loop {
-                match input_reader.next_segment().await {
-                    Ok(Some((input_line_number, segment))) => {
-                        let Ok(input_line) = std::str::from_utf8(&segment) else {
-                            continue;
-                        };
-
-                        if let Some(command_and_args) =
-                            self.input_line_parser.parse_line(input_line)
-                        {
-                            let input_message = InputMessage {
-                                command_and_args,
-                                input_line_number,
-                            };
-                            if let Err(e) = self.sender.send(input_message).await {
-                                warn!("input sender send error: {}", e);
-                            }
-                        }
-                    }
-                    Ok(None) => {
-                        debug!("input_reader.next_segment EOF");
-                        break;
-                    }
-                    Err(e) => {
-                        warn!("input_reader.next_segment error: {}", e);
-                        break;
-                    }
-                }
-            }
+            self.process_one_input(input).await;
         }
 
         debug!("end InputSender.run");
