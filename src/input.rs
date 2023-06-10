@@ -138,7 +138,7 @@ pub struct InputProducer {
 impl InputProducer {
     pub fn new(input_line_parser: InputLineParser, sender: Sender<InputMessage>) -> Self {
         let sender_task_join_handle =
-            tokio::spawn(Self::run_sender_task(sender, input_line_parser));
+            tokio::spawn(InputSender::new(sender, input_line_parser).run());
 
         Self {
             sender_task_join_handle,
@@ -152,9 +152,23 @@ impl InputProducer {
 
         Ok(())
     }
+}
 
-    async fn run_sender_task(sender: Sender<InputMessage>, input_line_parser: InputLineParser) {
-        debug!("begin run_sender_task");
+struct InputSender {
+    sender: Sender<InputMessage>,
+    input_line_parser: InputLineParser,
+}
+
+impl InputSender {
+    fn new(sender: Sender<InputMessage>, input_line_parser: InputLineParser) -> Self {
+        Self {
+            sender,
+            input_line_parser,
+        }
+    }
+
+    async fn run(self) {
+        debug!("begin InputSender.run");
 
         let inputs = build_input_list();
         for input in inputs {
@@ -174,7 +188,9 @@ impl InputProducer {
                             continue;
                         };
 
-                        if let Some(command_and_args) = input_line_parser.parse_line(input_line) {
+                        if let Some(command_and_args) =
+                            self.input_line_parser.parse_line(input_line)
+                        {
                             let input_message = InputMessage {
                                 command_and_args: command_and_args
                                     .into_iter()
@@ -182,7 +198,7 @@ impl InputProducer {
                                     .collect(),
                                 input_line_number,
                             };
-                            if let Err(e) = sender.send(input_message).await {
+                            if let Err(e) = self.sender.send(input_message).await {
                                 warn!("input sender send error: {}", e);
                             }
                         }
@@ -199,6 +215,6 @@ impl InputProducer {
             }
         }
 
-        debug!("end run_sender_task");
+        debug!("end InputSender.run");
     }
 }
