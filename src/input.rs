@@ -47,7 +47,7 @@ impl std::fmt::Display for Input {
 #[derive(Debug)]
 pub struct InputLineNumber {
     pub input: Input,
-    pub line_number: u64,
+    pub line_number: usize,
 }
 
 impl std::fmt::Display for InputLineNumber {
@@ -84,7 +84,7 @@ type AsyncBufReadBox = Box<dyn AsyncBufRead + Unpin + Send>;
 pub struct BufferedInputReader {
     buffered_input: BufferedInput,
     split: Split<AsyncBufReadBox>,
-    next_line_number: u64,
+    next_line_number: usize,
 }
 
 impl BufferedInputReader {
@@ -270,7 +270,7 @@ impl InputSender {
                 command_and_args: result.into(),
                 input_line_number: InputLineNumber {
                     input: Input::CommandLineArgs,
-                    line_number: i.try_into().unwrap_or_default(),
+                    line_number: i,
                 },
             };
             if let Err(e) = self.sender.send(input_message).await {
