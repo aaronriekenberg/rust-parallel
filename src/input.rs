@@ -4,13 +4,16 @@ use itertools::Itertools;
 
 use tokio::{
     io::{AsyncBufRead, AsyncBufReadExt, BufReader, Split},
-    sync::mpsc::Sender,
+    sync::{mpsc::Sender, OnceCell},
     task::JoinHandle,
 };
 
 use tracing::{debug, warn};
 
-use crate::{command_line_args, common::OwnedCommandAndArgs, parser::InputLineParser};
+use crate::{
+    command_line_args, command_line_args::CommandLineArgs, common::OwnedCommandAndArgs,
+    parser::BufferedInputLineParser,
+};
 
 #[derive(Debug, Clone, Copy)]
 pub enum BufferedInput {
@@ -56,8 +59,7 @@ impl std::fmt::Display for InputLineNumber {
     }
 }
 
-fn build_input_list() -> Vec<Input> {
-    let command_line_args = command_line_args::instance();
+fn build_input_list(command_line_args: &'static CommandLineArgs) -> Vec<Input> {
     if command_line_args.commands_from_args {
         vec![Input::CommandLineArgs]
     } else if command_line_args.input.is_empty() {
@@ -156,9 +158,8 @@ pub struct InputProducer {
 }
 
 impl InputProducer {
-    pub fn new(input_line_parser: InputLineParser, sender: Sender<InputMessage>) -> Self {
-        let sender_task_join_handle =
-            tokio::spawn(InputSender::new(sender, input_line_parser).run());
+    pub fn new(sender: Sender<InputMessage>) -> Self {
+        let sender_task_join_handle = tokio::spawn(InputSender::new(sender).run());
 
         Self {
             sender_task_join_handle,
@@ -176,14 +177,18 @@ impl InputProducer {
 
 struct InputSender {
     sender: Sender<InputMessage>,
-    input_line_parser: InputLineParser,
+    command_line_args: &'static CommandLineArgs,
+    buffered_input_line_parser: OnceCell<BufferedInputLineParser>,
 }
 
 impl InputSender {
-    fn new(sender: Sender<InputMessage>, input_line_parser: InputLineParser) -> Self {
+    fn new(sender: Sender<InputMessage>) -> Self {
+        let command_line_args = crate::command_line_args::instance();
+
         Self {
             sender,
-            input_line_parser,
+            command_line_args,
+            buffered_input_line_parser: OnceCell::new(),
         }
     }
 
@@ -195,6 +200,12 @@ impl InputSender {
             "begin process_one_buffered_input buffered_input {}",
             buffered_input
         );
+
+        let parser = self
+            .buffered_input_line_parser
+            .get_or_init(|| async move { BufferedInputLineParser::new(self.command_line_args) })
+            .await;
+
         let mut input_reader = BufferedInputReader::new(buffered_input).await?;
 
         loop {
@@ -208,7 +219,7 @@ impl InputSender {
                         continue;
                     };
 
-                    let Some(command_and_args) = self.input_line_parser.parse_line(input_line) else {
+                    let Some(command_and_args) = parser.parse_line(input_line) else {
                         continue;
                      };
 
@@ -281,7 +292,7 @@ impl InputSender {
     async fn run(self) {
         debug!("begin InputSender.run");
 
-        let inputs = build_input_list();
+        let inputs = build_input_list(self.command_line_args);
         for input in inputs {
             match input {
                 Input::Buffered(buffered_input) => {

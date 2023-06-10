@@ -11,7 +11,6 @@ use crate::{
     common::OwnedCommandAndArgs,
     input::{InputLineNumber, InputMessage, InputProducer},
     output::{OutputSender, OutputWriter},
-    parser::InputLineParser,
     process::ChildProcessFactory,
 };
 
@@ -124,8 +123,7 @@ impl CommandService {
 
     async fn process_inputs(&self) -> anyhow::Result<()> {
         let (sender, mut receiver) = channel(1);
-        let command_line_args = command_line_args::instance();
-        let input_producer = InputProducer::new(InputLineParser::new(command_line_args), sender);
+        let input_producer = InputProducer::new(sender);
 
         while let Some(InputMessage {
             command_and_args,
