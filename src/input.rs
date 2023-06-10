@@ -245,13 +245,11 @@ impl InputSender {
     async fn process_command_line_args_input(&self) {
         debug!("begin process_command_line_args_input");
 
-        let command_line_args = crate::command_line_args::instance();
-
         let mut split_commands: Vec<Vec<String>> = vec![];
 
         let mut current_vec: Vec<String> = vec![];
 
-        for string in &command_line_args.command_and_initial_arguments {
+        for string in &self.command_line_args.command_and_initial_arguments {
             if string == ":::" {
                 if !current_vec.is_empty() {
                     split_commands.push(current_vec);
