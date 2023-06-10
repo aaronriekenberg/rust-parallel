@@ -1,6 +1,8 @@
-use crate::{command_line_args::CommandLineArgs, common::OwnedCommandAndArgs};
+use itertools::Itertools;
 
 use tracing::debug;
+
+use crate::{command_line_args::CommandLineArgs, common::OwnedCommandAndArgs};
 
 const DEFAULT_SHELL: &str = "/bin/bash";
 
@@ -64,6 +66,48 @@ impl BufferedInputLineParser {
         } else {
             Some(vec.into())
         }
+    }
+}
+
+pub struct CommandLineArgsParser {
+    command_line_args: &'static CommandLineArgs,
+}
+
+impl CommandLineArgsParser {
+    pub fn new(command_line_args: &'static CommandLineArgs) -> Self {
+        Self { command_line_args }
+    }
+
+    pub fn parse_command_line_args(&self) -> Vec<OwnedCommandAndArgs> {
+        let mut split_commands: Vec<Vec<String>> = vec![];
+
+        let mut current_vec: Vec<String> = vec![];
+
+        for string in &self.command_line_args.command_and_initial_arguments {
+            if string == ":::" {
+                if !current_vec.is_empty() {
+                    split_commands.push(current_vec);
+                    current_vec = vec![];
+                }
+            } else {
+                current_vec.push(string.clone());
+            }
+        }
+
+        if !current_vec.is_empty() {
+            split_commands.push(current_vec);
+        }
+
+        debug!(
+            "process_command_line_args_input split_commands = {:?}",
+            split_commands
+        );
+
+        split_commands
+            .into_iter()
+            .multi_cartesian_product()
+            .map(|c| c.into())
+            .collect()
     }
 }
 

@@ -1,7 +1,5 @@
 use anyhow::Context;
 
-use itertools::Itertools;
-
 use tokio::{
     io::{AsyncBufRead, AsyncBufReadExt, BufReader, Split},
     sync::{mpsc::Sender, OnceCell},
@@ -11,8 +9,10 @@ use tokio::{
 use tracing::{debug, warn};
 
 use crate::{
-    command_line_args, command_line_args::CommandLineArgs, common::OwnedCommandAndArgs,
-    parser::BufferedInputLineParser,
+    command_line_args,
+    command_line_args::CommandLineArgs,
+    common::OwnedCommandAndArgs,
+    parser::{BufferedInputLineParser, CommandLineArgsParser},
 };
 
 #[derive(Debug, Clone, Copy)]
@@ -179,6 +179,7 @@ struct InputSender {
     sender: Sender<InputMessage>,
     command_line_args: &'static CommandLineArgs,
     buffered_input_line_parser: OnceCell<BufferedInputLineParser>,
+    command_line_args_parser: OnceCell<CommandLineArgsParser>,
 }
 
 impl InputSender {
@@ -189,6 +190,7 @@ impl InputSender {
             sender,
             command_line_args,
             buffered_input_line_parser: OnceCell::new(),
+            command_line_args_parser: OnceCell::new(),
         }
     }
 
@@ -245,37 +247,14 @@ impl InputSender {
     async fn process_command_line_args_input(&self) {
         debug!("begin process_command_line_args_input");
 
-        let mut split_commands: Vec<Vec<String>> = vec![];
+        let parser = self
+            .command_line_args_parser
+            .get_or_init(|| async move { CommandLineArgsParser::new(self.command_line_args) })
+            .await;
 
-        let mut current_vec: Vec<String> = vec![];
-
-        for string in &self.command_line_args.command_and_initial_arguments {
-            if string == ":::" {
-                if !current_vec.is_empty() {
-                    split_commands.push(current_vec);
-                    current_vec = vec![];
-                }
-            } else {
-                current_vec.push(string.clone());
-            }
-        }
-
-        if !current_vec.is_empty() {
-            split_commands.push(current_vec);
-        }
-
-        debug!(
-            "process_command_line_args_input split_commands = {:?}",
-            split_commands
-        );
-
-        for (i, result) in split_commands
-            .into_iter()
-            .multi_cartesian_product()
-            .enumerate()
-        {
+        for (i, command_and_args) in parser.parse_command_line_args().into_iter().enumerate() {
             let input_message = InputMessage {
-                command_and_args: result.into(),
+                command_and_args,
                 input_line_number: InputLineNumber {
                     input: Input::CommandLineArgs,
                     line_number: i,
