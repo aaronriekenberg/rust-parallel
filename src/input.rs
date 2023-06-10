@@ -204,18 +204,21 @@ impl InputSender {
                 .context("next_segment error")?
             {
                 Some((input_line_number, segment)) => {
-                    if let Ok(input_line) = std::str::from_utf8(&segment) {
-                        if let Some(command_and_args) =
-                            self.input_line_parser.parse_line(input_line)
-                        {
-                            let input_message = InputMessage {
-                                command_and_args,
-                                input_line_number,
-                            };
-                            if let Err(e) = self.sender.send(input_message).await {
-                                warn!("input sender send error: {}", e);
-                            }
-                        }
+                    let Ok(input_line) = std::str::from_utf8(&segment) else {
+                        continue;
+                    };
+
+                    let Some(command_and_args) = self.input_line_parser.parse_line(input_line) else {
+                        continue;
+                     };
+
+                    let input_message = InputMessage {
+                        command_and_args,
+                        input_line_number,
+                    };
+
+                    if let Err(e) = self.sender.send(input_message).await {
+                        warn!("input sender send error: {}", e);
                     }
                 }
                 None => {
