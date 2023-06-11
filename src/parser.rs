@@ -73,16 +73,36 @@ impl BufferedInputLineParser {
 
 pub struct CommandLineArgsParser {
     command_line_args: &'static CommandLineArgs,
+    shell_enabled: bool,
+    shell_command_and_args: Vec<String>,
 }
 
 impl CommandLineArgsParser {
     pub fn new(command_line_args: &'static CommandLineArgs) -> Self {
-        Self { command_line_args }
+        let shell_command_and_args = if command_line_args.shell {
+            let shell = match std::env::var("SHELL") {
+                Ok(shell) => {
+                    debug!("using $SHELL from environment: '{}'", shell);
+                    shell
+                }
+                Err(_) => {
+                    debug!("using default shell '{}'", DEFAULT_SHELL);
+                    DEFAULT_SHELL.to_owned()
+                }
+            };
+            vec![shell, "-c".to_owned()]
+        } else {
+            vec![]
+        };
+
+        Self {
+            command_line_args,
+            shell_enabled: command_line_args.shell,
+            shell_command_and_args,
+        }
     }
 
     pub fn parse_command_line_args(&self) -> Vec<OwnedCommandAndArgs> {
-        //TODO: handle shell command line option
-
         let mut split_commands: Vec<Vec<String>> = vec![];
 
         let mut current_vec: Vec<String> = vec![];
@@ -125,7 +145,17 @@ impl CommandLineArgsParser {
 
         let result = split_args
             .into_iter()
-            .map(|args| [first_command_and_args.clone(), args].concat().into())
+            .map(|args| {
+                if self.shell_enabled {
+                    let merged_args = [first_command_and_args.clone(), args].concat().join(" ");
+                    let merged_args = vec![merged_args];
+                    [self.shell_command_and_args.clone(), merged_args]
+                        .concat()
+                        .into()
+                } else {
+                    [first_command_and_args.clone(), args].concat().into()
+                }
+            })
             .collect();
 
         debug!("result = {:?}", result);
