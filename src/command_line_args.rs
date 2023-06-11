@@ -43,9 +43,9 @@ pub struct CommandLineArgs {
     #[arg(short, long)]
     pub shell: bool,
 
-    /// Output channel capacity
-    #[arg(short, long, default_value_t = 1, value_parser = parse_semaphore_permits)]
-    pub output_channel_capacity: usize,
+    /// Input and output channel capacity
+    #[arg(long, default_value_t = num_cpus::get() * 2, value_parser = parse_semaphore_permits)]
+    pub channel_capacity: usize,
 
     /// Optional command and initial arguments to run for each input line.
     #[arg(trailing_var_arg(true))]
