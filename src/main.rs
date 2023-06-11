@@ -5,6 +5,7 @@ use tracing::{debug, error};
 
 mod command;
 mod command_line_args;
+mod common;
 mod input;
 mod output;
 mod parser;
@@ -15,7 +16,7 @@ async fn try_main() -> anyhow::Result<()> {
 
     command_line_args::initialize()?;
 
-    let command_service = command::CommandService::new();
+    let command_service = command::CommandService::new().await;
 
     command_service.run_commands().await?;
 
