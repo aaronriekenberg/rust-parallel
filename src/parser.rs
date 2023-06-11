@@ -1,3 +1,5 @@
+use std::vec;
+
 use itertools::Itertools;
 
 use tracing::debug;
@@ -105,11 +107,30 @@ impl CommandLineArgsParser {
             split_commands
         );
 
-        split_commands
+        if split_commands.is_empty() {
+            return vec![];
+        }
+
+        let first_command_and_args = split_commands.remove(0);
+
+        let split_args: Vec<Vec<String>> = split_commands
             .into_iter()
             .multi_cartesian_product()
-            .map(|c| c.into())
-            .collect()
+            .collect();
+
+        debug!(
+            "first_command_and_args = {:?} split_commands = {:?}",
+            first_command_and_args, split_args,
+        );
+
+        let result = split_args
+            .into_iter()
+            .map(|args| [first_command_and_args.clone(), args].concat().into())
+            .collect();
+
+        debug!("result = {:?}", result);
+
+        result
     }
 }
 
