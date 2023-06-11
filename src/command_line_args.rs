@@ -16,6 +16,8 @@ use tracing::debug;
 #[command(verbatim_doc_comment, version)]
 pub struct CommandLineArgs {
     /// Run commands from arguments only.
+    ///
+    /// In this mode the ::: separator is used to run the cartesian product of all arguments.
     #[arg(short, long)]
     pub commands_from_args: bool,
 
