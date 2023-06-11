@@ -105,7 +105,8 @@ $ cargo install rust-parallel
 1. [Working on a set of files from find command](#working-on-a-set-of-files-from-find-command)
 1. [Reading multiple inputs](#reading-multiple-inputs)
 1. [Calling a bash function](#calling-a-bash-function)
-1. [Command from arguments mode](#commands-from-arguments-mode)
+1. [Commands from arguments mode](#commands-from-arguments-mode)
+1. [Commands from arguments mode bash function](#commands-from-arguments-mode-bash-function)
 
 ### Small demo of 5 echo commands.  
 
@@ -287,6 +288,30 @@ B D E
 B D F
 B D D
 B C F
+
+```
+### Commands from arguments mode bash function.
+
+Commands from arguments mode can be used to invoke a bash function.
+
+```
+$ logargs() {
+  echo "got $1 $2"
+}
+
+$ export -f logargs
+
+$ rust-parallel -c -s logargs ::: A B C ::: D E F
+
+got B D
+got C D
+got B F
+got A E
+got A F
+got A D
+got C E
+got B E
+got C F
 
 ```
 
