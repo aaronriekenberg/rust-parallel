@@ -59,25 +59,33 @@ impl std::fmt::Display for InputLineNumber {
     }
 }
 
-fn build_input_list(command_line_args: &'static CommandLineArgs) -> Vec<Input> {
+enum InputList {
+    CommandLineArgs,
+
+    BufferedInputList(Vec<BufferedInput>),
+}
+
+fn build_input_list(command_line_args: &'static CommandLineArgs) -> InputList {
     if command_line_args.commands_from_args {
-        vec![Input::CommandLineArgs]
+        InputList::CommandLineArgs
     } else if command_line_args.input.is_empty() {
-        vec![Input::Buffered(BufferedInput::Stdin)]
+        InputList::BufferedInputList(vec![BufferedInput::Stdin])
     } else {
-        command_line_args
-            .input
-            .iter()
-            .map(|input_name| {
-                if input_name == "-" {
-                    Input::Buffered(BufferedInput::Stdin)
-                } else {
-                    Input::Buffered(BufferedInput::File {
-                        file_name: input_name,
-                    })
-                }
-            })
-            .collect()
+        InputList::BufferedInputList(
+            command_line_args
+                .input
+                .iter()
+                .map(|input_name| {
+                    if input_name == "-" {
+                        BufferedInput::Stdin
+                    } else {
+                        BufferedInput::File {
+                            file_name: input_name,
+                        }
+                    }
+                })
+                .collect(),
+        )
     }
 }
 
@@ -179,7 +187,6 @@ struct InputSenderTask {
     sender: Sender<InputMessage>,
     command_line_args: &'static CommandLineArgs,
     buffered_input_line_parser: OnceCell<BufferedInputLineParser>,
-    command_line_args_parser: OnceCell<CommandLineArgsParser>,
 }
 
 impl InputSenderTask {
@@ -190,7 +197,6 @@ impl InputSenderTask {
             sender,
             command_line_args,
             buffered_input_line_parser: OnceCell::new(),
-            command_line_args_parser: OnceCell::new(),
         }
     }
 
@@ -240,13 +246,10 @@ impl InputSenderTask {
         Ok(())
     }
 
-    async fn process_command_line_args_input(&self) {
+    async fn process_command_line_args_input(self) {
         debug!("begin process_command_line_args_input");
 
-        let parser = self
-            .command_line_args_parser
-            .get_or_init(|| async move { CommandLineArgsParser::new(self.command_line_args) })
-            .await;
+        let parser = CommandLineArgsParser::new(self.command_line_args);
 
         for (i, command_and_args) in parser.parse_command_line_args().into_iter().enumerate() {
             let input_message = InputMessage {
@@ -265,10 +268,10 @@ impl InputSenderTask {
     async fn run(self) {
         debug!("begin InputSender.run");
 
-        let inputs = build_input_list(self.command_line_args);
-        for input in inputs {
-            match input {
-                Input::Buffered(buffered_input) => {
+        match build_input_list(self.command_line_args) {
+            InputList::CommandLineArgs => self.process_command_line_args_input().await,
+            InputList::BufferedInputList(buffered_inputs) => {
+                for buffered_input in buffered_inputs {
                     if let Err(e) = self.process_one_buffered_input(buffered_input).await {
                         warn!(
                             "process_one_buffered_input error buffered_input = {}: {}",
@@ -276,7 +279,6 @@ impl InputSenderTask {
                         );
                     }
                 }
-                Input::CommandLineArgs => self.process_command_line_args_input().await,
             }
         }
 
