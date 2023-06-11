@@ -288,7 +288,6 @@ B D E
 B D F
 B D D
 B C F
-
 ```
 ### Commands from arguments mode bash function.
 
@@ -312,7 +311,6 @@ got A D
 got C E
 got B E
 got C F
-
 ```
 
 ## Benchmarks:
