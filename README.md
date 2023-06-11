@@ -41,6 +41,9 @@ Arguments:
           Optional command and initial arguments to run for each input line
 
 Options:
+  -c, --commands-from-args
+          Run commands from arguments only
+
   -d, --discard-output <DISCARD_OUTPUT>
           Discard output for commands
 
@@ -49,7 +52,7 @@ Options:
           - stderr: Redirect stderr for commands to /dev/null
           - all:    Redirect stdout and stderr for commands to /dev/null
 
-  -i, --input <INPUT>
+  -i, --input-file <INPUT_FILE>
           Input file or - for stdin.  Defaults to stdin if no inputs are specified
 
   -j, --jobs <JOBS>
@@ -67,10 +70,10 @@ Options:
 
           Each input line is passed to $SHELL -c <line> as a single argument.
 
-  -o, --output-channel-capacity <OUTPUT_CHANNEL_CAPACITY>
-          Output channel capacity
+      --channel-capacity <CHANNEL_CAPACITY>
+          Input and output channel capacity
 
-          [default: 1]
+          [default: 16]
 
   -h, --help
           Print help (see a summary with '-h')
