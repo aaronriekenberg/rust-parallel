@@ -276,6 +276,7 @@ mod test {
             shell: false,
             command_and_initial_arguments: vec![
                 "echo".to_owned(),
+                "-n".to_owned(),
                 ":::".to_owned(),
                 "A".to_owned(),
                 "B".to_owned(),
@@ -294,12 +295,12 @@ mod test {
         assert_eq!(
             result,
             vec![
-                vec!["echo", "A", "C"].into(),
-                vec!["echo", "A", "D"].into(),
-                vec!["echo", "A", "E"].into(),
-                vec!["echo", "B", "C"].into(),
-                vec!["echo", "B", "D"].into(),
-                vec!["echo", "B", "E"].into(),
+                vec!["echo", "-n", "A", "C"].into(),
+                vec!["echo", "-n", "A", "D"].into(),
+                vec!["echo", "-n", "A", "E"].into(),
+                vec!["echo", "-n", "B", "C"].into(),
+                vec!["echo", "-n", "B", "D"].into(),
+                vec!["echo", "-n", "B", "E"].into(),
             ]
         );
     }
