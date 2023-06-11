@@ -271,7 +271,7 @@ Done with 2
 
 ### Commands from arguments mode.
 
-When `-c/--commands-from-args` is specified, the `:::` can be used to run all combinations of commands from command line arguments.  This is similar to the `:::` behavior in GNU Parallel.
+When `-c/--commands-from-args` is specified, the `:::` can be used to run the [Cartesian Product](https://en.wikipedia.org/wiki/Cartesian_product) of command line arguments.  This is similar to the `:::` behavior in GNU Parallel.
 
 ```
 $ rust-parallel -c echo ::: A B ::: C D ::: D E F
