@@ -105,7 +105,7 @@ $ cargo install rust-parallel
 1. [Working on a set of files from find command](#working-on-a-set-of-files-from-find-command)
 1. [Reading multiple inputs](#reading-multiple-inputs)
 1. [Calling a bash function](#calling-a-bash-function)
-1. [Command from arguments mode](#command-from-arguments-mode)
+1. [Command from arguments mode](#commands-from-arguments-mode)
 
 ### Small demo of 5 echo commands.  
 
