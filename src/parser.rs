@@ -306,6 +306,22 @@ mod test {
     }
 
     #[test]
+    fn test_parse_command_line_args_empty() {
+        let command_line_args = CommandLineArgs {
+            commands_from_args: true,
+            shell: false,
+            command_and_initial_arguments: vec![],
+            ..Default::default()
+        };
+
+        let parser = CommandLineArgsParser::new(&command_line_args);
+
+        let result = parser.parse_command_line_args();
+
+        assert_eq!(result, vec![]);
+    }
+
+    #[test]
     fn test_parse_command_line_args_shell_mode() {
         let command_line_args = CommandLineArgs {
             commands_from_args: true,
