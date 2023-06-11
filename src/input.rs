@@ -6,7 +6,7 @@ use tokio::{
     task::JoinHandle,
 };
 
-use tracing::{debug, warn};
+use tracing::{debug, instrument, warn};
 
 use crate::{
     command_line_args,
@@ -265,6 +265,7 @@ impl InputSenderTask {
         }
     }
 
+    #[instrument(skip_all, name = "InputSenderTask::run", level = "debug")]
     async fn run(self) {
         debug!("begin InputSender.run");
 
