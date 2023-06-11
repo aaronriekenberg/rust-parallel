@@ -68,12 +68,12 @@ enum InputList {
 fn build_input_list(command_line_args: &'static CommandLineArgs) -> InputList {
     if command_line_args.commands_from_args {
         InputList::CommandLineArgs
-    } else if command_line_args.input.is_empty() {
+    } else if command_line_args.input_file.is_empty() {
         InputList::BufferedInputList(vec![BufferedInput::Stdin])
     } else {
         InputList::BufferedInputList(
             command_line_args
-                .input
+                .input_file
                 .iter()
                 .map(|input_name| {
                     if input_name == "-" {

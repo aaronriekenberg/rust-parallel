@@ -25,7 +25,7 @@ pub struct CommandLineArgs {
 
     /// Input file or - for stdin.  Defaults to stdin if no inputs are specified.
     #[arg(short, long)]
-    pub input: Vec<String>,
+    pub input_file: Vec<String>,
 
     /// Maximum number of commands to run in parallel, defauts to num cpus
     #[arg(short, long, default_value_t = num_cpus::get(), value_parser = parse_semaphore_permits)]
