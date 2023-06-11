@@ -304,4 +304,42 @@ mod test {
             ]
         );
     }
+
+    #[test]
+    fn test_parse_command_line_args_shell_mode() {
+        let command_line_args = CommandLineArgs {
+            commands_from_args: true,
+            shell: true,
+            command_and_initial_arguments: vec![
+                "echo".to_owned(),
+                "-n".to_owned(),
+                ":::".to_owned(),
+                "A".to_owned(),
+                "B".to_owned(),
+                ":::".to_owned(),
+                "C".to_owned(),
+                "D".to_owned(),
+                "E".to_owned(),
+            ],
+            ..Default::default()
+        };
+
+        std::env::remove_var("SHELL");
+
+        let parser = CommandLineArgsParser::new(&command_line_args);
+
+        let result = parser.parse_command_line_args();
+
+        assert_eq!(
+            result,
+            vec![
+                vec!["/bin/bash", "-c", "echo -n A C"].into(),
+                vec!["/bin/bash", "-c", "echo -n A D"].into(),
+                vec!["/bin/bash", "-c", "echo -n A E"].into(),
+                vec!["/bin/bash", "-c", "echo -n B C"].into(),
+                vec!["/bin/bash", "-c", "echo -n B D"].into(),
+                vec!["/bin/bash", "-c", "echo -n B E"].into(),
+            ]
+        );
+    }
 }
