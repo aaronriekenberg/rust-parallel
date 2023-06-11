@@ -1,12 +1,23 @@
-use std::vec;
-
 use itertools::Itertools;
 
 use tracing::debug;
 
 use crate::{command_line_args::CommandLineArgs, common::OwnedCommandAndArgs};
 
-const DEFAULT_SHELL: &str = "/bin/bash";
+fn get_shell() -> String {
+    const DEFAULT_SHELL: &str = "/bin/bash";
+
+    match std::env::var("SHELL") {
+        Ok(shell) => {
+            debug!("using $SHELL from environment: '{}'", shell);
+            shell
+        }
+        Err(_) => {
+            debug!("using default shell '{}'", DEFAULT_SHELL);
+            DEFAULT_SHELL.to_owned()
+        }
+    }
+}
 
 pub struct BufferedInputLineParser {
     split_whitespace: bool,
@@ -22,16 +33,7 @@ impl BufferedInputLineParser {
         let mut prepend_command_and_args = command_line_args.command_and_initial_arguments.clone();
 
         if command_line_args.shell {
-            let shell = match std::env::var("SHELL") {
-                Ok(shell) => {
-                    debug!("using $SHELL from environment: '{}'", shell);
-                    shell
-                }
-                Err(_) => {
-                    debug!("using default shell '{}'", DEFAULT_SHELL);
-                    DEFAULT_SHELL.to_owned()
-                }
-            };
+            let shell = get_shell();
             let shell_command_and_args = vec![shell, "-c".to_owned()];
             prepend_command_and_args = [shell_command_and_args, prepend_command_and_args].concat();
         }
@@ -80,16 +82,7 @@ pub struct CommandLineArgsParser {
 impl CommandLineArgsParser {
     pub fn new(command_line_args: &'static CommandLineArgs) -> Self {
         let shell_command_and_args = if command_line_args.shell {
-            let shell = match std::env::var("SHELL") {
-                Ok(shell) => {
-                    debug!("using $SHELL from environment: '{}'", shell);
-                    shell
-                }
-                Err(_) => {
-                    debug!("using default shell '{}'", DEFAULT_SHELL);
-                    DEFAULT_SHELL.to_owned()
-                }
-            };
+            let shell = get_shell();
             vec![shell, "-c".to_owned()]
         } else {
             vec![]
