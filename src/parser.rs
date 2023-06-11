@@ -82,13 +82,13 @@ impl BufferedInputLineParser {
 }
 
 pub struct CommandLineArgsParser {
-    command_line_args: &'static CommandLineArgs,
+    command_and_initial_arguments: Vec<String>,
     shell_enabled: bool,
     shell_command_and_args: Vec<String>,
 }
 
 impl CommandLineArgsParser {
-    pub fn new(command_line_args: &'static CommandLineArgs) -> Self {
+    pub fn new(command_line_args: &CommandLineArgs) -> Self {
         let shell_command_and_args = if command_line_args.shell {
             let shell = get_shell();
             vec![shell, "-c".to_owned()]
@@ -97,7 +97,7 @@ impl CommandLineArgsParser {
         };
 
         Self {
-            command_line_args,
+            command_and_initial_arguments: command_line_args.command_and_initial_arguments.clone(),
             shell_enabled: command_line_args.shell,
             shell_command_and_args,
         }
@@ -108,7 +108,7 @@ impl CommandLineArgsParser {
 
         let mut current_vec: Vec<String> = vec![];
 
-        for string in &self.command_line_args.command_and_initial_arguments {
+        for string in &self.command_and_initial_arguments {
             if string == ":::" {
                 if !current_vec.is_empty() {
                     split_commands.push(current_vec);
@@ -267,5 +267,40 @@ mod test {
         let result = parser.parse_line(" stuff things ");
 
         assert_eq!(result, Some(vec!["md5", "-s", "stuff", "things"].into()));
+    }
+
+    #[test]
+    fn test_parse_command_line_args() {
+        let command_line_args = CommandLineArgs {
+            commands_from_args: true,
+            shell: false,
+            command_and_initial_arguments: vec![
+                "echo".to_owned(),
+                ":::".to_owned(),
+                "A".to_owned(),
+                "B".to_owned(),
+                ":::".to_owned(),
+                "C".to_owned(),
+                "D".to_owned(),
+                "E".to_owned(),
+            ],
+            ..Default::default()
+        };
+
+        let parser = CommandLineArgsParser::new(&command_line_args);
+
+        let result = parser.parse_command_line_args();
+
+        assert_eq!(
+            result,
+            vec![
+                vec!["echo", "A", "C"].into(),
+                vec!["echo", "A", "D"].into(),
+                vec!["echo", "A", "E"].into(),
+                vec!["echo", "B", "C"].into(),
+                vec!["echo", "B", "D"].into(),
+                vec!["echo", "B", "E"].into(),
+            ]
+        );
     }
 }
