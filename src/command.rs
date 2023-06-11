@@ -7,7 +7,7 @@ use tracing::{debug, instrument, span_enabled, warn, Level, Span};
 use std::sync::Arc;
 
 use crate::{
-    command_line_args,
+    command_line_args::{self, CommandLineArgs},
     common::OwnedCommandAndArgs,
     input::{InputLineNumber, InputMessage, InputProducer},
     output::{OutputSender, OutputWriter},
@@ -80,6 +80,7 @@ pub struct CommandService {
     child_process_factory: ChildProcessFactory,
     command_semaphore: Arc<Semaphore>,
     output_writer: OutputWriter,
+    command_line_args: &'static CommandLineArgs,
 }
 
 impl CommandService {
@@ -90,6 +91,7 @@ impl CommandService {
             child_process_factory: ChildProcessFactory::new(command_line_args),
             command_semaphore: Arc::new(Semaphore::new(command_line_args.jobs)),
             output_writer: OutputWriter::new(command_line_args),
+            command_line_args,
         }
     }
 
@@ -122,7 +124,12 @@ impl CommandService {
     }
 
     async fn process_inputs(&self) -> anyhow::Result<()> {
-        let (sender, mut receiver) = channel(1);
+        let (sender, mut receiver) = channel(self.command_line_args.channel_capacity);
+        debug!(
+            "created input channel with capacity {}",
+            self.command_line_args.channel_capacity
+        );
+
         let input_producer = InputProducer::new(sender);
 
         while let Some(InputMessage {
