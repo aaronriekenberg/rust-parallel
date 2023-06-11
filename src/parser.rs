@@ -103,7 +103,7 @@ impl CommandLineArgsParser {
         }
     }
 
-    pub fn parse_command_line_args(&self) -> Vec<OwnedCommandAndArgs> {
+    fn build_split_commands(&self) -> Vec<Vec<String>> {
         let mut split_commands: Vec<Vec<String>> = vec![];
 
         let mut current_vec: Vec<String> = vec![];
@@ -122,6 +122,12 @@ impl CommandLineArgsParser {
         if !current_vec.is_empty() {
             split_commands.push(current_vec);
         }
+
+        split_commands
+    }
+
+    pub fn parse_command_line_args(&self) -> Vec<OwnedCommandAndArgs> {
+        let mut split_commands = self.build_split_commands();
 
         debug!(
             "process_command_line_args_input split_commands = {:?}",
