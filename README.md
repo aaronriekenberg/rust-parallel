@@ -105,6 +105,7 @@ $ cargo install rust-parallel
 1. [Working on a set of files from find command](#working-on-a-set-of-files-from-find-command)
 1. [Reading multiple inputs](#reading-multiple-inputs)
 1. [Calling a bash function](#calling-a-bash-function)
+1. [Command from arguments mode](#command-from-arguments-mode)
 
 ### Small demo of 5 echo commands.  
 
@@ -265,6 +266,27 @@ Doing it for 3
 Done with 3
 Doing it for 2
 Done with 2
+```
+
+### Commands from arguments mode.
+
+When `-c/--commands-from-args` is specified, the `:::` can be used to run all combinations of commands from command line arguments.  This is similar to the `:::` behavior in GNU Parallel.
+
+```
+$ rust-parallel -c echo ::: A B ::: C D ::: D E F
+
+A D E
+A C F
+A D D
+A C E
+A D F
+A C D
+B C E
+B C D
+B D E
+B D F
+B D D
+B C F
 
 ```
 
