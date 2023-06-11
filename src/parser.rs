@@ -275,16 +275,11 @@ mod test {
             commands_from_args: true,
             shell: false,
             command_and_initial_arguments: vec![
-                "echo".to_owned(),
-                "-n".to_owned(),
-                ":::".to_owned(),
-                "A".to_owned(),
-                "B".to_owned(),
-                ":::".to_owned(),
-                "C".to_owned(),
-                "D".to_owned(),
-                "E".to_owned(),
-            ],
+                "echo", "-n", ":::", "A", "B", ":::", "C", "D", "E",
+            ]
+            .into_iter()
+            .map(|s| s.to_owned())
+            .collect(),
             ..Default::default()
         };
 
@@ -327,16 +322,11 @@ mod test {
             commands_from_args: true,
             shell: true,
             command_and_initial_arguments: vec![
-                "echo".to_owned(),
-                "-n".to_owned(),
-                ":::".to_owned(),
-                "A".to_owned(),
-                "B".to_owned(),
-                ":::".to_owned(),
-                "C".to_owned(),
-                "D".to_owned(),
-                "E".to_owned(),
-            ],
+                "echo", "-n", ":::", "A", "B", ":::", "C", "D", "E",
+            ]
+            .into_iter()
+            .map(|s| s.to_owned())
+            .collect(),
             ..Default::default()
         };
 
