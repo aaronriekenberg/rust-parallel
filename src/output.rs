@@ -34,10 +34,10 @@ pub struct OutputWriter {
 
 impl OutputWriter {
     pub fn new(command_line_args: &CommandLineArgs) -> Self {
-        let (sender, receiver) = channel(command_line_args.output_channel_capacity);
+        let (sender, receiver) = channel(command_line_args.channel_capacity);
         debug!(
-            "created channel with capacity {}",
-            command_line_args.output_channel_capacity,
+            "created output channel with capacity {}",
+            command_line_args.channel_capacity,
         );
 
         let receiver_task_join_handle = tokio::spawn(run_receiver_task(receiver));

@@ -15,13 +15,17 @@ use tracing::debug;
 #[derive(Parser, Debug, Default)]
 #[command(verbatim_doc_comment, version)]
 pub struct CommandLineArgs {
+    /// Run commands from arguments only.
+    #[arg(short, long)]
+    pub commands_from_args: bool,
+
     /// Discard output for commands
     #[arg(short, long)]
     pub discard_output: Option<DiscardOutput>,
 
     /// Input file or - for stdin.  Defaults to stdin if no inputs are specified.
     #[arg(short, long)]
-    pub input: Vec<String>,
+    pub input_file: Vec<String>,
 
     /// Maximum number of commands to run in parallel, defauts to num cpus
     #[arg(short, long, default_value_t = num_cpus::get(), value_parser = parse_semaphore_permits)]
@@ -39,9 +43,9 @@ pub struct CommandLineArgs {
     #[arg(short, long)]
     pub shell: bool,
 
-    /// Output channel capacity
-    #[arg(short, long, default_value_t = 1, value_parser = parse_semaphore_permits)]
-    pub output_channel_capacity: usize,
+    /// Input and output channel capacity
+    #[arg(long, default_value_t = num_cpus::get() * 2, value_parser = parse_semaphore_permits)]
+    pub channel_capacity: usize,
 
     /// Optional command and initial arguments to run for each input line.
     #[arg(trailing_var_arg(true))]
