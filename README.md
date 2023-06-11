@@ -147,14 +147,14 @@ Recommend enabling debug logging for all demos to understand what is happening i
 ```
 $ cat test | RUST_LOG=debug rust-parallel | grep command_line_args
 
-2023-04-29T13:50:17.928925Z DEBUG rust_parallel::command_line_args: command_line_args = CommandLineArgs { discard_output: None, input: [], jobs: 8, null_separator: false, shell: false, output_channel_capacity: 1, command_and_initial_arguments: [] }
+2023-06-11T20:33:43.965000Z DEBUG rust_parallel::command_line_args: command_line_args = CommandLineArgs { commands_from_args: false, discard_output: None, input_file: [], jobs: 8, null_separator: false, shell: false, channel_capacity: 16, command_and_initial_arguments: [] }
 
 $ cat test | RUST_LOG=debug rust-parallel | grep -i 'stdin:1'
 
-2023-04-29T13:51:06.970841Z DEBUG Command::run{cmd_args=["echo", "hi"] line=stdin:1}: rust_parallel::command: begin run
-2023-04-29T13:51:06.971841Z DEBUG Command::run{cmd_args=["echo", "hi"] line=stdin:1 child_pid=1200}: rust_parallel::command: spawned child process, awaiting output
-2023-04-29T13:51:06.974601Z DEBUG Command::run{cmd_args=["echo", "hi"] line=stdin:1 child_pid=1200}: rust_parallel::command: command exit status = exit status: 0
-2023-04-29T13:51:06.974936Z DEBUG Command::run{cmd_args=["echo", "hi"] line=stdin:1 child_pid=1200}: rust_parallel::command: end run
+2023-06-11T20:34:07.131085Z DEBUG Command::run{cmd_args=["echo", "hi"] line=stdin:1}: rust_parallel::command: begin run
+2023-06-11T20:34:07.131952Z DEBUG Command::run{cmd_args=["echo", "hi"] line=stdin:1 child_pid=50877}: rust_parallel::command: spawned child process, awaiting output
+2023-06-11T20:34:07.134259Z DEBUG Command::run{cmd_args=["echo", "hi"] line=stdin:1 child_pid=50877}: rust_parallel::command: command exit status = exit status: 0
+2023-06-11T20:34:07.134362Z DEBUG Command::run{cmd_args=["echo", "hi"] line=stdin:1 child_pid=50877}: rust_parallel::command: end run
 ```
 
 ### Specifying command and intial arguments on command line:
