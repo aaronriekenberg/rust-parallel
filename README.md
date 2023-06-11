@@ -151,10 +151,10 @@ $ cat test | RUST_LOG=debug rust-parallel | grep command_line_args
 
 $ cat test | RUST_LOG=debug rust-parallel | grep -i 'stdin:1'
 
-2023-06-11T20:34:07.131085Z DEBUG Command::run{cmd_args=["echo", "hi"] line=stdin:1}: rust_parallel::command: begin run
-2023-06-11T20:34:07.131952Z DEBUG Command::run{cmd_args=["echo", "hi"] line=stdin:1 child_pid=50877}: rust_parallel::command: spawned child process, awaiting output
-2023-06-11T20:34:07.134259Z DEBUG Command::run{cmd_args=["echo", "hi"] line=stdin:1 child_pid=50877}: rust_parallel::command: command exit status = exit status: 0
-2023-06-11T20:34:07.134362Z DEBUG Command::run{cmd_args=["echo", "hi"] line=stdin:1 child_pid=50877}: rust_parallel::command: end run
+2023-06-11T20:34:47.342749Z DEBUG Command::run{cmd_args=["echo", "hi"] line=stdin:1}: rust_parallel::command: begin run
+2023-06-11T20:34:47.343935Z DEBUG Command::run{cmd_args=["echo", "hi"] line=stdin:1 child_pid=50934}: rust_parallel::command: spawned child process, awaiting output
+2023-06-11T20:34:47.346746Z DEBUG Command::run{cmd_args=["echo", "hi"] line=stdin:1 child_pid=50934}: rust_parallel::command: command exit status = exit status: 0
+2023-06-11T20:34:47.346821Z DEBUG Command::run{cmd_args=["echo", "hi"] line=stdin:1 child_pid=50934}: rust_parallel::command: end run
 ```
 
 ### Specifying command and intial arguments on command line:
