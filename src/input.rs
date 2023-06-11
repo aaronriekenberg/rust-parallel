@@ -159,7 +159,7 @@ pub struct InputProducer {
 
 impl InputProducer {
     pub fn new(sender: Sender<InputMessage>) -> Self {
-        let sender_task_join_handle = tokio::spawn(InputSender::new(sender).run());
+        let sender_task_join_handle = tokio::spawn(InputSenderTask::new(sender).run());
 
         Self {
             sender_task_join_handle,
@@ -175,14 +175,14 @@ impl InputProducer {
     }
 }
 
-struct InputSender {
+struct InputSenderTask {
     sender: Sender<InputMessage>,
     command_line_args: &'static CommandLineArgs,
     buffered_input_line_parser: OnceCell<BufferedInputLineParser>,
     command_line_args_parser: OnceCell<CommandLineArgsParser>,
 }
 
-impl InputSender {
+impl InputSenderTask {
     fn new(sender: Sender<InputMessage>) -> Self {
         let command_line_args = crate::command_line_args::instance();
 
