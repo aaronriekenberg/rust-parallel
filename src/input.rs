@@ -91,14 +91,14 @@ fn build_input_list(command_line_args: &'static CommandLineArgs) -> InputList {
 
 type AsyncBufReadBox = Box<dyn AsyncBufRead + Unpin + Send>;
 
-pub struct BufferedInputReader {
+struct BufferedInputReader {
     buffered_input: BufferedInput,
     split: Split<AsyncBufReadBox>,
     next_line_number: usize,
 }
 
 impl BufferedInputReader {
-    pub async fn new(buffered_input: BufferedInput) -> anyhow::Result<Self> {
+    async fn new(buffered_input: BufferedInput) -> anyhow::Result<Self> {
         let command_line_args = command_line_args::instance();
 
         let buf_reader = Self::create_buf_reader(buffered_input).await?;
@@ -136,7 +136,7 @@ impl BufferedInputReader {
         }
     }
 
-    pub async fn next_segment(&mut self) -> anyhow::Result<Option<(InputLineNumber, Vec<u8>)>> {
+    async fn next_segment(&mut self) -> anyhow::Result<Option<(InputLineNumber, Vec<u8>)>> {
         let segment = self.split.next_segment().await?;
 
         match segment {
