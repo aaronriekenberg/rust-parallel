@@ -217,11 +217,7 @@ impl InputSenderTask {
                 .context("next_segment error")?
             {
                 Some((input_line_number, segment)) => {
-                    let Ok(input_line) = std::str::from_utf8(&segment) else {
-                        continue;
-                    };
-
-                    let Some(command_and_args) = parser.parse_line(input_line) else {
+                    let Some(command_and_args) = parser.parse_segment(segment) else {
                         continue;
                      };
 
