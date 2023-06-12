@@ -120,6 +120,8 @@ With `-j5` all 5 commands are run in parallel.  With `-j1` commands are run sequ
 
 As each child process completes all output for the child will be written to stdout and stderr.  It is guaranteed that output from 1 child will not be interleaved with output from other processes.
 
+Here a file `test` is created a piped to stdin of `rust-parallel`:
+
 ```
 $ cat >./test <<EOL
 echo hi
@@ -142,6 +144,14 @@ there
 how
 are
 you
+```
+
+The ':::' syntax is exactly equivalent and does not need the `test` input file is:
+
+```
+$ rust-parallel -j5 -c echo ::: hi there how are you
+
+$ rust-parallel -j1 -c echo ::: hi there how are you
 ```
 
 ### Debug logging.
