@@ -267,7 +267,7 @@ impl InputSenderTask {
 
     #[instrument(skip_all, name = "InputSenderTask::run", level = "debug")]
     async fn run(self) {
-        debug!("begin InputSender.run");
+        debug!("begin run");
 
         match build_input_list(self.command_line_args) {
             InputList::CommandLineArgs => self.process_command_line_args_input().await,
@@ -283,6 +283,6 @@ impl InputSenderTask {
             }
         }
 
-        debug!("end InputSender.run");
+        debug!("end run");
     }
 }
