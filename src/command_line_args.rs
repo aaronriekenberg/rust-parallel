@@ -17,7 +17,7 @@ use tracing::debug;
 pub struct CommandLineArgs {
     /// Run commands from arguments only.
     ///
-    /// In this mode the ::: separator is used to run the cartesian product of all arguments.
+    /// In this mode the ::: separator is used to run the cartesian product of argument groups.
     #[arg(short, long)]
     pub commands_from_args: bool,
 
@@ -45,7 +45,7 @@ pub struct CommandLineArgs {
     #[arg(short, long)]
     pub shell: bool,
 
-    /// Input and output channel capacity
+    /// Input and output channel capacity, defaults to num cpus * 2
     #[arg(long, default_value_t = num_cpus::get() * 2, value_parser = parse_semaphore_permits)]
     pub channel_capacity: usize,
 
