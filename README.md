@@ -296,19 +296,19 @@ Done with 2
 When `-c/--commands-from-args` is specified, the `:::` separator can be used to run the [Cartesian Product](https://en.wikipedia.org/wiki/Cartesian_product) of command line arguments.  This is similar to the `:::` behavior in GNU Parallel.
 
 ```
-$ rust-parallel -c echo ::: A B ::: C D ::: D E F
-A D E
-A C F
-A D D
-A C E
-A D F
-A C D
-B C E
-B C D
-B D E
-B D F
-B D D
+$ rust-parallel -c echo ::: A B ::: C D ::: E F G
 B C F
+A D E
+A C G
+A D F
+A D G
+A C F
+B C E
+A C E
+B D F
+B D E
+B D G
+B C G
 ```
 
 ### Commands from arguments mode bash function.
