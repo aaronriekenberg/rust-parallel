@@ -46,7 +46,9 @@ Arguments:
 
 Options:
   -c, --commands-from-args
-          Run commands from arguments only
+          Run commands from arguments only.
+
+          In this mode the ::: separator is used to run the cartesian product of argument groups.
 
   -d, --discard-output <DISCARD_OUTPUT>
           Discard output for commands
@@ -75,7 +77,7 @@ Options:
           Each input line is passed to $SHELL -c <line> as a single argument.
 
       --channel-capacity <CHANNEL_CAPACITY>
-          Input and output channel capacity
+          Input and output channel capacity, defaults to num cpus * 2
 
           [default: 16]
 
