@@ -116,7 +116,7 @@ $ cargo install rust-parallel
 
 ### Small demo of 5 echo commands.  
 
-Here a file `test` is created a piped to stdin of `rust-parallel`.
+Here a file `test` is created and piped to stdin of `rust-parallel`.
 
 With `-j5` all 5 commands are run in parallel.  With `-j1` commands are run sequentially.
 
