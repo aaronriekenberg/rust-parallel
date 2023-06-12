@@ -148,8 +148,18 @@ The `:::` syntax is exactly equivalent and does not need the `test` input file:
 
 ```
 $ rust-parallel -j5 -c echo ::: hi there how are you
+how
+there
+you
+are
+hi
 
 $ rust-parallel -j1 -c echo ::: hi there how are you
+hi
+there
+how
+are
+you
 ```
 
 ### Debug logging.
