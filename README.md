@@ -289,7 +289,6 @@ When `-c/--commands-from-args` is specified, the `:::` separator can be used to 
 
 ```
 $ rust-parallel -c echo ::: A B ::: C D ::: D E F
-
 A D E
 A C F
 A D D
@@ -303,28 +302,28 @@ B D F
 B D D
 B C F
 ```
+
 ### Commands from arguments mode bash function.
 
 Commands from arguments mode can be used to invoke a bash function.
 
 ```
 $ logargs() {
-  echo "got $1 $2"
+  echo "logargs got $@"
 }
 
 $ export -f logargs
 
 $ rust-parallel -c -s logargs ::: A B C ::: D E F
-
-got B D
-got C D
-got B F
-got A E
-got A F
-got A D
-got C E
-got B E
-got C F
+logargs got A F
+logargs got A D
+logargs got B E
+logargs got C E
+logargs got B D
+logargs got B F
+logargs got A E
+logargs got C D
+logargs got C F
 ```
 
 ## Benchmarks:
