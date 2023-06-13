@@ -1,6 +1,6 @@
 use itertools::Itertools;
 
-use tracing::debug;
+use tracing::trace;
 
 use crate::{command_line_args::CommandLineArgs, common::OwnedCommandAndArgs};
 
@@ -51,7 +51,7 @@ impl CommandLineArgsParser {
     pub fn parse_command_line_args(&self) -> Vec<OwnedCommandAndArgs> {
         let mut split_commands = self.build_split_commands();
 
-        debug!(
+        trace!(
             "process_command_line_args_input split_commands = {:?}",
             split_commands
         );
@@ -67,9 +67,10 @@ impl CommandLineArgsParser {
             .multi_cartesian_product()
             .collect();
 
-        debug!(
-            "first_command_and_args = {:?} split_commands = {:?}",
-            first_command_and_args, split_args,
+        trace!(
+            "first_command_and_args = {:?} split_args = {:?}",
+            first_command_and_args,
+            split_args,
         );
 
         let result = split_args
@@ -87,7 +88,7 @@ impl CommandLineArgsParser {
             })
             .collect();
 
-        debug!("result = {:?}", result);
+        trace!("result = {:?}", result);
 
         result
     }
