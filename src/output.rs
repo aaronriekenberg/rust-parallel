@@ -40,7 +40,7 @@ impl OutputWriter {
             command_line_args.channel_capacity,
         );
 
-        let receiver_task_join_handle = tokio::spawn(run_receiver_task(receiver));
+        let receiver_task_join_handle = tokio::spawn(OutputReceiverTask::new(receiver).run());
 
         Self {
             sender,
@@ -65,26 +65,38 @@ impl OutputWriter {
     }
 }
 
-#[instrument(skip_all, level = "debug")]
-async fn run_receiver_task(mut receiver: Receiver<Output>) {
-    async fn copy(mut buffer: &[u8], output_stream: &mut (impl AsyncWrite + Unpin)) {
-        let result = tokio::io::copy(&mut buffer, &mut *output_stream).await;
-        trace!("copy result = {:?}", result);
+struct OutputReceiverTask {
+    receiver: Receiver<Output>,
+}
+
+impl OutputReceiverTask {
+    fn new(receiver: Receiver<Output>) -> Self {
+        Self { receiver }
     }
 
-    let mut stdout = tokio::io::stdout();
-    let mut stderr = tokio::io::stderr();
+    #[instrument(skip_all, name = "OutputReceiverTask::run", level = "debug")]
+    async fn run(self) {
+        debug!("begin run");
 
-    debug!("start receiver");
+        async fn copy(mut buffer: &[u8], output_stream: &mut (impl AsyncWrite + Unpin)) {
+            let result = tokio::io::copy(&mut buffer, &mut *output_stream).await;
+            trace!("copy result = {:?}", result);
+        }
 
-    while let Some(command_output) = receiver.recv().await {
-        if !command_output.stdout.is_empty() {
-            copy(&command_output.stdout, &mut stdout).await;
+        let mut stdout = tokio::io::stdout();
+        let mut stderr = tokio::io::stderr();
+
+        let mut receiver = self.receiver;
+
+        while let Some(command_output) = receiver.recv().await {
+            if !command_output.stdout.is_empty() {
+                copy(&command_output.stdout, &mut stdout).await;
+            }
+            if !command_output.stderr.is_empty() {
+                copy(&command_output.stderr, &mut stderr).await;
+            }
         }
-        if !command_output.stderr.is_empty() {
-            copy(&command_output.stderr, &mut stderr).await;
-        }
+
+        debug!("end run");
     }
-
-    debug!("receiver exiting");
 }
