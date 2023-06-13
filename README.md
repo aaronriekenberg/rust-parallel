@@ -309,6 +309,11 @@ B D F
 B D E
 B D G
 B C G
+
+$ rust-parallel -c echo hello ::: larry curly moe
+hello curly
+hello larry
+hello moe
 ```
 
 ### Commands from arguments mode bash function.
