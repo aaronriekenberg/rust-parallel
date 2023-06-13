@@ -41,9 +41,7 @@ pub struct CommandLineArgs {
 
     /// Use shell mode for running commands.
     ///
-    /// If $SHELL environment variable is set use it else use /bin/bash.
-    ///
-    /// Each input line is passed to $SHELL -c <line> as a single argument.
+    /// Each command is passed to shell-path -c <line> as a single argument.
     #[arg(short, long)]
     pub shell: bool,
 
