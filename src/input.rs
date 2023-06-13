@@ -200,6 +200,12 @@ impl InputSenderTask {
         }
     }
 
+    async fn send(&self, input_message: InputMessage) {
+        if let Err(e) = self.sender.send(input_message).await {
+            warn!("input sender send error: {}", e);
+        }
+    }
+
     async fn process_one_buffered_input(
         &self,
         buffered_input: BufferedInput,
@@ -232,9 +238,7 @@ impl InputSenderTask {
                         input_line_number,
                     };
 
-                    if let Err(e) = self.sender.send(input_message).await {
-                        warn!("input sender send error: {}", e);
-                    }
+                    self.send(input_message).await;
                 }
                 None => {
                     debug!("input_reader.next_segment EOF");
@@ -259,9 +263,7 @@ impl InputSenderTask {
                     line_number: i,
                 },
             };
-            if let Err(e) = self.sender.send(input_message).await {
-                warn!("input sender send error: {}", e);
-            }
+            self.send(input_message).await;
         }
     }
 
