@@ -314,6 +314,9 @@ $ rust-parallel -c echo hello ::: larry curly moe
 hello curly
 hello larry
 hello moe
+
+# gzip *.html files in current directory
+$ rust-parallel -c gzip -k ::: *.html
 ```
 
 ### Commands from arguments mode bash function.
