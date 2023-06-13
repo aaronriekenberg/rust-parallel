@@ -60,9 +60,9 @@ impl std::fmt::Display for InputLineNumber {
 }
 
 enum InputList {
-    CommandLineArgs,
-
     BufferedInputList(Vec<BufferedInput>),
+
+    CommandLineArgs,
 }
 
 fn build_input_list(command_line_args: &'static CommandLineArgs) -> InputList {
@@ -272,7 +272,6 @@ impl InputSenderTask {
         debug!("begin run");
 
         match build_input_list(self.command_line_args) {
-            InputList::CommandLineArgs => self.process_command_line_args_input().await,
             InputList::BufferedInputList(buffered_inputs) => {
                 for buffered_input in buffered_inputs {
                     if let Err(e) = self.process_one_buffered_input(buffered_input).await {
@@ -283,6 +282,7 @@ impl InputSenderTask {
                     }
                 }
             }
+            InputList::CommandLineArgs => self.process_command_line_args_input().await,
         }
 
         debug!("end run");
