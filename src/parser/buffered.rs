@@ -1,5 +1,3 @@
-use tracing::debug;
-
 use crate::{command_line_args::CommandLineArgs, common::OwnedCommandAndArgs};
 
 pub struct BufferedInputLineParser {
@@ -9,8 +7,6 @@ pub struct BufferedInputLineParser {
 
 impl BufferedInputLineParser {
     pub fn new(command_line_args: &CommandLineArgs) -> Self {
-        debug!("begin BufferedInputLineParser::new");
-
         let split_whitespace = !(command_line_args.null_separator || command_line_args.shell);
 
         let mut prepend_command_and_args = command_line_args.command_and_initial_arguments.clone();
