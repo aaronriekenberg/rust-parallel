@@ -12,7 +12,7 @@ use crate::{
     command_line_args,
     command_line_args::CommandLineArgs,
     common::OwnedCommandAndArgs,
-    parser::{BufferedInputLineParser, CommandLineArgsParser},
+    parser::{buffered::BufferedInputLineParser, command_line::CommandLineArgsParser},
 };
 
 #[derive(Debug, Clone, Copy)]
