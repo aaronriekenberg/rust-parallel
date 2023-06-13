@@ -17,7 +17,9 @@ use tracing::debug;
 pub struct CommandLineArgs {
     /// Run commands from arguments only.
     ///
-    /// In this mode the ::: separator is used to run the cartesian product of argument groups.
+    /// In this mode the ::: separator is used to delimit groups of arguments.
+    ///
+    /// The cartesian product of arguments from all groups are run.
     #[arg(short, long)]
     pub commands_from_args: bool,
 
@@ -33,11 +35,11 @@ pub struct CommandLineArgs {
     #[arg(short, long, default_value_t = num_cpus::get(), value_parser = parse_semaphore_permits)]
     pub jobs: usize,
 
-    /// Use null separator for reading input instead of newline.
+    /// Use null separator for reading input files instead of newline.
     #[arg(short('0'), long)]
     pub null_separator: bool,
 
-    /// Use shell for running commands.
+    /// Use shell mode for running commands.
     ///
     /// If $SHELL environment variable is set use it else use /bin/bash.
     ///
@@ -48,6 +50,10 @@ pub struct CommandLineArgs {
     /// Input and output channel capacity, defaults to num cpus * 2
     #[arg(long, default_value_t = num_cpus::get() * 2, value_parser = parse_semaphore_permits)]
     pub channel_capacity: usize,
+
+    /// Path to shell to use for shell mode
+    #[arg(long, default_value_t = default_shell_path())]
+    pub shell_path: String,
 
     /// Optional command and initial arguments to run for each input line.
     #[arg(trailing_var_arg(true))]
@@ -73,6 +79,10 @@ fn parse_semaphore_permits(s: &str) -> Result<usize, String> {
     } else {
         Err(format!("value not in range {:?}", range))
     }
+}
+
+fn default_shell_path() -> String {
+    "/bin/bash".to_owned()
 }
 
 static INSTANCE: OnceCell<CommandLineArgs> = OnceCell::const_new();

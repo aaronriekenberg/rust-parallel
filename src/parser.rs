@@ -4,21 +4,6 @@ use tracing::debug;
 
 use crate::{command_line_args::CommandLineArgs, common::OwnedCommandAndArgs};
 
-fn get_shell() -> String {
-    const DEFAULT_SHELL: &str = "/bin/bash";
-
-    match std::env::var("SHELL") {
-        Ok(shell) => {
-            debug!("using $SHELL from environment: '{}'", shell);
-            shell
-        }
-        Err(_) => {
-            debug!("using default shell '{}'", DEFAULT_SHELL);
-            DEFAULT_SHELL.to_owned()
-        }
-    }
-}
-
 pub struct BufferedInputLineParser {
     split_whitespace: bool,
     prepend_command_and_args: Vec<String>,
@@ -33,8 +18,8 @@ impl BufferedInputLineParser {
         let mut prepend_command_and_args = command_line_args.command_and_initial_arguments.clone();
 
         if command_line_args.shell {
-            let shell = get_shell();
-            let shell_command_and_args = vec![shell, "-c".to_owned()];
+            let shell_command_and_args =
+                vec![command_line_args.shell_path.clone(), "-c".to_owned()];
             prepend_command_and_args = [shell_command_and_args, prepend_command_and_args].concat();
         }
 
@@ -90,8 +75,7 @@ pub struct CommandLineArgsParser {
 impl CommandLineArgsParser {
     pub fn new(command_line_args: &CommandLineArgs) -> Self {
         let shell_command_and_args = if command_line_args.shell {
-            let shell = get_shell();
-            vec![shell, "-c".to_owned()]
+            vec![command_line_args.shell_path.clone(), "-c".to_owned()]
         } else {
             vec![]
         };
@@ -227,10 +211,9 @@ mod test {
             null_separator: false,
             shell: true,
             command_and_initial_arguments: vec![],
+            shell_path: "/bin/bash".to_owned(),
             ..Default::default()
         };
-
-        std::env::remove_var("SHELL");
 
         let parser = BufferedInputLineParser::new(&command_line_args);
 
@@ -241,7 +224,13 @@ mod test {
             Some(vec!["/bin/bash", "-c", "awesomebashfunction 1 2 3"].into()),
         );
 
-        std::env::set_var("SHELL", "/bin/zsh");
+        let command_line_args = CommandLineArgs {
+            null_separator: false,
+            shell: true,
+            command_and_initial_arguments: vec![],
+            shell_path: "/bin/zsh".to_owned(),
+            ..Default::default()
+        };
 
         let parser = BufferedInputLineParser::new(&command_line_args);
 
@@ -251,8 +240,6 @@ mod test {
             result,
             Some(vec!["/bin/zsh", "-c", " awesomebashfunction 1 2 3 "].into()),
         );
-
-        std::env::remove_var("SHELL");
     }
 
     #[test]
@@ -333,10 +320,9 @@ mod test {
             .into_iter()
             .map(|s| s.to_owned())
             .collect(),
+            shell_path: "/bin/bash".to_owned(),
             ..Default::default()
         };
-
-        std::env::remove_var("SHELL");
 
         let parser = CommandLineArgsParser::new(&command_line_args);
 
