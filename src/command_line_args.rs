@@ -41,7 +41,7 @@ pub struct CommandLineArgs {
 
     /// Use shell mode for running commands.
     ///
-    /// Each command is passed to shell-path -c <line> as a single argument.
+    /// Each command line is passed to "<shell-path> -c" as a single argument.
     #[arg(short, long)]
     pub shell: bool,
 
