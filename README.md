@@ -46,7 +46,9 @@ Options:
   -c, --commands-from-args
           Run commands from arguments only.
 
-          In this mode the ::: separator is used to run the cartesian product of argument groups.
+          In this mode the ::: separator is used to delimit groups of arguments.
+
+          The cartesian product of arguments from all groups are run.
 
   -d, --discard-output <DISCARD_OUTPUT>
           Discard output for commands
@@ -65,19 +67,22 @@ Options:
           [default: 8]
 
   -0, --null-separator
-          Use null separator for reading input instead of newline
+          Use null separator for reading input files instead of newline
 
   -s, --shell
-          Use shell for running commands.
+          Use shell mode for running commands.
 
-          If $SHELL environment variable is set use it else use /bin/bash.
-
-          Each input line is passed to $SHELL -c <line> as a single argument.
+          Each command line is passed to "<shell-path> -c" as a single argument.
 
       --channel-capacity <CHANNEL_CAPACITY>
           Input and output channel capacity, defaults to num cpus * 2
 
           [default: 16]
+
+      --shell-path <SHELL_PATH>
+          Path to shell to use for shell mode
+
+          [default: /bin/bash]
 
   -h, --help
           Print help (see a summary with '-h')
