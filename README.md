@@ -170,7 +170,9 @@ logargs got C F
 
 ### Small demo of 5 echo commands.  
 
-Using command line arguments mode we can run 5 echo commands:
+Using command line arguments mode we can run 5 echo commands.
+
+With `-j5` all commands run in parallel, with `-j1` commands run sequentially.
 
 ```
 $ rust-parallel -j5 -c echo ::: hi there how are you
