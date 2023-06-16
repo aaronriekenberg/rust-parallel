@@ -192,6 +192,8 @@ you
 
 Exactly equivalent to above a file `test` is created with 5 echo commands and piped to stdin of `rust-parallel`.
 
+One advantage of reading input from stdin or input files is it can process much larger amounts of inputs than command line arguments.  Also this mode can be used as part of a shell pipeline.
+
 ```
 $ cat >./test <<EOL
 echo hi
