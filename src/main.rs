@@ -1,7 +1,7 @@
 #![forbid(unsafe_code)]
 #![warn(rust_2018_idioms)]
 
-use tracing::{debug, error};
+use tracing::{debug, error, instrument};
 
 mod command;
 mod command_line_args;
@@ -11,6 +11,7 @@ mod output;
 mod parser;
 mod process;
 
+#[instrument(skip_all, name = "try_main", level = "debug")]
 async fn try_main() -> anyhow::Result<()> {
     debug!("begin try_main");
 
