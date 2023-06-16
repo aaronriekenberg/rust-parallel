@@ -101,6 +101,13 @@ $ cargo install rust-parallel
 3. The same `cargo install rust-parallel` command will also update to the latest version after initial installation.
 
 ## Demos:
+There are 2 major ways to use rust-parallel:
+1. Command line arguments mode using `:::` syntax to separate argument groups similar to GNU parallel.
+1. Reading commands from stdin and/or input files similar to xargs.
+
+We show demos of command line arguments mode first as it is easier to understand:
+1. [Commands from arguments mode](#commands-from-arguments-mode)
+1. [Commands from arguments mode bash function](#commands-from-arguments-mode-bash-function)
 1. [Small demo of 5 echo commands](#small-demo-of-5-echo-commands)
 1. [Debug logging](#debug-logging)
 1. [Specifying command and intial arguments on command line](#specifying-command-and-intial-arguments-on-command-line)
@@ -109,14 +116,79 @@ $ cargo install rust-parallel
 1. [Working on a set of files from find command](#working-on-a-set-of-files-from-find-command)
 1. [Reading multiple inputs](#reading-multiple-inputs)
 1. [Calling a bash function](#calling-a-bash-function)
-1. [Commands from arguments mode](#commands-from-arguments-mode)
-1. [Commands from arguments mode bash function](#commands-from-arguments-mode-bash-function)
+
+### Commands from arguments mode.
+
+When `-c/--commands-from-args` is specified, the `:::` separator can be used to run the [Cartesian Product](https://en.wikipedia.org/wiki/Cartesian_product) of command line arguments.  This is similar to the `:::` behavior in GNU Parallel.
+
+```
+$ rust-parallel -c echo ::: A B ::: C D ::: E F G
+B C F
+A D E
+A C G
+A D F
+A D G
+A C F
+B C E
+A C E
+B D F
+B D E
+B D G
+B C G
+
+$ rust-parallel -c echo hello ::: larry curly moe
+hello curly
+hello larry
+hello moe
+
+# gzip *.html files in current directory
+$ rust-parallel -c gzip -k ::: *.html
+```
+
+### Commands from arguments mode bash function.
+
+Commands from arguments mode can be used to invoke a bash function.
+
+```
+$ logargs() {
+  echo "logargs got $@"
+}
+
+$ export -f logargs
+
+$ rust-parallel -c -s logargs ::: A B C ::: D E F
+logargs got A F
+logargs got A D
+logargs got B E
+logargs got C E
+logargs got B D
+logargs got B F
+logargs got A E
+logargs got C D
+logargs got C F
+```
 
 ### Small demo of 5 echo commands.  
 
-Here a file `test` is created and piped to stdin of `rust-parallel`.
+Using command line arguments mode we can run 5 echo commands:
 
-With `-j5` all 5 commands are run in parallel.  With `-j1` commands are run sequentially.
+```
+$ rust-parallel -j5 -c echo ::: hi there how are you
+how
+there
+you
+are
+hi
+
+$ rust-parallel -j1 -c echo ::: hi there how are you
+hi
+there
+how
+are
+you
+```
+
+Exactly equivalent to above a file `test` is created with 5 echo commands and piped to stdin of `rust-parallel`.
 
 ```
 $ cat >./test <<EOL
@@ -135,24 +207,6 @@ how
 you
 
 $ cat test | rust-parallel -j1
-hi
-there
-how
-are
-you
-```
-
-The `:::` syntax is exactly equivalent and does not need the `test` input file:
-
-```
-$ rust-parallel -j5 -c echo ::: hi there how are you
-how
-there
-you
-are
-hi
-
-$ rust-parallel -j1 -c echo ::: hi there how are you
 hi
 there
 how
@@ -291,56 +345,6 @@ Doing it for 2
 Done with 2
 ```
 
-### Commands from arguments mode.
-
-When `-c/--commands-from-args` is specified, the `:::` separator can be used to run the [Cartesian Product](https://en.wikipedia.org/wiki/Cartesian_product) of command line arguments.  This is similar to the `:::` behavior in GNU Parallel.
-
-```
-$ rust-parallel -c echo ::: A B ::: C D ::: E F G
-B C F
-A D E
-A C G
-A D F
-A D G
-A C F
-B C E
-A C E
-B D F
-B D E
-B D G
-B C G
-
-$ rust-parallel -c echo hello ::: larry curly moe
-hello curly
-hello larry
-hello moe
-
-# gzip *.html files in current directory
-$ rust-parallel -c gzip -k ::: *.html
-```
-
-### Commands from arguments mode bash function.
-
-Commands from arguments mode can be used to invoke a bash function.
-
-```
-$ logargs() {
-  echo "logargs got $@"
-}
-
-$ export -f logargs
-
-$ rust-parallel -c -s logargs ::: A B C ::: D E F
-logargs got A F
-logargs got A D
-logargs got B E
-logargs got C E
-logargs got B D
-logargs got B F
-logargs got A E
-logargs got C D
-logargs got C F
-```
 
 ## Benchmarks:
 See the [wiki page for benchmarks](https://github.com/aaronriekenberg/rust-parallel/wiki/Benchmarks).
