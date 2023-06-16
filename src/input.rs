@@ -9,7 +9,6 @@ use tokio::{
 use tracing::{debug, instrument, warn};
 
 use crate::{
-    command_line_args,
     command_line_args::CommandLineArgs,
     common::OwnedCommandAndArgs,
     parser::{buffered::BufferedInputLineParser, command_line::CommandLineArgsParser},
@@ -98,9 +97,10 @@ struct BufferedInputReader {
 }
 
 impl BufferedInputReader {
-    async fn new(buffered_input: BufferedInput) -> anyhow::Result<Self> {
-        let command_line_args = command_line_args::instance();
-
+    async fn new(
+        buffered_input: BufferedInput,
+        command_line_args: &CommandLineArgs,
+    ) -> anyhow::Result<Self> {
         let buf_reader = Self::create_buf_reader(buffered_input).await?;
 
         let line_separator = if command_line_args.null_separator {
@@ -220,7 +220,8 @@ impl InputSenderTask {
             .get_or_init(|| async move { BufferedInputLineParser::new(self.command_line_args) })
             .await;
 
-        let mut input_reader = BufferedInputReader::new(buffered_input).await?;
+        let mut input_reader =
+            BufferedInputReader::new(buffered_input, self.command_line_args).await?;
 
         loop {
             match input_reader
