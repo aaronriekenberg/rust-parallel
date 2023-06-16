@@ -105,7 +105,7 @@ There are 2 major ways to use rust-parallel:
 1. Command line arguments mode using `:::` syntax to separate argument groups similar to GNU parallel.
 1. Reading commands from stdin and/or input files similar to xargs.
 
-We show demos of command line arguments mode first as it is easier to understand:
+Demos of command line arguments mode are first as it is simpler to understand:
 1. [Commands from arguments mode](#commands-from-arguments-mode)
 1. [Commands from arguments mode bash function](#commands-from-arguments-mode-bash-function)
 1. [Small demo of 5 echo commands](#small-demo-of-5-echo-commands)
@@ -141,7 +141,7 @@ hello curly
 hello larry
 hello moe
 
-# gzip *.html files in current directory
+# run gzip -k on all *.html files in current directory
 $ rust-parallel -c gzip -k ::: *.html
 ```
 
