@@ -2,6 +2,8 @@ use itertools::Itertools;
 
 use tracing::trace;
 
+use std::collections::VecDeque;
+
 use crate::{command_line_args::CommandLineArgs, common::OwnedCommandAndArgs};
 
 pub struct CommandLineArgsParser {
@@ -25,15 +27,15 @@ impl CommandLineArgsParser {
         }
     }
 
-    fn build_split_commands(&self) -> Vec<Vec<String>> {
-        let mut split_commands: Vec<Vec<String>> = vec![];
+    fn build_split_commands(&self) -> VecDeque<Vec<String>> {
+        let mut split_commands = VecDeque::with_capacity(self.command_and_initial_arguments.len());
 
         let mut current_vec: Vec<String> = vec![];
 
         for string in &self.command_and_initial_arguments {
             if string == ":::" {
                 if !current_vec.is_empty() {
-                    split_commands.push(current_vec);
+                    split_commands.push_back(current_vec);
                     current_vec = vec![];
                 }
             } else {
@@ -42,7 +44,7 @@ impl CommandLineArgsParser {
         }
 
         if !current_vec.is_empty() {
-            split_commands.push(current_vec);
+            split_commands.push_back(current_vec);
         }
 
         split_commands
@@ -56,11 +58,10 @@ impl CommandLineArgsParser {
             split_commands
         );
 
-        if split_commands.is_empty() {
-            return vec![];
-        }
-
-        let first_command_and_args = split_commands.remove(0);
+        let first_command_and_args = match split_commands.pop_front() {
+            None => return vec![],
+            Some(first_command_and_args) => first_command_and_args,
+        };
 
         let split_args: Vec<Vec<String>> = split_commands
             .into_iter()
