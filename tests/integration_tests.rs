@@ -16,7 +16,12 @@ pub fn rust_parallel() -> assert_cmd::Command {
 
 #[test]
 fn runs_successfully() {
-    rust_parallel().arg("-c").assert().success();
+    rust_parallel()
+        .arg("-c")
+        .assert()
+        .success()
+        .stdout(predicate::str::is_empty())
+        .stderr(predicate::str::is_empty());
 }
 
 #[test]
