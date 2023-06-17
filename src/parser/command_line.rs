@@ -7,13 +7,15 @@ use std::collections::VecDeque;
 use crate::{command_line_args::CommandLineArgs, common::OwnedCommandAndArgs};
 
 pub struct CommandLineArgsParser {
-    command_and_initial_arguments: Vec<String>,
+    split_commands: VecDeque<Vec<String>>,
     shell_enabled: bool,
     shell_command_and_args: Vec<String>,
 }
 
 impl CommandLineArgsParser {
     pub fn new(command_line_args: &CommandLineArgs) -> Self {
+        let split_commands = Self::build_split_commands(command_line_args);
+
         let shell_command_and_args = if command_line_args.shell {
             vec![command_line_args.shell_path.clone(), "-c".to_owned()]
         } else {
@@ -21,25 +23,26 @@ impl CommandLineArgsParser {
         };
 
         Self {
-            command_and_initial_arguments: command_line_args.command_and_initial_arguments.clone(),
+            split_commands,
             shell_enabled: command_line_args.shell,
             shell_command_and_args,
         }
     }
 
-    fn build_split_commands(&self) -> VecDeque<Vec<&str>> {
-        let mut split_commands = VecDeque::with_capacity(self.command_and_initial_arguments.len());
+    fn build_split_commands(command_line_args: &CommandLineArgs) -> VecDeque<Vec<String>> {
+        let mut split_commands =
+            VecDeque::with_capacity(command_line_args.command_and_initial_arguments.len());
 
-        let mut current_vec: Vec<&str> = vec![];
+        let mut current_vec: Vec<String> = vec![];
 
-        for string in &self.command_and_initial_arguments {
+        for string in &command_line_args.command_and_initial_arguments {
             if string == ":::" {
                 if !current_vec.is_empty() {
                     split_commands.push_back(current_vec);
                     current_vec = vec![];
                 }
             } else {
-                current_vec.push(string);
+                current_vec.push(string.clone());
             }
         }
 
@@ -50,20 +53,15 @@ impl CommandLineArgsParser {
         split_commands
     }
 
-    pub fn parse_command_line_args(&self) -> Vec<OwnedCommandAndArgs> {
-        let mut split_commands = self.build_split_commands();
-
-        trace!(
-            "process_command_line_args_input split_commands = {:?}",
-            split_commands
-        );
+    pub fn parse_command_line_args(self) -> Vec<OwnedCommandAndArgs> {
+        let mut split_commands = self.split_commands;
 
         let first_command_and_args = match split_commands.pop_front() {
             None => return vec![],
             Some(first_command_and_args) => first_command_and_args,
         };
 
-        let split_args: Vec<Vec<&str>> = split_commands
+        let split_args: Vec<Vec<String>> = split_commands
             .into_iter()
             .multi_cartesian_product()
             .collect();
