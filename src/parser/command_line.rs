@@ -27,10 +27,10 @@ impl CommandLineArgsParser {
         }
     }
 
-    fn build_split_commands(&self) -> VecDeque<Vec<String>> {
+    fn build_split_commands(&self) -> VecDeque<Vec<&str>> {
         let mut split_commands = VecDeque::with_capacity(self.command_and_initial_arguments.len());
 
-        let mut current_vec: Vec<String> = vec![];
+        let mut current_vec: Vec<&str> = vec![];
 
         for string in &self.command_and_initial_arguments {
             if string == ":::" {
@@ -39,7 +39,7 @@ impl CommandLineArgsParser {
                     current_vec = vec![];
                 }
             } else {
-                current_vec.push(string.clone());
+                current_vec.push(string);
             }
         }
 
@@ -63,7 +63,7 @@ impl CommandLineArgsParser {
             Some(first_command_and_args) => first_command_and_args,
         };
 
-        let split_args: Vec<Vec<String>> = split_commands
+        let split_args: Vec<Vec<&str>> = split_commands
             .into_iter()
             .multi_cartesian_product()
             .collect();
