@@ -108,7 +108,6 @@ fn runs_echo_stdin_j1() {
 #[test]
 fn runs_file() {
     rust_parallel()
-        .arg("-j1")
         .arg("-i")
         .arg("file.txt")
         .arg("echo")
