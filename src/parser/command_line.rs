@@ -73,15 +73,19 @@ impl CommandLineArgsParser {
 
         let result = split_args
             .into_iter()
-            .map(|args| {
+            .map(|current_args| {
                 if self.shell_enabled {
-                    let merged_args = [first_command_and_args.clone(), args].concat().join(" ");
+                    let merged_args = [first_command_and_args.clone(), current_args]
+                        .concat()
+                        .join(" ");
                     let merged_args = vec![merged_args];
                     [self.shell_command_and_args.clone(), merged_args]
                         .concat()
                         .into()
                 } else {
-                    [first_command_and_args.clone(), args].concat().into()
+                    [first_command_and_args.clone(), current_args]
+                        .concat()
+                        .into()
                 }
             })
             .collect();
