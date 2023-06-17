@@ -23,10 +23,10 @@ impl BufferedInputLineParser {
         }
     }
 
-    fn prepend_command_and_args(&self) -> Vec<String> {
+    fn prepend_command_and_args(&self) -> Vec<&str> {
         self.prepend_command_and_args
             .iter()
-            .map(|s| s.to_owned())
+            .map(|s| s.as_ref())
             .collect()
     }
 
@@ -39,13 +39,10 @@ impl BufferedInputLineParser {
     }
 
     pub fn parse_line(&self, input_line: &str) -> Option<OwnedCommandAndArgs> {
-        let mut vec: Vec<String> = if self.split_whitespace {
-            input_line
-                .split_whitespace()
-                .map(|s| s.to_owned())
-                .collect()
+        let mut vec = if self.split_whitespace {
+            input_line.split_whitespace().collect()
         } else {
-            vec![input_line.to_owned()]
+            vec![input_line]
         };
 
         if !self.prepend_command_and_args.is_empty() {
