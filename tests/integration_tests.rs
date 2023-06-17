@@ -135,3 +135,15 @@ fn runs_file_j1() {
         .stdout(predicate::str::is_match("^hello\nfrom\ninput\nfile\n$").unwrap())
         .stderr(predicate::str::is_empty());
 }
+
+#[test]
+fn fails_j0() {
+    rust_parallel()
+        .arg("-j0")
+        .assert()
+        .failure()
+        .stdout(predicate::str::is_empty())
+        .stderr(predicate::str::contains(
+            "invalid value '0' for '--jobs <JOBS>'",
+        ));
+}
