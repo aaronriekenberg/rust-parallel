@@ -15,7 +15,7 @@ pub fn rust_parallel() -> assert_cmd::Command {
 }
 
 #[test]
-fn runs_successfully() {
+fn runs_successfully_command_line() {
     rust_parallel()
         .arg("-c")
         .assert()
@@ -56,6 +56,15 @@ fn runs_echo_command_line_j1() {
         .assert()
         .success()
         .stdout(predicate::str::is_match("^A\nB\nC\n$").unwrap())
+        .stderr(predicate::str::is_empty());
+}
+
+#[test]
+fn runs_successfully() {
+    rust_parallel()
+        .assert()
+        .success()
+        .stdout(predicate::str::is_empty())
         .stderr(predicate::str::is_empty());
 }
 
