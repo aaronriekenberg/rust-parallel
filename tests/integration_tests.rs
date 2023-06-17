@@ -36,7 +36,8 @@ fn runs_echo_command_line() {
         .assert()
         .success()
         .stdout(
-            (predicate::str::contains("A\n").count(1))
+            (predicate::str::contains("\n").count(3))
+                .and(predicate::str::contains("A\n").count(1))
                 .and(predicate::str::contains("B\n").count(1))
                 .and(predicate::str::contains("C\n").count(1)),
         )
@@ -80,7 +81,8 @@ fn runs_echo_stdin() {
         .assert()
         .success()
         .stdout(
-            (predicate::str::contains("A\n").count(1))
+            (predicate::str::contains("\n").count(3))
+                .and(predicate::str::contains("A\n").count(1))
                 .and(predicate::str::contains("B\n").count(1))
                 .and(predicate::str::contains("C\n").count(1)),
         )
@@ -100,5 +102,37 @@ fn runs_echo_stdin_j1() {
         .assert()
         .success()
         .stdout(predicate::str::is_match("^A\nB\nC\n$").unwrap())
+        .stderr(predicate::str::is_empty());
+}
+
+#[test]
+fn runs_file() {
+    rust_parallel()
+        .arg("-j1")
+        .arg("-i")
+        .arg("file.txt")
+        .arg("echo")
+        .assert()
+        .success()
+        .stdout(
+            (predicate::str::contains("\n").count(4))
+                .and(predicate::str::contains("hello\n").count(1))
+                .and(predicate::str::contains("from\n").count(1))
+                .and(predicate::str::contains("input\n").count(1))
+                .and(predicate::str::contains("file\n").count(1)),
+        )
+        .stderr(predicate::str::is_empty());
+}
+
+#[test]
+fn runs_file_j1() {
+    rust_parallel()
+        .arg("-j1")
+        .arg("-i")
+        .arg("file.txt")
+        .arg("echo")
+        .assert()
+        .success()
+        .stdout(predicate::str::is_match("^hello\nfrom\ninput\nfile\n$").unwrap())
         .stderr(predicate::str::is_empty());
 }
