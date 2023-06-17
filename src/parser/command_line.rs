@@ -56,9 +56,8 @@ impl CommandLineArgsParser {
     pub fn parse_command_line_args(self) -> Vec<OwnedCommandAndArgs> {
         let mut split_commands = self.split_commands;
 
-        let first_command_and_args = match split_commands.pop_front() {
-            None => return vec![],
-            Some(first_command_and_args) => first_command_and_args,
+        let Some(first_command_and_args) = split_commands.pop_front() else {
+            return vec![];
         };
 
         let split_args: Vec<Vec<String>> = split_commands
@@ -136,6 +135,25 @@ mod test {
             commands_from_args: true,
             shell: false,
             command_and_initial_arguments: vec![],
+            ..Default::default()
+        };
+
+        let parser = CommandLineArgsParser::new(&command_line_args);
+
+        let result = parser.parse_command_line_args();
+
+        assert_eq!(result, vec![]);
+    }
+
+    #[test]
+    fn test_parse_command_line_args_invalid() {
+        let command_line_args = CommandLineArgs {
+            commands_from_args: true,
+            shell: false,
+            command_and_initial_arguments: vec![":::", ":::"]
+                .into_iter()
+                .map(|s| s.to_owned())
+                .collect(),
             ..Default::default()
         };
 
