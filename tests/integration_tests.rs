@@ -15,7 +15,16 @@ pub fn rust_parallel() -> assert_cmd::Command {
 }
 
 #[test]
-fn runs_successfully_command_line() {
+fn runs_successfully() {
+    rust_parallel()
+        .assert()
+        .success()
+        .stdout(predicate::str::is_empty())
+        .stderr(predicate::str::is_empty());
+}
+
+#[test]
+fn runs_successfully_commands_from_args() {
     rust_parallel()
         .arg("-c")
         .assert()
@@ -25,7 +34,7 @@ fn runs_successfully_command_line() {
 }
 
 #[test]
-fn runs_echo_command_line() {
+fn runs_echo_commands_from_args() {
     rust_parallel()
         .arg("-c")
         .arg("echo")
@@ -45,7 +54,7 @@ fn runs_echo_command_line() {
 }
 
 #[test]
-fn runs_echo_command_line_j1() {
+fn runs_echo_commands_from_args_j1() {
     rust_parallel()
         .arg("-c")
         .arg("-j1")
@@ -57,15 +66,6 @@ fn runs_echo_command_line_j1() {
         .assert()
         .success()
         .stdout(predicate::eq("A\nB\nC\n"))
-        .stderr(predicate::str::is_empty());
-}
-
-#[test]
-fn runs_successfully() {
-    rust_parallel()
-        .assert()
-        .success()
-        .stdout(predicate::str::is_empty())
         .stderr(predicate::str::is_empty());
 }
 
