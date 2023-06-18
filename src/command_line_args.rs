@@ -50,7 +50,7 @@ pub struct CommandLineArgs {
     /// Optional command and initial arguments.
     ///
     /// If this contains 1 or more ::: delimiters the cartesian product
-    /// of arguments from all argument groups are run.
+    /// of arguments from all groups are run.
     #[arg(trailing_var_arg(true))]
     pub command_and_initial_arguments: Vec<String>,
 }
