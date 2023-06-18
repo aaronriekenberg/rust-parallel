@@ -115,6 +115,7 @@ Demos of command line arguments mode are first as it is simpler to understand:
 1. [Working on a set of files from find command](#working-on-a-set-of-files-from-find-command)
 1. [Reading multiple inputs](#reading-multiple-inputs)
 1. [Calling a bash function](#calling-a-bash-function)
+1. [Calling a bash function commands from arguments](#calling-a-bash-function-commands-from-arguments)
 
 ### Commands from arguments.
 
@@ -324,6 +325,8 @@ Done with 3
 Doing it for 2
 Done with 2
 ```
+
+### Calling a bash function commands from arguments.
 
 Commands from arguments can also be used to invoke a bash function:
 
