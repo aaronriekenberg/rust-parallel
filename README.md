@@ -121,7 +121,7 @@ Demos of command line arguments mode are first as it is simpler to understand:
 The `:::` separator can be used to run the [Cartesian Product](https://en.wikipedia.org/wiki/Cartesian_product) of command line arguments.  This is similar to the `:::` behavior in GNU Parallel.
 
 ```
-$ rust-parallel -c echo ::: A B ::: C D ::: E F G
+$ rust-parallel echo ::: A B ::: C D ::: E F G
 B C F
 A D E
 A C G
@@ -135,13 +135,13 @@ B D E
 B D G
 B C G
 
-$ rust-parallel -c echo hello ::: larry curly moe
+$ rust-parallel echo hello ::: larry curly moe
 hello curly
 hello larry
 hello moe
 
 # run gzip -k on all *.html files in current directory
-$ rust-parallel -c gzip -k ::: *.html
+$ rust-parallel gzip -k ::: *.html
 ```
 
 ### Small demo of echo commands.  
@@ -151,14 +151,14 @@ Using command line arguments mode we can run 5 echo commands.
 With `-j5` all commands run in parallel, with `-j1` commands run sequentially.
 
 ```
-$ rust-parallel -j5 -c echo ::: hi there how are you
+$ rust-parallel -j5 echo ::: hi there how are you
 how
 there
 you
 are
 hi
 
-$ rust-parallel -j1 -c echo ::: hi there how are you
+$ rust-parallel -j1 echo ::: hi there how are you
 hi
 there
 how
@@ -203,11 +203,11 @@ This logs structured information about command line arguments and commands being
 Recommend enabling debug logging for all demos to understand what is happening in more detail.
 
 ```
-$ RUST_LOG=debug rust-parallel -c echo ::: hi there how are you | grep command_line_args
+$ RUST_LOG=debug rust-parallel echo ::: hi there how are you | grep command_line_args
 
 2023-06-16T12:14:45.602832Z DEBUG try_main: rust_parallel::command_line_args: command_line_args = CommandLineArgs { commands_from_args: true, discard_output: None, input_file: [], jobs: 8, null_separator: false, shell: false, channel_capacity: 16, shell_path: "/bin/bash", command_and_initial_arguments: ["echo", ":::", "hi", "there", "how", "are", "you"] }
 
-$ RUST_LOG=debug rust-parallel -c echo ::: hi there how are you | grep 'command_line_args:1'
+$ RUST_LOG=debug rust-parallel echo ::: hi there how are you | grep 'command_line_args:1'
 
 2023-06-16T12:15:18.408524Z DEBUG Command::run{cmd_args=["echo", "there"] line=command_line_args:1}: rust_parallel::command: begin run
 2023-06-16T12:15:18.410259Z DEBUG Command::run{cmd_args=["echo", "there"] line=command_line_args:1 child_pid=12523}: rust_parallel::command: spawned child process, awaiting output
