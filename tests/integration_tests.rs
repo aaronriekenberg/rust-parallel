@@ -56,7 +56,7 @@ fn runs_echo_command_line_j1() {
         .arg("C")
         .assert()
         .success()
-        .stdout(predicate::str::is_match("^A\nB\nC\n$").unwrap())
+        .stdout(predicate::eq("A\nB\nC\n"))
         .stderr(predicate::str::is_empty());
 }
 
@@ -101,7 +101,7 @@ fn runs_echo_stdin_j1() {
         .write_stdin(stdin)
         .assert()
         .success()
-        .stdout(predicate::str::is_match("^A\nB\nC\n$").unwrap())
+        .stdout(predicate::eq("A\nB\nC\n"))
         .stderr(predicate::str::is_empty());
 }
 
@@ -132,7 +132,7 @@ fn runs_file_j1() {
         .arg("echo")
         .assert()
         .success()
-        .stdout(predicate::str::is_match("^hello\nfrom\ninput\nfile\n$").unwrap())
+        .stdout(predicate::eq("hello\nfrom\ninput\nfile\n"))
         .stderr(predicate::str::is_empty());
 }
 
