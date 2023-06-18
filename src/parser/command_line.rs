@@ -4,7 +4,10 @@ use tracing::trace;
 
 use std::collections::VecDeque;
 
-use crate::{command_line_args::CommandLineArgs, common::OwnedCommandAndArgs};
+use crate::{
+    command_line_args::{CommandLineArgs, COMMANDS_FROM_ARGS_SEPARATOR},
+    common::OwnedCommandAndArgs,
+};
 
 pub struct CommandLineArgsParser {
     split_commands: VecDeque<Vec<String>>,
@@ -36,7 +39,7 @@ impl CommandLineArgsParser {
         let mut current_vec: Vec<String> = vec![];
 
         for string in &command_line_args.command_and_initial_arguments {
-            if string == ":::" {
+            if string == COMMANDS_FROM_ARGS_SEPARATOR {
                 if !current_vec.is_empty() {
                     split_commands.push_back(current_vec);
                     current_vec = vec![];
@@ -105,7 +108,6 @@ mod test {
     #[test]
     fn test_parse_command_line_args() {
         let command_line_args = CommandLineArgs {
-            commands_from_args: true,
             shell: false,
             command_and_initial_arguments: vec![
                 "echo", "-n", ":::", "A", "B", ":::", "C", "D", "E",
@@ -136,7 +138,6 @@ mod test {
     #[test]
     fn test_parse_command_line_args_empty() {
         let command_line_args = CommandLineArgs {
-            commands_from_args: true,
             shell: false,
             command_and_initial_arguments: vec![],
             ..Default::default()
@@ -152,7 +153,6 @@ mod test {
     #[test]
     fn test_parse_command_line_args_invalid() {
         let command_line_args = CommandLineArgs {
-            commands_from_args: true,
             shell: false,
             command_and_initial_arguments: vec![":::", ":::"]
                 .into_iter()
@@ -171,7 +171,6 @@ mod test {
     #[test]
     fn test_parse_command_line_args_shell_mode() {
         let command_line_args = CommandLineArgs {
-            commands_from_args: true,
             shell: true,
             command_and_initial_arguments: vec![
                 "echo", "-n", ":::", "A", "B", ":::", "C", "D", "E",
