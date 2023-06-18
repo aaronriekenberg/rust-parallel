@@ -4,13 +4,13 @@ use assert_cmd::cargo::CommandCargoExt;
 
 use predicates::prelude::*;
 
-pub fn rust_parallel_raw_command() -> Command {
+fn rust_parallel_raw_command() -> Command {
     let mut cmd = Command::cargo_bin("rust-parallel").unwrap();
     cmd.current_dir("tests/");
     cmd
 }
 
-pub fn rust_parallel() -> assert_cmd::Command {
+fn rust_parallel() -> assert_cmd::Command {
     assert_cmd::Command::from_std(rust_parallel_raw_command())
 }
 
