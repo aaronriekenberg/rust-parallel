@@ -102,13 +102,12 @@ $ cargo install rust-parallel
 
 ## Demos:
 There are 2 major ways to use rust-parallel:
-1. Command line arguments mode using `:::` syntax to separate argument groups similar to GNU parallel.
+1. Run commands from arguments using `:::` syntax to separate argument groups similar to GNU parallel.
 1. Reading commands from stdin and/or input files similar to xargs.
 
 Demos of command line arguments mode are first as it is simpler to understand:
-1. [Commands from arguments mode](#commands-from-arguments-mode)
-1. [Commands from arguments mode bash function](#commands-from-arguments-mode-bash-function)
-1. [Small demo of 5 echo commands](#small-demo-of-5-echo-commands)
+1. [Commands from arguments](#commands-from-arguments)
+1. [Small demo of echo commands](#small-demo-of-echo-commands)
 1. [Debug logging](#debug-logging)
 1. [Specifying command and intial arguments on command line](#specifying-command-and-intial-arguments-on-command-line)
 1. [Using awk to form complete commands](#using-awk-to-form-complete-commands)
@@ -117,9 +116,9 @@ Demos of command line arguments mode are first as it is simpler to understand:
 1. [Reading multiple inputs](#reading-multiple-inputs)
 1. [Calling a bash function](#calling-a-bash-function)
 
-### Commands from arguments mode.
+### Commands from arguments.
 
-When `-c/--commands-from-args` is specified, the `:::` separator can be used to run the [Cartesian Product](https://en.wikipedia.org/wiki/Cartesian_product) of command line arguments.  This is similar to the `:::` behavior in GNU Parallel.
+The `:::` separator can be used to run the [Cartesian Product](https://en.wikipedia.org/wiki/Cartesian_product) of command line arguments.  This is similar to the `:::` behavior in GNU Parallel.
 
 ```
 $ rust-parallel -c echo ::: A B ::: C D ::: E F G
@@ -145,30 +144,7 @@ hello moe
 $ rust-parallel -c gzip -k ::: *.html
 ```
 
-### Commands from arguments mode bash function.
-
-Commands from arguments mode can be used to invoke a bash function.
-
-```
-$ logargs() {
-  echo "logargs got $@"
-}
-
-$ export -f logargs
-
-$ rust-parallel -c -s logargs ::: A B C ::: D E F
-logargs got A F
-logargs got A D
-logargs got B E
-logargs got C E
-logargs got B D
-logargs got B F
-logargs got A E
-logargs got C D
-logargs got C F
-```
-
-### Small demo of 5 echo commands.  
+### Small demo of echo commands.  
 
 Using command line arguments mode we can run 5 echo commands.
 
@@ -347,6 +323,27 @@ Doing it for 3
 Done with 3
 Doing it for 2
 Done with 2
+```
+
+Commands from arguments can also be used to invoke a bash function:
+
+```
+$ logargs() {
+  echo "logargs got $@"
+}
+
+$ export -f logargs
+
+$ rust-parallel -s logargs ::: A B C ::: D E F
+logargs got A F
+logargs got A D
+logargs got B E
+logargs got C E
+logargs got B D
+logargs got B F
+logargs got A E
+logargs got C D
+logargs got C F
 ```
 
 
