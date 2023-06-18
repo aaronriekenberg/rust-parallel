@@ -40,16 +40,11 @@ Usage: rust-parallel [OPTIONS] [COMMAND_AND_INITIAL_ARGUMENTS]...
 
 Arguments:
   [COMMAND_AND_INITIAL_ARGUMENTS]...
-          Optional command and initial arguments to run for each input line
+          Optional command and initial arguments.
+
+          If this contains 1 or more ::: delimiters the cartesian product of arguments from all groups are run.
 
 Options:
-  -c, --commands-from-args
-          Run commands from arguments only.
-
-          In this mode the ::: separator is used to delimit groups of arguments.
-
-          The cartesian product of arguments from all groups are run.
-
   -d, --discard-output <DISCARD_OUTPUT>
           Discard output for commands
 
