@@ -6,6 +6,8 @@ use tokio::sync::OnceCell;
 
 use tracing::debug;
 
+pub const COMMANDS_FROM_ARGS_SEPARATOR: &str = ":::";
+
 /// Execute commands in parallel
 ///
 /// By Aaron Riekenberg <aaron.riekenberg@gmail.com>
@@ -15,14 +17,6 @@ use tracing::debug;
 #[derive(Parser, Debug, Default)]
 #[command(verbatim_doc_comment, version)]
 pub struct CommandLineArgs {
-    /// Run commands from arguments only.
-    ///
-    /// In this mode the ::: separator is used to delimit groups of arguments.
-    ///
-    /// The cartesian product of arguments from all groups are run.
-    #[arg(short, long)]
-    pub commands_from_args: bool,
-
     /// Discard output for commands
     #[arg(short, long)]
     pub discard_output: Option<DiscardOutput>,
@@ -53,9 +47,20 @@ pub struct CommandLineArgs {
     #[arg(long, default_value_t = default_shell_path())]
     pub shell_path: String,
 
-    /// Optional command and initial arguments to run for each input line.
+    /// Optional command and initial arguments.
+    ///
+    /// If this contains 1 or more ::: delimiters the cartesian product
+    /// of arguments from all argument groups are run.
     #[arg(trailing_var_arg(true))]
     pub command_and_initial_arguments: Vec<String>,
+}
+
+impl CommandLineArgs {
+    pub fn commands_from_args_mode(&self) -> bool {
+        self.command_and_initial_arguments
+            .iter()
+            .any(|s| s == COMMANDS_FROM_ARGS_SEPARATOR)
+    }
 }
 
 #[derive(Clone, Copy, Debug, ValueEnum)]

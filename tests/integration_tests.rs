@@ -24,19 +24,8 @@ fn runs_successfully() {
 }
 
 #[test]
-fn runs_successfully_commands_from_args() {
-    rust_parallel()
-        .arg("-c")
-        .assert()
-        .success()
-        .stdout(predicate::str::is_empty())
-        .stderr(predicate::str::is_empty());
-}
-
-#[test]
 fn runs_echo_commands_from_args() {
     rust_parallel()
-        .arg("-c")
         .arg("echo")
         .arg(":::")
         .arg("A")
@@ -56,7 +45,6 @@ fn runs_echo_commands_from_args() {
 #[test]
 fn runs_echo_commands_from_args_j1() {
     rust_parallel()
-        .arg("-c")
         .arg("-j1")
         .arg("echo")
         .arg(":::")
