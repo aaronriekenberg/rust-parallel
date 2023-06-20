@@ -44,7 +44,7 @@ pub struct CommandLineArgs {
     pub channel_capacity: usize,
 
     /// Path to shell to use for shell mode
-    #[arg(long, default_value_t = default_shell_path())]
+    #[arg(long, default_value = "/bin/bash")]
     pub shell_path: String,
 
     /// Optional command and initial arguments.
@@ -82,10 +82,6 @@ fn parse_semaphore_permits(s: &str) -> Result<usize, String> {
     } else {
         Err(format!("value not in range {:?}", range))
     }
-}
-
-fn default_shell_path() -> String {
-    "/bin/bash".to_owned()
 }
 
 static INSTANCE: OnceCell<CommandLineArgs> = OnceCell::const_new();
