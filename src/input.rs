@@ -166,8 +166,9 @@ pub struct InputProducer {
 }
 
 impl InputProducer {
-    pub fn new(sender: Sender<InputMessage>) -> Self {
-        let sender_task_join_handle = tokio::spawn(InputSenderTask::new(sender).run());
+    pub fn new(command_line_args: &'static CommandLineArgs, sender: Sender<InputMessage>) -> Self {
+        let sender_task_join_handle =
+            tokio::spawn(InputSenderTask::new(command_line_args, sender).run());
 
         Self {
             sender_task_join_handle,
@@ -190,9 +191,7 @@ struct InputSenderTask {
 }
 
 impl InputSenderTask {
-    fn new(sender: Sender<InputMessage>) -> Self {
-        let command_line_args = crate::command_line_args::instance();
-
+    fn new(command_line_args: &'static CommandLineArgs, sender: Sender<InputMessage>) -> Self {
         Self {
             sender,
             command_line_args,
