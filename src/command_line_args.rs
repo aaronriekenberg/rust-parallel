@@ -24,7 +24,7 @@ pub struct CommandLineArgs {
     pub input_file: Vec<String>,
 
     /// Maximum number of commands to run in parallel, defauts to num cpus
-    #[arg(short, long, default_value_t = num_cpus::get(), value_parser = parse_semaphore_permits)]
+    #[arg(short, long, default_value_t = num_cpus::get(), value_parser = Self::parse_semaphore_permits)]
     pub jobs: usize,
 
     /// Use null separator for reading input files instead of newline.
@@ -38,7 +38,7 @@ pub struct CommandLineArgs {
     pub shell: bool,
 
     /// Input and output channel capacity, defaults to num cpus * 2
-    #[arg(long, default_value_t = num_cpus::get() * 2, value_parser = parse_semaphore_permits)]
+    #[arg(long, default_value_t = num_cpus::get() * 2, value_parser = Self::parse_semaphore_permits)]
     pub channel_capacity: usize,
 
     /// Path to shell to use for shell mode
@@ -73,6 +73,17 @@ impl CommandLineArgs {
             .iter()
             .any(|s| s == COMMANDS_FROM_ARGS_SEPARATOR)
     }
+
+    fn parse_semaphore_permits(s: &str) -> Result<usize, String> {
+        let range = 1..=tokio::sync::Semaphore::MAX_PERMITS;
+
+        let value: usize = s.parse().map_err(|_| format!("`{s}` isn't a number"))?;
+        if range.contains(&value) {
+            Ok(value)
+        } else {
+            Err(format!("value not in range {:?}", range))
+        }
+    }
 }
 
 #[derive(Clone, Copy, Debug, ValueEnum)]
@@ -83,17 +94,6 @@ pub enum DiscardOutput {
     Stderr,
     /// Redirect stdout and stderr for commands to /dev/null
     All,
-}
-
-fn parse_semaphore_permits(s: &str) -> Result<usize, String> {
-    let range = 1..=tokio::sync::Semaphore::MAX_PERMITS;
-
-    let value: usize = s.parse().map_err(|_| format!("`{s}` isn't a number"))?;
-    if range.contains(&value) {
-        Ok(value)
-    } else {
-        Err(format!("value not in range {:?}", range))
-    }
 }
 
 #[cfg(test)]
