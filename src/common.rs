@@ -1,3 +1,5 @@
+use itertools::Itertools;
+
 #[derive(Debug, Eq, PartialEq)]
 pub struct OwnedCommandAndArgs(Vec<String>);
 
@@ -9,7 +11,7 @@ impl From<Vec<String>> for OwnedCommandAndArgs {
 
 impl From<Vec<&str>> for OwnedCommandAndArgs {
     fn from(v: Vec<&str>) -> Self {
-        Self(v.into_iter().map(|s| s.to_owned()).collect())
+        Self(v.into_iter().map_into().collect())
     }
 }
 
