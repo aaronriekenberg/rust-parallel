@@ -1,3 +1,5 @@
+use itertools::Itertools;
+
 use crate::{command_line_args::CommandLineArgs, common::OwnedCommandAndArgs};
 
 pub struct BufferedInputLineParser {
@@ -33,10 +35,7 @@ impl BufferedInputLineParser {
 
     pub fn parse_line(&self, input_line: &str) -> Option<OwnedCommandAndArgs> {
         let mut vec = if self.split_whitespace {
-            input_line
-                .split_whitespace()
-                .map(|s| s.to_owned())
-                .collect()
+            input_line.split_whitespace().map_into().collect()
         } else {
             vec![input_line.to_owned()]
         };

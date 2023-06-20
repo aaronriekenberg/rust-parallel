@@ -113,7 +113,7 @@ mod test {
                 "echo", "-n", ":::", "A", "B", ":::", "C", "D", "E",
             ]
             .into_iter()
-            .map(|s| s.to_owned())
+            .map_into()
             .collect(),
             ..Default::default()
         };
@@ -154,10 +154,7 @@ mod test {
     fn test_parse_command_line_args_invalid() {
         let command_line_args = CommandLineArgs {
             shell: false,
-            command_and_initial_arguments: vec![":::", ":::"]
-                .into_iter()
-                .map(|s| s.to_owned())
-                .collect(),
+            command_and_initial_arguments: vec![":::", ":::"].into_iter().map_into().collect(),
             ..Default::default()
         };
 
@@ -176,7 +173,7 @@ mod test {
                 "echo", "-n", ":::", "A", "B", ":::", "C", "D", "E",
             ]
             .into_iter()
-            .map(|s| s.to_owned())
+            .map_into()
             .collect(),
             shell_path: "/bin/bash".to_owned(),
             ..Default::default()
