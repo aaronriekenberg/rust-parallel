@@ -7,7 +7,7 @@ use tracing::{debug, instrument, span_enabled, warn, Level, Span};
 use std::sync::Arc;
 
 use crate::{
-    command_line_args::{self, CommandLineArgs},
+    command_line_args::CommandLineArgs,
     common::OwnedCommandAndArgs,
     input::{InputLineNumber, InputMessage, InputProducer},
     output::{OutputSender, OutputWriter},
@@ -84,9 +84,7 @@ pub struct CommandService {
 }
 
 impl CommandService {
-    pub async fn new() -> Self {
-        let command_line_args = command_line_args::instance();
-
+    pub fn new(command_line_args: &'static CommandLineArgs) -> Self {
         Self {
             child_process_factory: ChildProcessFactory::new(command_line_args),
             command_semaphore: Arc::new(Semaphore::new(command_line_args.jobs)),
@@ -130,7 +128,7 @@ impl CommandService {
             self.command_line_args.channel_capacity
         );
 
-        let input_producer = InputProducer::new(sender);
+        let input_producer = InputProducer::new(self.command_line_args, sender);
 
         while let Some(InputMessage {
             command_and_args,

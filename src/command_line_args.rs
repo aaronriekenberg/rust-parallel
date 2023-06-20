@@ -1,5 +1,3 @@
-use anyhow::Context;
-
 use clap::{Parser, ValueEnum};
 
 use tokio::sync::OnceCell;
@@ -56,6 +54,20 @@ pub struct CommandLineArgs {
 }
 
 impl CommandLineArgs {
+    pub async fn instance() -> &'static Self {
+        static INSTANCE: OnceCell<CommandLineArgs> = OnceCell::const_new();
+
+        INSTANCE
+            .get_or_init(|| async move {
+                let command_line_args = CommandLineArgs::parse();
+
+                debug!("command_line_args = {:?}", command_line_args);
+
+                command_line_args
+            })
+            .await
+    }
+
     pub fn commands_from_args_mode(&self) -> bool {
         self.command_and_initial_arguments
             .iter()
@@ -82,24 +94,6 @@ fn parse_semaphore_permits(s: &str) -> Result<usize, String> {
     } else {
         Err(format!("value not in range {:?}", range))
     }
-}
-
-static INSTANCE: OnceCell<CommandLineArgs> = OnceCell::const_new();
-
-pub fn initialize() -> anyhow::Result<()> {
-    let command_line_args = CommandLineArgs::parse();
-
-    debug!("command_line_args = {:?}", command_line_args);
-
-    INSTANCE
-        .set(command_line_args)
-        .context("INSTANCE.set error")?;
-
-    Ok(())
-}
-
-pub fn instance() -> &'static CommandLineArgs {
-    INSTANCE.get().unwrap()
 }
 
 #[cfg(test)]

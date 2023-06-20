@@ -3,6 +3,8 @@
 
 use tracing::{debug, error, instrument};
 
+use crate::command_line_args::CommandLineArgs;
+
 mod command;
 mod command_line_args;
 mod common;
@@ -15,9 +17,9 @@ mod process;
 async fn try_main() -> anyhow::Result<()> {
     debug!("begin try_main");
 
-    command_line_args::initialize()?;
+    let command_line_args = CommandLineArgs::instance().await;
 
-    let command_service = command::CommandService::new().await;
+    let command_service = command::CommandService::new(command_line_args);
 
     command_service.run_commands().await?;
 
