@@ -23,13 +23,6 @@ impl BufferedInputLineParser {
         }
     }
 
-    fn prepend_command_and_args(&self) -> Vec<&str> {
-        self.prepend_command_and_args
-            .iter()
-            .map(|s| s.as_ref())
-            .collect()
-    }
-
     pub fn parse_segment(&self, segment: Vec<u8>) -> Option<OwnedCommandAndArgs> {
         if let Ok(input_line) = std::str::from_utf8(&segment) {
             self.parse_line(input_line)
@@ -40,13 +33,16 @@ impl BufferedInputLineParser {
 
     pub fn parse_line(&self, input_line: &str) -> Option<OwnedCommandAndArgs> {
         let mut vec = if self.split_whitespace {
-            input_line.split_whitespace().collect()
+            input_line
+                .split_whitespace()
+                .map(|s| s.to_owned())
+                .collect()
         } else {
-            vec![input_line]
+            vec![input_line.to_owned()]
         };
 
         if !self.prepend_command_and_args.is_empty() {
-            vec = [self.prepend_command_and_args(), vec].concat();
+            vec = [self.prepend_command_and_args.clone(), vec].concat();
         }
 
         if vec.is_empty() {
