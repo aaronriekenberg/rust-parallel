@@ -11,8 +11,7 @@ use crate::{
 
 pub struct CommandLineArgsParser {
     argument_groups: VecDeque<Vec<String>>,
-    shell_enabled: bool,
-    shell_command_and_args: Vec<String>,
+    shell_command_and_args: Option<Vec<String>>,
 }
 
 impl CommandLineArgsParser {
@@ -20,14 +19,13 @@ impl CommandLineArgsParser {
         let argument_groups = Self::build_argument_groups(command_line_args);
 
         let shell_command_and_args = if command_line_args.shell {
-            vec![command_line_args.shell_path.clone(), "-c".to_owned()]
+            Some(vec![command_line_args.shell_path.clone(), "-c".to_owned()])
         } else {
-            vec![]
+            None
         };
 
         Self {
             argument_groups,
-            shell_enabled: command_line_args.shell,
             shell_command_and_args,
         }
     }
@@ -76,17 +74,16 @@ impl CommandLineArgsParser {
 
         let result = arguments_list
             .into_iter()
-            .map(|current_args| {
-                if self.shell_enabled {
+            .map(|current_args| match &self.shell_command_and_args {
+                None => [first_command_and_args.clone(), current_args]
+                    .concat()
+                    .into(),
+                Some(shell_command_and_args) => {
                     let merged_args = [first_command_and_args.clone(), current_args]
                         .concat()
                         .join(" ");
                     let merged_args = vec![merged_args];
-                    [self.shell_command_and_args.clone(), merged_args]
-                        .concat()
-                        .into()
-                } else {
-                    [first_command_and_args.clone(), current_args]
+                    [shell_command_and_args.clone(), merged_args]
                         .concat()
                         .into()
                 }
