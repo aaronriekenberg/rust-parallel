@@ -31,16 +31,16 @@ impl CommandLineArgsParser {
     }
 
     fn build_argument_groups(command_line_args: &CommandLineArgs) -> VecDeque<Vec<String>> {
-        let command_and_initial_arguments = command_line_args.command_and_initial_arguments.clone();
+        let command_and_initial_arguments = &command_line_args.command_and_initial_arguments;
 
         let mut argument_groups = VecDeque::with_capacity(command_and_initial_arguments.len());
 
         for (key, group) in &command_and_initial_arguments
-            .into_iter()
-            .group_by(|arg| arg == COMMANDS_FROM_ARGS_SEPARATOR)
+            .iter()
+            .group_by(|arg| *arg == COMMANDS_FROM_ARGS_SEPARATOR)
         {
             if !key {
-                argument_groups.push_back(group.collect_vec());
+                argument_groups.push_back(group.cloned().collect_vec());
             }
         }
 
