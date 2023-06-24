@@ -1,7 +1,5 @@
 use itertools::Itertools;
 
-use tracing::trace;
-
 use std::collections::VecDeque;
 
 use crate::{
@@ -54,19 +52,9 @@ impl CommandLineArgsParser {
             return vec![];
         };
 
-        let arguments_list: Vec<Vec<String>> = argument_groups
+        argument_groups
             .into_iter()
             .multi_cartesian_product()
-            .collect();
-
-        trace!(
-            "first_command_and_args = {:?} arguments_list = {:?}",
-            first_command_and_args,
-            arguments_list,
-        );
-
-        let result = arguments_list
-            .into_iter()
             .map(|current_args| match &self.shell_command_and_args {
                 None => [first_command_and_args.clone(), current_args]
                     .concat()
@@ -81,11 +69,7 @@ impl CommandLineArgsParser {
                         .into()
                 }
             })
-            .collect();
-
-        trace!("result = {:?}", result);
-
-        result
+            .collect()
     }
 }
 
