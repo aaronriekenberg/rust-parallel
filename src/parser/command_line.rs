@@ -55,18 +55,18 @@ impl CommandLineArgsParser {
         argument_groups
             .into_iter()
             .multi_cartesian_product()
-            .map(|current_args| match &self.shell_command_and_args {
-                None => [first_command_and_args.clone(), current_args]
-                    .concat()
-                    .into(),
-                Some(shell_command_and_args) => {
-                    let merged_args = [first_command_and_args.clone(), current_args]
-                        .concat()
-                        .join(" ");
-                    let merged_args = vec![merged_args];
-                    [shell_command_and_args.clone(), merged_args]
-                        .concat()
-                        .into()
+            .map(|current_args| {
+                let current_command_and_args =
+                    [first_command_and_args.clone(), current_args].concat();
+                match &self.shell_command_and_args {
+                    None => current_command_and_args.into(),
+                    Some(shell_command_and_args) => {
+                        let merged_args = current_command_and_args.join(" ");
+                        let merged_args = vec![merged_args];
+                        [shell_command_and_args.clone(), merged_args]
+                            .concat()
+                            .into()
+                    }
                 }
             })
             .collect()
