@@ -209,14 +209,14 @@ Recommend enabling debug logging for all demos to understand what is happening i
 ```
 $ RUST_LOG=debug rust-parallel echo ::: hi there how are you | grep command_line_args
 
-2023-06-18T13:10:54.976031Z DEBUG try_main: rust_parallel::command_line_args: command_line_args = CommandLineArgs { discard_output: None, input_file: [], jobs: 8, null_separator: false, shell: false, channel_capacity: 16, shell_path: "/bin/bash", command_and_initial_arguments: ["echo", ":::", "hi", "there", "how", "are", "you"] }
+2023-06-29T21:45:15.034392Z DEBUG try_main: rust_parallel::command_line_args: command_line_args = CommandLineArgs { discard_output: None, input_file: [], jobs: 8, null_separator: false, shell: false, channel_capacity: 16, disable_path_cache: false, shell_path: "/bin/bash", command_and_initial_arguments: ["echo", ":::", "hi", "there", "how", "are", "you"] }
 
 $ RUST_LOG=debug rust-parallel echo ::: hi there how are you | grep 'command_line_args:1'
 
-2023-06-18T13:11:20.932356Z DEBUG Command::run{cmd_args=["echo", "there"] line=command_line_args:1}: rust_parallel::command: begin run
-2023-06-18T13:11:20.934208Z DEBUG Command::run{cmd_args=["echo", "there"] line=command_line_args:1 child_pid=95668}: rust_parallel::command: spawned child process, awaiting output
-2023-06-18T13:11:20.936688Z DEBUG Command::run{cmd_args=["echo", "there"] line=command_line_args:1 child_pid=95668}: rust_parallel::command: command exit status = exit status: 0
-2023-06-18T13:11:20.936739Z DEBUG Command::run{cmd_args=["echo", "there"] line=command_line_args:1 child_pid=95668}: rust_parallel::command: end run
+2023-06-29T21:45:38.629299Z DEBUG Command::run{cmd="/bin/echo" args=["there"] line=command_line_args:1}: rust_parallel::command: begin run
+2023-06-29T21:45:38.630132Z DEBUG Command::run{cmd="/bin/echo" args=["there"] line=command_line_args:1 child_pid=4958}: rust_parallel::command: spawned child process, awaiting output
+2023-06-29T21:45:38.632719Z DEBUG Command::run{cmd="/bin/echo" args=["there"] line=command_line_args:1 child_pid=4958}: rust_parallel::command: command exit status = exit status: 0
+2023-06-29T21:45:38.632782Z DEBUG Command::run{cmd="/bin/echo" args=["there"] line=command_line_args:1 child_pid=4958}: rust_parallel::command: end run
 ```
 
 ### Specifying command and intial arguments on command line:
