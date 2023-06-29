@@ -74,6 +74,9 @@ Options:
 
           [default: 16]
 
+      --disable-path-cache
+          Disable command path cache
+
       --shell-path <SHELL_PATH>
           Path to shell to use for shell mode
 
