@@ -28,15 +28,15 @@ impl CommandPathCache {
     pub async fn resolve_command(
         &self,
         command_and_args: OwnedCommandAndArgs,
-    ) -> Option<OwnedCommandAndArgs> {
+    ) -> anyhow::Result<Option<OwnedCommandAndArgs>> {
         if !self.enabled {
-            return Some(command_and_args);
+            return Ok(Some(command_and_args));
         }
 
         let mut command_and_args = command_and_args;
 
         if command_and_args.len() == 0 {
-            return None;
+            return Ok(None);
         }
 
         let command = &command_and_args[0];
@@ -44,21 +44,25 @@ impl CommandPathCache {
         let mut cache = self.cache.lock().await;
 
         if let Some(cached_value) = cache.get(command) {
-            return match cached_value {
+            return Ok(match cached_value {
                 CacheValue::NotResolvable => None,
                 CacheValue::Resolved(cached_path) => {
                     command_and_args[0] = cached_path.clone();
                     Some(command_and_args)
                 }
-            };
+            });
         }
 
-        let full_path = match which::which(command) {
+        let command_clone = command.clone();
+
+        let which_result = tokio::task::spawn_blocking(move || which::which(command_clone)).await?;
+
+        let full_path = match which_result {
             Ok(path) => path,
             Err(e) => {
                 warn!("error resolving path {:?}: {}", command, e);
                 cache.insert(command.clone(), CacheValue::NotResolvable);
-                return None;
+                return Ok(None);
             }
         };
 
@@ -71,6 +75,6 @@ impl CommandPathCache {
 
         command_and_args[0] = full_path_string;
 
-        Some(command_and_args)
+        Ok(Some(command_and_args))
     }
 }

@@ -104,13 +104,6 @@ impl CommandService {
         command_and_args: OwnedCommandAndArgs,
         input_line_number: InputLineNumber,
     ) -> anyhow::Result<()> {
-        let Some(command_and_args) = self
-            .command_path_cache
-            .resolve_command(command_and_args)
-            .await else {
-                return Ok(())
-            };
-
         let command = Command {
             command_and_args,
             input_line_number,
@@ -148,6 +141,13 @@ impl CommandService {
             input_line_number,
         }) = receiver.recv().await
         {
+            let Some(command_and_args) = self
+                .command_path_cache
+                .resolve_command(command_and_args)
+                .await? else {
+                    continue;
+            };
+
             self.spawn_command(command_and_args, input_line_number)
                 .await?;
         }
