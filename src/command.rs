@@ -29,7 +29,8 @@ impl Command {
         name = "Command::run",
         skip_all,
         fields(
-            cmd_args = %self.command_and_args,
+            cmd = ?self.command_and_args.command_path,
+            args = ?self.command_and_args.args,
             line = %self.input_line_number,
             child_pid,
         ),
@@ -37,11 +38,9 @@ impl Command {
     async fn run(self, child_process_factory: ChildProcessFactory, output_sender: OutputSender) {
         debug!("begin run");
 
-        let [command, args @ ..] = self.command_and_args.as_slice() else {
-            return;
-        };
+        let OwnedCommandAndArgs { command_path, args } = &self.command_and_args;
 
-        let child_process = match child_process_factory.spawn(command, args).await {
+        let child_process = match child_process_factory.spawn(command_path, args).await {
             Err(e) => {
                 warn!("spawn error command: {}: {}", self, e);
                 return;
@@ -74,8 +73,8 @@ impl std::fmt::Display for Command {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "cmd_args={},line={}",
-            self.command_and_args, self.input_line_number,
+            "cmd={:?},args={:?},line={}",
+            self.command_and_args.command_path, self.command_and_args.args, self.input_line_number,
         )
     }
 }
@@ -143,9 +142,9 @@ impl CommandService {
         {
             let Some(command_and_args) = self
                 .command_path_cache
-                .resolve_command(command_and_args)
+                .resolve_command_path(command_and_args)
                 .await? else {
-                    continue;
+                continue;
             };
 
             self.spawn_command(command_and_args, input_line_number)

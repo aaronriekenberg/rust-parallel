@@ -44,11 +44,7 @@ impl BufferedInputLineParser {
             vec = [self.prepend_command_and_args.clone(), vec].concat();
         }
 
-        if vec.is_empty() {
-            None
-        } else {
-            Some(vec.into())
-        }
+        OwnedCommandAndArgs::try_from(vec).ok()
     }
 }
 
@@ -56,7 +52,7 @@ impl BufferedInputLineParser {
 mod test {
     use super::*;
 
-    use std::default::Default;
+    use std::{default::Default, path::PathBuf};
 
     #[test]
     fn test_split_whitespace() {
@@ -71,15 +67,33 @@ mod test {
 
         let result = parser.parse_line("echo hi there");
 
-        assert_eq!(result, Some(vec!["echo", "hi", "there"].into()));
+        assert_eq!(
+            result,
+            Some(OwnedCommandAndArgs {
+                command_path: PathBuf::from("echo"),
+                args: vec!["hi", "there"].into_iter().map_into().collect(),
+            })
+        );
 
         let result = parser.parse_line(" echo  hi    there  ");
 
-        assert_eq!(result, Some(vec!["echo", "hi", "there"].into()));
+        assert_eq!(
+            result,
+            Some(OwnedCommandAndArgs {
+                command_path: PathBuf::from("echo"),
+                args: vec!["hi", "there"].into_iter().map_into().collect(),
+            })
+        );
 
         let result = parser.parse_line(" /bin/echo ");
 
-        assert_eq!(result, Some(vec!["/bin/echo"].into()));
+        assert_eq!(
+            result,
+            Some(OwnedCommandAndArgs {
+                command_path: PathBuf::from("/bin/echo"),
+                args: vec![],
+            })
+        );
 
         let result = parser.parse_line("");
 
@@ -99,7 +113,16 @@ mod test {
 
         let result = parser.parse_line("file with spaces");
 
-        assert_eq!(result, Some(vec!["gzip", "-k", "file with spaces"].into()));
+        assert_eq!(
+            result,
+            Some(OwnedCommandAndArgs {
+                command_path: PathBuf::from("gzip"),
+                args: vec!["-k", "file with spaces"]
+                    .into_iter()
+                    .map_into()
+                    .collect(),
+            })
+        );
     }
 
     #[test]
@@ -118,7 +141,13 @@ mod test {
 
         assert_eq!(
             result,
-            Some(vec!["/bin/bash", "-c", "awesomebashfunction 1 2 3"].into()),
+            Some(OwnedCommandAndArgs {
+                command_path: PathBuf::from("/bin/bash"),
+                args: vec!["-c", "awesomebashfunction 1 2 3"]
+                    .into_iter()
+                    .map_into()
+                    .collect(),
+            })
         );
 
         let command_line_args = CommandLineArgs {
@@ -135,7 +164,13 @@ mod test {
 
         assert_eq!(
             result,
-            Some(vec!["/bin/zsh", "-c", " awesomebashfunction 1 2 3 "].into()),
+            Some(OwnedCommandAndArgs {
+                command_path: PathBuf::from("/bin/zsh"),
+                args: vec!["-c", " awesomebashfunction 1 2 3 "]
+                    .into_iter()
+                    .map_into()
+                    .collect(),
+            })
         );
     }
 
@@ -152,10 +187,25 @@ mod test {
 
         let result = parser.parse_line("stuff");
 
-        assert_eq!(result, Some(vec!["md5", "-s", "stuff"].into()));
+        assert_eq!(
+            result,
+            Some(OwnedCommandAndArgs {
+                command_path: PathBuf::from("md5"),
+                args: vec!["-s", "stuff"].into_iter().map_into().collect(),
+            })
+        );
 
         let result = parser.parse_line(" stuff things ");
 
-        assert_eq!(result, Some(vec!["md5", "-s", "stuff", "things"].into()));
+        assert_eq!(
+            result,
+            Some(OwnedCommandAndArgs {
+                command_path: PathBuf::from("md5"),
+                args: vec!["-s", "stuff", "things"]
+                    .into_iter()
+                    .map_into()
+                    .collect(),
+            })
+        );
     }
 }

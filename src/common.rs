@@ -1,36 +1,37 @@
-use itertools::Itertools;
+use std::{collections::VecDeque, path::PathBuf};
 
 #[derive(Debug, Eq, PartialEq)]
-pub struct OwnedCommandAndArgs(Vec<String>);
-
-impl From<Vec<String>> for OwnedCommandAndArgs {
-    fn from(v: Vec<String>) -> Self {
-        Self(v)
-    }
-}
-
-impl From<Vec<&str>> for OwnedCommandAndArgs {
-    fn from(v: Vec<&str>) -> Self {
-        Self(v.into_iter().map_into().collect())
-    }
-}
-
-impl std::ops::Deref for OwnedCommandAndArgs {
-    type Target = Vec<String>;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-
-impl std::ops::DerefMut for OwnedCommandAndArgs {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.0
-    }
+pub struct OwnedCommandAndArgs {
+    pub command_path: PathBuf,
+    pub args: Vec<String>,
 }
 
 impl std::fmt::Display for OwnedCommandAndArgs {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:?}", self.0)
+        write!(f, "{:?} {:?}", self.command_path, self.args)
+    }
+}
+
+impl TryFrom<VecDeque<String>> for OwnedCommandAndArgs {
+    type Error = &'static str;
+
+    fn try_from(mut deque: VecDeque<String>) -> Result<Self, Self::Error> {
+        let command = match deque.pop_front() {
+            Some(command) => command,
+            None => return Err("deque is empty"),
+        };
+
+        Ok(Self {
+            command_path: PathBuf::from(command),
+            args: deque.into(),
+        })
+    }
+}
+
+impl TryFrom<Vec<String>> for OwnedCommandAndArgs {
+    type Error = &'static str;
+
+    fn try_from(vec: Vec<String>) -> Result<Self, Self::Error> {
+        Self::try_from(VecDeque::from(vec))
     }
 }

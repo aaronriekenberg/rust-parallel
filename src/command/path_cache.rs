@@ -2,19 +2,19 @@ use tokio::sync::Mutex;
 
 use tracing::warn;
 
-use std::collections::HashMap;
+use std::{collections::HashMap, path::PathBuf};
 
 use crate::{command_line_args::CommandLineArgs, common::OwnedCommandAndArgs};
 
 enum CacheValue {
     NotResolvable,
 
-    Resolved(String),
+    Resolved(PathBuf),
 }
 
 pub struct CommandPathCache {
     enabled: bool,
-    cache: Mutex<HashMap<String, CacheValue>>,
+    cache: Mutex<HashMap<PathBuf, CacheValue>>,
 }
 
 impl CommandPathCache {
@@ -25,7 +25,7 @@ impl CommandPathCache {
         }
     }
 
-    pub async fn resolve_command(
+    pub async fn resolve_command_path(
         &self,
         command_and_args: OwnedCommandAndArgs,
     ) -> anyhow::Result<Option<OwnedCommandAndArgs>> {
@@ -35,45 +35,40 @@ impl CommandPathCache {
 
         let mut command_and_args = command_and_args;
 
-        if command_and_args.len() == 0 {
-            return Ok(None);
-        }
-
-        let command = &command_and_args[0];
+        let command_path = &command_and_args.command_path;
 
         let mut cache = self.cache.lock().await;
 
-        if let Some(cached_value) = cache.get(command) {
+        if let Some(cached_value) = cache.get(command_path) {
             return Ok(match cached_value {
                 CacheValue::NotResolvable => None,
                 CacheValue::Resolved(cached_path) => {
-                    command_and_args[0] = cached_path.clone();
+                    command_and_args.command_path = cached_path.clone();
                     Some(command_and_args)
                 }
             });
         }
 
-        let command_clone = command.clone();
+        let command_path_clone = command_path.clone();
 
-        let which_result = tokio::task::spawn_blocking(move || which::which(command_clone)).await?;
+        let which_result =
+            tokio::task::spawn_blocking(move || which::which(command_path_clone)).await?;
 
         let full_path = match which_result {
             Ok(path) => path,
             Err(e) => {
-                warn!("error resolving path {:?}: {}", command, e);
-                cache.insert(command.clone(), CacheValue::NotResolvable);
+                warn!("error resolving path {:?}: {}", command_path, e);
+                cache.insert(command_path.clone(), CacheValue::NotResolvable);
                 return Ok(None);
             }
         };
 
-        let full_path_string = full_path.to_string_lossy().to_string();
-
         cache.insert(
-            command.clone(),
-            CacheValue::Resolved(full_path_string.clone()),
+            command_path.clone(),
+            CacheValue::Resolved(full_path.clone()),
         );
 
-        command_and_args[0] = full_path_string;
+        command_and_args.command_path = full_path;
 
         Ok(Some(command_and_args))
     }

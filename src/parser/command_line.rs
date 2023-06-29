@@ -1,6 +1,6 @@
 use itertools::Itertools;
 
-use std::collections::VecDeque;
+use std::{collections::VecDeque, path::PathBuf};
 
 use crate::{
     command_line_args::{CommandLineArgs, COMMANDS_FROM_ARGS_SEPARATOR},
@@ -8,8 +8,8 @@ use crate::{
 };
 
 pub struct CommandLineArgsParser {
-    argument_groups: VecDeque<Vec<String>>,
-    shell_command_and_args: Option<Vec<String>>,
+    argument_groups: VecDeque<VecDeque<String>>,
+    shell_command_and_args: Option<OwnedCommandAndArgs>,
 }
 
 impl CommandLineArgsParser {
@@ -17,7 +17,10 @@ impl CommandLineArgsParser {
         let argument_groups = Self::build_argument_groups(command_line_args);
 
         let shell_command_and_args = if command_line_args.shell {
-            Some(vec![command_line_args.shell_path.clone(), "-c".to_owned()])
+            Some(OwnedCommandAndArgs {
+                command_path: PathBuf::from(&command_line_args.shell_path),
+                args: vec!["-c".to_owned()],
+            })
         } else {
             None
         };
@@ -28,7 +31,7 @@ impl CommandLineArgsParser {
         }
     }
 
-    fn build_argument_groups(command_line_args: &CommandLineArgs) -> VecDeque<Vec<String>> {
+    fn build_argument_groups(command_line_args: &CommandLineArgs) -> VecDeque<VecDeque<String>> {
         let command_and_initial_arguments = &command_line_args.command_and_initial_arguments;
 
         let mut argument_groups = VecDeque::with_capacity(command_and_initial_arguments.len());
@@ -38,7 +41,7 @@ impl CommandLineArgsParser {
             .group_by(|arg| *arg == COMMANDS_FROM_ARGS_SEPARATOR)
         {
             if !key {
-                argument_groups.push_back(group.cloned().collect_vec());
+                argument_groups.push_back(group.cloned().collect());
             }
         }
 
@@ -52,20 +55,32 @@ impl CommandLineArgsParser {
             return vec![];
         };
 
+        let first_command_and_args = match OwnedCommandAndArgs::try_from(first_command_and_args) {
+            Ok(first_command_and_args) => first_command_and_args,
+            Err(_) => return vec![],
+        };
+
         argument_groups
             .into_iter()
             .multi_cartesian_product()
             .map(|current_args| {
-                let current_command_and_args =
-                    [first_command_and_args.clone(), current_args].concat();
+                let all_args = [first_command_and_args.args.clone(), current_args].concat();
                 match &self.shell_command_and_args {
-                    None => current_command_and_args.into(),
+                    None => OwnedCommandAndArgs {
+                        command_path: first_command_and_args.command_path.clone(),
+                        args: all_args,
+                    },
                     Some(shell_command_and_args) => {
-                        let merged_args = current_command_and_args.join(" ");
+                        let first_command_path = vec![first_command_and_args
+                            .command_path
+                            .to_string_lossy()
+                            .to_string()];
+                        let merged_args = [first_command_path, all_args].concat().join(" ");
                         let merged_args = vec![merged_args];
-                        [shell_command_and_args.clone(), merged_args]
-                            .concat()
-                            .into()
+                        OwnedCommandAndArgs {
+                            command_path: shell_command_and_args.command_path.clone(),
+                            args: [shell_command_and_args.args.clone(), merged_args].concat(),
+                        }
                     }
                 }
             })
@@ -99,12 +114,30 @@ mod test {
         assert_eq!(
             result,
             vec![
-                vec!["echo", "-n", "A", "C"].into(),
-                vec!["echo", "-n", "A", "D"].into(),
-                vec!["echo", "-n", "A", "E"].into(),
-                vec!["echo", "-n", "B", "C"].into(),
-                vec!["echo", "-n", "B", "D"].into(),
-                vec!["echo", "-n", "B", "E"].into(),
+                OwnedCommandAndArgs {
+                    command_path: PathBuf::from("echo"),
+                    args: vec!["-n", "A", "C"].into_iter().map_into().collect(),
+                },
+                OwnedCommandAndArgs {
+                    command_path: PathBuf::from("echo"),
+                    args: vec!["-n", "A", "D"].into_iter().map_into().collect(),
+                },
+                OwnedCommandAndArgs {
+                    command_path: PathBuf::from("echo"),
+                    args: vec!["-n", "A", "E"].into_iter().map_into().collect(),
+                },
+                OwnedCommandAndArgs {
+                    command_path: PathBuf::from("echo"),
+                    args: vec!["-n", "B", "C"].into_iter().map_into().collect(),
+                },
+                OwnedCommandAndArgs {
+                    command_path: PathBuf::from("echo"),
+                    args: vec!["-n", "B", "D"].into_iter().map_into().collect(),
+                },
+                OwnedCommandAndArgs {
+                    command_path: PathBuf::from("echo"),
+                    args: vec!["-n", "B", "E"].into_iter().map_into().collect(),
+                },
             ]
         );
     }
@@ -160,12 +193,30 @@ mod test {
         assert_eq!(
             result,
             vec![
-                vec!["/bin/bash", "-c", "echo -n A C"].into(),
-                vec!["/bin/bash", "-c", "echo -n A D"].into(),
-                vec!["/bin/bash", "-c", "echo -n A E"].into(),
-                vec!["/bin/bash", "-c", "echo -n B C"].into(),
-                vec!["/bin/bash", "-c", "echo -n B D"].into(),
-                vec!["/bin/bash", "-c", "echo -n B E"].into(),
+                OwnedCommandAndArgs {
+                    command_path: PathBuf::from("/bin/bash"),
+                    args: vec!["-c", "echo -n A C"].into_iter().map_into().collect(),
+                },
+                OwnedCommandAndArgs {
+                    command_path: PathBuf::from("/bin/bash"),
+                    args: vec!["-c", "echo -n A D"].into_iter().map_into().collect(),
+                },
+                OwnedCommandAndArgs {
+                    command_path: PathBuf::from("/bin/bash"),
+                    args: vec!["-c", "echo -n A E"].into_iter().map_into().collect(),
+                },
+                OwnedCommandAndArgs {
+                    command_path: PathBuf::from("/bin/bash"),
+                    args: vec!["-c", "echo -n B C"].into_iter().map_into().collect(),
+                },
+                OwnedCommandAndArgs {
+                    command_path: PathBuf::from("/bin/bash"),
+                    args: vec!["-c", "echo -n B D"].into_iter().map_into().collect(),
+                },
+                OwnedCommandAndArgs {
+                    command_path: PathBuf::from("/bin/bash"),
+                    args: vec!["-c", "echo -n B E"].into_iter().map_into().collect(),
+                },
             ]
         );
     }
