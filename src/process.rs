@@ -73,10 +73,11 @@ impl ChildProcessFactory {
         self.discard_stdout && self.discard_stderr
     }
 
-    pub async fn spawn<I, S>(self, command: S, args: I) -> std::io::Result<ChildProcess>
+    pub async fn spawn<C, AI, A>(self, command: C, args: AI) -> std::io::Result<ChildProcess>
     where
-        I: IntoIterator<Item = S>,
-        S: AsRef<OsStr>,
+        C: AsRef<OsStr>,
+        AI: IntoIterator<Item = A>,
+        A: AsRef<OsStr>,
     {
         let child = Command::new(command)
             .args(args)
