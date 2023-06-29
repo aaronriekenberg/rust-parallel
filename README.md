@@ -377,3 +377,5 @@ See the [wiki page for benchmarks](https://github.com/aaronriekenberg/rust-paral
   * [`tokio::sync::mpsc::channel`](https://docs.rs/tokio/latest/tokio/sync/mpsc/fn.channel.html) used to receive inputs from input task, and to send command outputs to an output writer task.  To await command completions, use the elegant property that when all `Senders` are dropped the channel is closed.
 * [tracing](https://docs.rs/tracing/latest/tracing/) structured debug and warning logs.
   * [`tracing::Instrument`](https://docs.rs/tracing/latest/tracing/attr.instrument.html) is used to provide structured debug logs.
+* [which](https://github.com/harryfei/which-rs) used to resolve command paths.  Command paths by default are cached to improve performance and avoid lookup for every command executed
+  * This cache can be disabled with `--disable-path-cache` option
