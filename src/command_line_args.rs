@@ -41,6 +41,10 @@ pub struct CommandLineArgs {
     #[arg(long, default_value_t = num_cpus::get() * 2, value_parser = Self::parse_semaphore_permits)]
     pub channel_capacity: usize,
 
+    /// Disable command path cache
+    #[arg(long)]
+    pub disable_path_cache: bool,
+
     /// Path to shell to use for shell mode
     #[arg(long, default_value = "/bin/bash")]
     pub shell_path: String,

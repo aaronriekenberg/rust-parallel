@@ -1,3 +1,5 @@
+mod path_cache;
+
 use anyhow::Context;
 
 use tokio::sync::{mpsc::channel, Semaphore};
@@ -13,6 +15,8 @@ use crate::{
     output::{OutputSender, OutputWriter},
     process::ChildProcessFactory,
 };
+
+use self::path_cache::CommandPathCache;
 
 #[derive(Debug)]
 struct Command {
@@ -80,6 +84,7 @@ pub struct CommandService {
     child_process_factory: ChildProcessFactory,
     command_semaphore: Arc<Semaphore>,
     output_writer: OutputWriter,
+    command_path_cache: CommandPathCache,
     command_line_args: &'static CommandLineArgs,
 }
 
@@ -89,6 +94,7 @@ impl CommandService {
             child_process_factory: ChildProcessFactory::new(command_line_args),
             command_semaphore: Arc::new(Semaphore::new(command_line_args.jobs)),
             output_writer: OutputWriter::new(command_line_args),
+            command_path_cache: CommandPathCache::new(command_line_args),
             command_line_args,
         }
     }
@@ -98,6 +104,13 @@ impl CommandService {
         command_and_args: OwnedCommandAndArgs,
         input_line_number: InputLineNumber,
     ) -> anyhow::Result<()> {
+        let Some(command_and_args) = self
+            .command_path_cache
+            .resolve_command(command_and_args)
+            .await else {
+                return Ok(())
+            };
+
         let command = Command {
             command_and_args,
             input_line_number,
