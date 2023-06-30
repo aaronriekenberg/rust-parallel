@@ -8,7 +8,7 @@ use crate::{
 };
 
 pub struct CommandLineArgsParser {
-    argument_groups: VecDeque<VecDeque<String>>,
+    argument_groups: Vec<Vec<String>>,
     shell_command_and_args: Option<OwnedCommandAndArgs>,
 }
 
@@ -31,17 +31,17 @@ impl CommandLineArgsParser {
         }
     }
 
-    fn build_argument_groups(command_line_args: &CommandLineArgs) -> VecDeque<VecDeque<String>> {
+    fn build_argument_groups(command_line_args: &CommandLineArgs) -> Vec<Vec<String>> {
         let command_and_initial_arguments = &command_line_args.command_and_initial_arguments;
 
-        let mut argument_groups = VecDeque::with_capacity(command_and_initial_arguments.len());
+        let mut argument_groups = Vec::with_capacity(command_and_initial_arguments.len());
 
         for (key, group) in &command_and_initial_arguments
             .iter()
             .group_by(|arg| *arg == COMMANDS_FROM_ARGS_SEPARATOR)
         {
             if !key {
-                argument_groups.push_back(group.cloned().collect());
+                argument_groups.push(group.cloned().collect());
             }
         }
 
@@ -49,33 +49,31 @@ impl CommandLineArgsParser {
     }
 
     pub fn parse_command_line_args(self) -> Vec<OwnedCommandAndArgs> {
-        let mut argument_groups = self.argument_groups;
+        let mut argument_groups = VecDeque::from(self.argument_groups);
 
-        let Some(first_command_and_args) = argument_groups.pop_front() else {
+        let Some((first_command_path, first_command_args)) = argument_groups.pop_front().and_then(|first_group| {
+            let mut first_group = VecDeque::from(first_group);
+            first_group
+                .pop_front()
+                .map(|command_path| (command_path, Vec::from(first_group)))
+        }) else {
             return vec![];
-        };
-
-        let first_command_and_args = match OwnedCommandAndArgs::try_from(first_command_and_args) {
-            Ok(first_command_and_args) => first_command_and_args,
-            Err(_) => return vec![],
         };
 
         argument_groups
             .into_iter()
             .multi_cartesian_product()
             .map(|current_args| {
-                let all_args = [first_command_and_args.args.clone(), current_args].concat();
+                let all_args = [first_command_args.clone(), current_args].concat();
                 match &self.shell_command_and_args {
                     None => OwnedCommandAndArgs {
-                        command_path: first_command_and_args.command_path.clone(),
+                        command_path: PathBuf::from(&first_command_path),
                         args: all_args,
                     },
                     Some(shell_command_and_args) => {
-                        let first_command_path = vec![first_command_and_args
-                            .command_path
-                            .to_string_lossy()
-                            .to_string()];
-                        let merged_args = [first_command_path, all_args].concat().join(" ");
+                        let merged_args = [vec![first_command_path.clone()], all_args]
+                            .concat()
+                            .join(" ");
                         let merged_args = vec![merged_args];
                         OwnedCommandAndArgs {
                             command_path: shell_command_and_args.command_path.clone(),
