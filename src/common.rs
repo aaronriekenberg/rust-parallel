@@ -7,10 +7,10 @@ pub struct OwnedCommandAndArgs {
 }
 
 impl OwnedCommandAndArgs {
-    pub fn append_args(&self, args: Vec<String>) -> Self {
+    pub fn append_arg(&self, arg: String) -> Self {
         Self {
             command_path: self.command_path.clone(),
-            args: [self.args.clone(), args].concat(),
+            args: [self.args.clone(), vec![arg]].concat(),
         }
     }
 }

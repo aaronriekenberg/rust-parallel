@@ -63,19 +63,17 @@ impl CommandLineArgsParser {
         argument_groups
             .into_iter()
             .multi_cartesian_product()
-            .map(|current_args| {
-                let all_args = [first_command_args.clone(), current_args].concat();
-                match &self.shell_command_and_args {
-                    None => OwnedCommandAndArgs {
-                        command_path: PathBuf::from(&first_command_path),
-                        args: all_args,
-                    },
-                    Some(shell_command_and_args) => {
-                        let merged_args_string = [vec![first_command_path.clone()], all_args]
-                            .concat()
-                            .join(" ");
-                        shell_command_and_args.append_args(vec![merged_args_string])
-                    }
+            .map(|current_args| match &self.shell_command_and_args {
+                None => OwnedCommandAndArgs {
+                    command_path: PathBuf::from(&first_command_path),
+                    args: [first_command_args.clone(), current_args].concat(),
+                },
+                Some(shell_command_and_args) => {
+                    let mut merged_args = vec![first_command_path.clone()];
+                    merged_args.extend(first_command_args.clone());
+                    merged_args.extend(current_args);
+
+                    shell_command_and_args.append_arg(merged_args.join(" "))
                 }
             })
             .collect()
