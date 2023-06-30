@@ -6,6 +6,15 @@ pub struct OwnedCommandAndArgs {
     pub args: Vec<String>,
 }
 
+impl OwnedCommandAndArgs {
+    pub fn append_args(&self, args: Vec<String>) -> Self {
+        Self {
+            command_path: self.command_path.clone(),
+            args: [self.args.clone(), args].concat(),
+        }
+    }
+}
+
 impl std::fmt::Display for OwnedCommandAndArgs {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:?} {:?}", self.command_path, self.args)

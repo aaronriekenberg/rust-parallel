@@ -74,14 +74,7 @@ impl CommandLineArgsParser {
                         let merged_args_string = [vec![first_command_path.clone()], all_args]
                             .concat()
                             .join(" ");
-                        OwnedCommandAndArgs {
-                            command_path: shell_command_and_args.command_path.clone(),
-                            args: [
-                                shell_command_and_args.args.clone(),
-                                vec![merged_args_string],
-                            ]
-                            .concat(),
-                        }
+                        shell_command_and_args.append_args(vec![merged_args_string])
                     }
                 }
             })
