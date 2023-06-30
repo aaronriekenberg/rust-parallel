@@ -8,7 +8,7 @@ Similar interface to [GNU Parallel](https://www.gnu.org/software/parallel/parall
 
 Prevents [output interleaving](https://github.com/aaronriekenberg/rust-parallel/wiki/Output-Interleaving) and is [very fast](https://github.com/aaronriekenberg/rust-parallel/wiki/Benchmarks).
 
-See the [demos](#demos) for example usage.
+See the [demos](https://github.com/aaronriekenberg/rust-parallel/wiki/Demos) for example usage.
 
 [crates-badge]: https://img.shields.io/crates/v/rust-parallel.svg
 [crates-url]: https://crates.io/crates/rust-parallel
