@@ -264,6 +264,6 @@ export -f logargs
 
 echo '
 $ rust-parallel -s logargs ::: A B C ::: D E F'
-$RUST_PARALLEL -s logargs ::: A B C ::: D E F
+$RUST_PARALLEL -s logargs ::: A B C ::: D E F || exit 1
 
 echo '```'
