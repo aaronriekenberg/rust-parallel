@@ -116,6 +116,7 @@ See the [wiki page for benchmarks](https://github.com/aaronriekenberg/rust-paral
 * Use only asynchronous operations supported by [tokio](https://tokio.rs), do not use any blocking operations.  This includes writing to stdout and stderr.
 * Support arbitrarily large number of input lines, avoid `O(number of input lines)` memory usage.  In support of this:
   * [`tokio::sync::Semaphore`](https://docs.rs/tokio/latest/tokio/sync/struct.Semaphore.html) is used carefully to limit the number of commands that run concurrently.  Do not spawn tasks for all input lines immediately to limit memory usage.
+* Caches resolved command paths so expensive lookup in PATH is not done for every command executed.  This can be disabled with `--disable-path-cache` option.
 * Support running commands on local machine only, not on remote machines.
 
 ## Tech Stack:
@@ -130,5 +131,4 @@ See the [wiki page for benchmarks](https://github.com/aaronriekenberg/rust-paral
   * [`tokio::sync::mpsc::channel`](https://docs.rs/tokio/latest/tokio/sync/mpsc/fn.channel.html) used to receive inputs from input task, and to send command outputs to an output writer task.  To await command completions, use the elegant property that when all `Senders` are dropped the channel is closed.
 * [tracing](https://docs.rs/tracing/latest/tracing/) structured debug and warning logs.
   * [`tracing::Instrument`](https://docs.rs/tracing/latest/tracing/attr.instrument.html) is used to provide structured debug logs.
-* [which](https://github.com/harryfei/which-rs) used to resolve command paths.  Command paths by default are cached to improve performance and avoid lookup for every command executed
-  * This cache can be disabled with `--disable-path-cache` option
+* [which](https://github.com/harryfei/which-rs) used to resolve command paths for path cache.
