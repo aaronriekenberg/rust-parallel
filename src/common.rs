@@ -6,19 +6,6 @@ pub struct OwnedCommandAndArgs {
     pub args: Vec<String>,
 }
 
-impl OwnedCommandAndArgs {
-    pub fn append_arg(&self, arg: String) -> Self {
-        let mut args = Vec::with_capacity(self.args.len() + 1);
-        args.extend(self.args.iter().cloned());
-        args.push(arg);
-
-        Self {
-            command_path: self.command_path.clone(),
-            args,
-        }
-    }
-}
-
 impl std::fmt::Display for OwnedCommandAndArgs {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:?} {:?}", self.command_path, self.args)
