@@ -153,8 +153,8 @@ echo '$ mkdir testdir
 '
 mkdir testdir || exit 1
 
-echo '$ touch 'testdir/a b' 'testdir/b c' 'testdir/c d'
-'
+echo "$ touch 'testdir/a b' 'testdir/b c' 'testdir/c d'
+"
 touch 'testdir/a b' 'testdir/b c' 'testdir/c d' || exit 1
 
 echo '$ find testdir -type f -print0 | rust-parallel -0 gzip -f -k
