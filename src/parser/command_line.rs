@@ -220,7 +220,7 @@ mod test {
     }
 
     #[test]
-    fn test_parse_command_line_args_shell_mode() {
+    fn test_parse_command_line_args_shell_mode_with_initial_command() {
         let command_line_args = CommandLineArgs {
             shell: true,
             command_and_initial_arguments: vec![
@@ -263,6 +263,53 @@ mod test {
                 OwnedCommandAndArgs {
                     command_path: PathBuf::from("/bin/bash"),
                     args: vec!["-c", "echo -n B E"].into_iter().map_into().collect(),
+                },
+            ]
+        );
+    }
+
+    #[test]
+    fn test_parse_command_line_args_shell_mode_no_initial_command() {
+        let command_line_args = CommandLineArgs {
+            shell: true,
+            command_and_initial_arguments: vec![":::", "say", "echo", ":::", "C", "D", "E"]
+                .into_iter()
+                .map_into()
+                .collect(),
+            shell_path: "/bin/bash".to_owned(),
+            ..Default::default()
+        };
+
+        let parser = CommandLineArgsParser::new(&command_line_args);
+
+        let result = parser.parse_command_line_args();
+
+        assert_eq!(
+            result,
+            vec![
+                OwnedCommandAndArgs {
+                    command_path: PathBuf::from("/bin/bash"),
+                    args: vec!["-c", "say C"].into_iter().map_into().collect(),
+                },
+                OwnedCommandAndArgs {
+                    command_path: PathBuf::from("/bin/bash"),
+                    args: vec!["-c", "say D"].into_iter().map_into().collect(),
+                },
+                OwnedCommandAndArgs {
+                    command_path: PathBuf::from("/bin/bash"),
+                    args: vec!["-c", "say E"].into_iter().map_into().collect(),
+                },
+                OwnedCommandAndArgs {
+                    command_path: PathBuf::from("/bin/bash"),
+                    args: vec!["-c", "echo C"].into_iter().map_into().collect(),
+                },
+                OwnedCommandAndArgs {
+                    command_path: PathBuf::from("/bin/bash"),
+                    args: vec!["-c", "echo D"].into_iter().map_into().collect(),
+                },
+                OwnedCommandAndArgs {
+                    command_path: PathBuf::from("/bin/bash"),
+                    args: vec!["-c", "echo E"].into_iter().map_into().collect(),
                 },
             ]
         );
