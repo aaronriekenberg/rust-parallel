@@ -1,15 +1,19 @@
 use itertools::Itertools;
 
-use std::{collections::VecDeque, path::PathBuf};
-
 use crate::{
     command_line_args::{CommandLineArgs, COMMANDS_FROM_ARGS_SEPARATOR},
     common::OwnedCommandAndArgs,
 };
 
-pub struct CommandLineArgsParser {
+#[derive(Debug)]
+struct ArgumentGroups {
+    first_command_and_args: Vec<String>,
     argument_groups: Vec<Vec<String>>,
-    shell_command_and_args: Option<OwnedCommandAndArgs>,
+}
+
+pub struct CommandLineArgsParser {
+    argument_groups: ArgumentGroups,
+    shell_command_and_args: Option<Vec<String>>,
 }
 
 impl CommandLineArgsParser {
@@ -17,10 +21,7 @@ impl CommandLineArgsParser {
         let argument_groups = Self::build_argument_groups(command_line_args);
 
         let shell_command_and_args = if command_line_args.shell {
-            Some(OwnedCommandAndArgs {
-                command_path: PathBuf::from(&command_line_args.shell_path),
-                args: vec!["-c".to_owned()],
-            })
+            Some(vec![command_line_args.shell_path.clone(), "-c".to_owned()])
         } else {
             None
         };
@@ -31,49 +32,58 @@ impl CommandLineArgsParser {
         }
     }
 
-    fn build_argument_groups(command_line_args: &CommandLineArgs) -> Vec<Vec<String>> {
+    fn build_argument_groups(command_line_args: &CommandLineArgs) -> ArgumentGroups {
         let command_and_initial_arguments = &command_line_args.command_and_initial_arguments;
 
         let mut argument_groups = Vec::with_capacity(command_and_initial_arguments.len());
 
-        for (key, group) in &command_and_initial_arguments
+        let mut first = true;
+
+        let mut first_command_and_args = vec![];
+
+        for (separator, group) in &command_and_initial_arguments
             .iter()
             .group_by(|arg| *arg == COMMANDS_FROM_ARGS_SEPARATOR)
         {
-            if !key {
-                argument_groups.push(group.cloned().collect());
+            let group_vec = group.cloned().collect();
+
+            if first {
+                if !separator {
+                    first_command_and_args = group_vec;
+                }
+                first = false;
+            } else if !separator {
+                argument_groups.push(group_vec);
             }
         }
 
-        argument_groups
+        ArgumentGroups {
+            first_command_and_args,
+            argument_groups,
+        }
     }
 
     pub fn parse_command_line_args(self) -> Vec<OwnedCommandAndArgs> {
-        let mut argument_groups = VecDeque::from(self.argument_groups);
-
-        let Some((first_command_path, first_command_args)) = argument_groups.pop_front().and_then(|first_group| {
-            let mut first_group = VecDeque::from(first_group);
-            first_group
-                .pop_front()
-                .map(|command_path| (command_path, Vec::from(first_group)))
-        }) else {
-            return vec![];
-        };
+        let ArgumentGroups {
+            first_command_and_args,
+            argument_groups,
+        } = self.argument_groups;
 
         argument_groups
             .into_iter()
             .multi_cartesian_product()
-            .map(|current_args| match &self.shell_command_and_args {
-                None => OwnedCommandAndArgs {
-                    command_path: PathBuf::from(&first_command_path),
-                    args: [first_command_args.clone(), current_args].concat(),
-                },
+            .filter_map(|current_args| match &self.shell_command_and_args {
+                None => {
+                    let cmd_and_args = [first_command_and_args.clone(), current_args].concat();
+                    OwnedCommandAndArgs::try_from(cmd_and_args).ok()
+                }
                 Some(shell_command_and_args) => {
-                    let mut merged_args = vec![first_command_path.clone()];
-                    merged_args.extend(first_command_args.iter().cloned());
-                    merged_args.extend(current_args);
-
-                    shell_command_and_args.append_arg(merged_args.join(" "))
+                    let merged_args = [first_command_and_args.clone(), current_args]
+                        .concat()
+                        .join(" ");
+                    let merged_args = vec![merged_args];
+                    let cmd_and_args = [shell_command_and_args.clone(), merged_args].concat();
+                    OwnedCommandAndArgs::try_from(cmd_and_args).ok()
                 }
             })
             .collect()
@@ -84,10 +94,10 @@ impl CommandLineArgsParser {
 mod test {
     use super::*;
 
-    use std::default::Default;
+    use std::{default::Default, path::PathBuf};
 
     #[test]
-    fn test_parse_command_line_args() {
+    fn test_parse_command_line_args_with_intial_command() {
         let command_line_args = CommandLineArgs {
             shell: false,
             command_and_initial_arguments: vec![
@@ -129,6 +139,54 @@ mod test {
                 OwnedCommandAndArgs {
                     command_path: PathBuf::from("echo"),
                     args: vec!["-n", "B", "E"].into_iter().map_into().collect(),
+                },
+            ]
+        );
+    }
+
+    #[test]
+    fn test_parse_command_line_args_no_intial_command() {
+        let command_line_args = CommandLineArgs {
+            shell: false,
+            command_and_initial_arguments: vec![
+                ":::", "echo", "say", ":::", "arg1", "arg2", "arg3",
+            ]
+            .into_iter()
+            .map_into()
+            .collect(),
+            ..Default::default()
+        };
+
+        let parser = CommandLineArgsParser::new(&command_line_args);
+
+        let result = parser.parse_command_line_args();
+
+        assert_eq!(
+            result,
+            vec![
+                OwnedCommandAndArgs {
+                    command_path: PathBuf::from("echo"),
+                    args: vec!["arg1"].into_iter().map_into().collect(),
+                },
+                OwnedCommandAndArgs {
+                    command_path: PathBuf::from("echo"),
+                    args: vec!["arg2"].into_iter().map_into().collect(),
+                },
+                OwnedCommandAndArgs {
+                    command_path: PathBuf::from("echo"),
+                    args: vec!["arg3"].into_iter().map_into().collect(),
+                },
+                OwnedCommandAndArgs {
+                    command_path: PathBuf::from("say"),
+                    args: vec!["arg1"].into_iter().map_into().collect(),
+                },
+                OwnedCommandAndArgs {
+                    command_path: PathBuf::from("say"),
+                    args: vec!["arg2"].into_iter().map_into().collect(),
+                },
+                OwnedCommandAndArgs {
+                    command_path: PathBuf::from("say"),
+                    args: vec!["arg3"].into_iter().map_into().collect(),
                 },
             ]
         );
