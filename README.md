@@ -116,7 +116,7 @@ See the [wiki page for benchmarks](https://github.com/aaronriekenberg/rust-paral
 * Use only asynchronous operations supported by [tokio](https://tokio.rs), do not use any blocking operations.  This includes writing to stdout and stderr.
 * Support arbitrarily large number of input lines, avoid `O(number of input lines)` memory usage.  In support of this:
   * [`tokio::sync::Semaphore`](https://docs.rs/tokio/latest/tokio/sync/struct.Semaphore.html) is used carefully to limit the number of commands that run concurrently.  Do not spawn tasks for all input lines immediately to limit memory usage.
-* Caches resolved command paths so expensive lookup in PATH is not done for every command executed.  This can be disabled with `--disable-path-cache` option.
+* Caches resolved command paths so expensive lookup in $PATH is not done for every command executed.  This can be disabled with `--disable-path-cache` option.
 * Support running commands on local machine only, not on remote machines.
 
 ## Tech Stack:
