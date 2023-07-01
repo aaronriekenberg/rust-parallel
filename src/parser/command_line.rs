@@ -72,18 +72,15 @@ impl CommandLineArgsParser {
         argument_groups
             .into_iter()
             .multi_cartesian_product()
-            .filter_map(|current_args| match &self.shell_command_and_args {
-                None => {
-                    let cmd_and_args = [first_command_and_args.clone(), current_args].concat();
-                    OwnedCommandAndArgs::try_from(cmd_and_args).ok()
-                }
-                Some(shell_command_and_args) => {
-                    let merged_args = [first_command_and_args.clone(), current_args]
-                        .concat()
-                        .join(" ");
-                    let merged_args = vec![merged_args];
-                    let cmd_and_args = [shell_command_and_args.clone(), merged_args].concat();
-                    OwnedCommandAndArgs::try_from(cmd_and_args).ok()
+            .filter_map(|current_args| {
+                let cmd_and_args = [first_command_and_args.clone(), current_args].concat();
+                match &self.shell_command_and_args {
+                    None => OwnedCommandAndArgs::try_from(cmd_and_args).ok(),
+                    Some(shell_command_and_args) => {
+                        let merged_args = vec![cmd_and_args.join(" ")];
+                        let cmd_and_args = [shell_command_and_args.clone(), merged_args].concat();
+                        OwnedCommandAndArgs::try_from(cmd_and_args).ok()
+                    }
                 }
             })
             .collect()
