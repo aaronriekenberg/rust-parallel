@@ -1,6 +1,6 @@
 #!/bin/bash
 
-RUST_PARALLEL="rust-parallel"
+RUST_PARALLEL="./target/debug/rust-parallel"
 VERSION=$($RUST_PARALLEL -V | cut -f2 -d' ')
 
 echo "# Demos (rust-parallel $VERSION)"
