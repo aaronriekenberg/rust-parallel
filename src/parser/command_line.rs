@@ -8,7 +8,7 @@ use crate::{
 #[derive(Debug)]
 struct ArgumentGroups {
     first_command_and_args: Vec<String>,
-    argument_groups: Vec<Vec<String>>,
+    remaining_argument_groups: Vec<Vec<String>>,
 }
 
 pub struct CommandLineArgsParser {
@@ -35,7 +35,7 @@ impl CommandLineArgsParser {
     fn build_argument_groups(command_line_args: &CommandLineArgs) -> ArgumentGroups {
         let command_and_initial_arguments = &command_line_args.command_and_initial_arguments;
 
-        let mut argument_groups = Vec::with_capacity(command_and_initial_arguments.len());
+        let mut remaining_argument_groups = Vec::with_capacity(command_and_initial_arguments.len());
 
         let mut first = true;
 
@@ -53,23 +53,23 @@ impl CommandLineArgsParser {
                 }
                 first = false;
             } else if !separator {
-                argument_groups.push(group_vec);
+                remaining_argument_groups.push(group_vec);
             }
         }
 
         ArgumentGroups {
             first_command_and_args,
-            argument_groups,
+            remaining_argument_groups,
         }
     }
 
     pub fn parse_command_line_args(self) -> Vec<OwnedCommandAndArgs> {
         let ArgumentGroups {
             first_command_and_args,
-            argument_groups,
+            remaining_argument_groups,
         } = self.argument_groups;
 
-        argument_groups
+        remaining_argument_groups
             .into_iter()
             .multi_cartesian_product()
             .filter_map(|current_args| {
