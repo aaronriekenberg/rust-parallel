@@ -70,7 +70,7 @@ impl CommandLineArgsParser {
                 },
                 Some(shell_command_and_args) => {
                     let mut merged_args = vec![first_command_path.clone()];
-                    merged_args.extend(first_command_args.clone());
+                    merged_args.extend(first_command_args.iter().cloned());
                     merged_args.extend(current_args);
 
                     shell_command_and_args.append_arg(merged_args.join(" "))

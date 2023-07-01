@@ -8,9 +8,13 @@ pub struct OwnedCommandAndArgs {
 
 impl OwnedCommandAndArgs {
     pub fn append_arg(&self, arg: String) -> Self {
+        let mut args = Vec::with_capacity(self.args.len() + 1);
+        args.extend(self.args.iter().cloned());
+        args.push(arg);
+
         Self {
             command_path: self.command_path.clone(),
-            args: [self.args.clone(), vec![arg]].concat(),
+            args,
         }
     }
 }
