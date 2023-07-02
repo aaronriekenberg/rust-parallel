@@ -135,3 +135,38 @@ fn fails_j0() {
             "invalid value '0' for '--jobs <JOBS>'",
         ));
 }
+
+#[test]
+fn runs_shell_commands_from_file_j1() {
+    rust_parallel()
+        .arg("-j1")
+        .arg("-i")
+        .arg("shell_input.txt")
+        .arg("-s")
+        .arg("--shell-path=./dummy_shell.sh")
+        .assert()
+        .success()
+        .stdout(predicate::eq(
+            "dummy_shell arg1=-c arg2=shell_function 1\ndummy_shell arg1=-c arg2=shell_function 2\ndummy_shell arg1=-c arg2=shell_function 3\ndummy_shell arg1=-c arg2=shell_function 4\n",
+        ))
+        .stderr(predicate::str::is_empty());
+}
+
+#[test]
+fn runs_shell_commands_from_args_j1() {
+    rust_parallel()
+        .arg("-j1")
+        .arg("-s")
+        .arg("--shell-path=./dummy_shell.sh")
+        .arg("shell_function")
+        .arg(":::")
+        .arg("A")
+        .arg("B")
+        .arg("C")
+        .assert()
+        .success()
+        .stdout(predicate::eq(
+            "dummy_shell arg1=-c arg2=shell_function A\ndummy_shell arg1=-c arg2=shell_function B\ndummy_shell arg1=-c arg2=shell_function C\n",
+        ))
+        .stderr(predicate::str::is_empty());
+}
