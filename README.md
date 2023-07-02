@@ -3,8 +3,10 @@
 Command-line utility to execute commands in parallel and aggregate their output.
 
 Similar interface to [GNU Parallel](https://www.gnu.org/software/parallel/parallel_examples.html) or [xargs](https://man7.org/linux/man-pages/man1/xargs.1.html) but implemented in rust and [tokio](https://tokio.rs).
-* Supports running commands read from stdin or input files similar to xargs, for example: `head -1000 /usr/share/dict/words | rust-parallel md5 -s`
-* Supports `:::` syntax to run all combinations of argument groups similar to GNU Parallel, for example: `rust-parallel gzip -k ::: *.html`
+* Supports running commands read from stdin or input files similar to xargs, for example:
+  * `head -1000 /usr/share/dict/words | rust-parallel md5 -s`
+* Supports `:::` syntax to run all combinations of argument groups similar to GNU Parallel, for example:
+  * `rust-parallel gzip -k ::: *.html`
 
 Prevents [output interleaving](https://github.com/aaronriekenberg/rust-parallel/wiki/Output-Interleaving) and is [very fast](https://github.com/aaronriekenberg/rust-parallel/wiki/Benchmarks).
 
