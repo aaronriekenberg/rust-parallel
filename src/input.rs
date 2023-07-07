@@ -2,7 +2,10 @@ use anyhow::Context;
 
 use tokio::{
     io::{AsyncBufRead, AsyncBufReadExt, BufReader, Split},
-    sync::{mpsc::Sender, OnceCell},
+    sync::{
+        mpsc::{channel, Receiver, Sender},
+        OnceCell,
+    },
     task::JoinHandle,
 };
 
@@ -166,13 +169,22 @@ pub struct InputProducer {
 }
 
 impl InputProducer {
-    pub fn new(command_line_args: &'static CommandLineArgs, sender: Sender<InputMessage>) -> Self {
+    pub fn new(command_line_args: &'static CommandLineArgs) -> (Self, Receiver<InputMessage>) {
+        let (sender, receiver) = channel(command_line_args.channel_capacity);
+        debug!(
+            "created input channel with capacity {}",
+            command_line_args.channel_capacity
+        );
+
         let sender_task_join_handle =
             tokio::spawn(InputSenderTask::new(command_line_args, sender).run());
 
-        Self {
-            sender_task_join_handle,
-        }
+        (
+            Self {
+                sender_task_join_handle,
+            },
+            receiver,
+        )
     }
 
     pub async fn wait_for_completion(self) -> anyhow::Result<()> {

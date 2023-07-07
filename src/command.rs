@@ -2,7 +2,7 @@ mod path_cache;
 
 use anyhow::Context;
 
-use tokio::sync::{mpsc::channel, Semaphore};
+use tokio::sync::Semaphore;
 
 use tracing::{debug, instrument, span_enabled, warn, Level, Span};
 
@@ -127,13 +127,7 @@ impl CommandService {
     }
 
     async fn process_inputs(&self) -> anyhow::Result<()> {
-        let (sender, mut receiver) = channel(self.command_line_args.channel_capacity);
-        debug!(
-            "created input channel with capacity {}",
-            self.command_line_args.channel_capacity
-        );
-
-        let input_producer = InputProducer::new(self.command_line_args, sender);
+        let (input_producer, mut receiver) = InputProducer::new(self.command_line_args);
 
         while let Some(InputMessage {
             command_and_args,
