@@ -1,3 +1,5 @@
+use anyhow::Context;
+
 use tokio::sync::Mutex;
 
 use tracing::warn;
@@ -51,8 +53,9 @@ impl CommandPathCache {
 
         let command_path_clone = command_path.clone();
 
-        let which_result =
-            tokio::task::spawn_blocking(move || which::which(command_path_clone)).await?;
+        let which_result = tokio::task::spawn_blocking(move || which::which(command_path_clone))
+            .await
+            .context("spawn_blocking error")?;
 
         let full_path = match which_result {
             Ok(path) => path,
