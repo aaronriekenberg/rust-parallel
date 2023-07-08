@@ -127,12 +127,12 @@ impl CommandService {
     }
 
     async fn process_inputs(&self) -> anyhow::Result<()> {
-        let (input_producer, mut receiver) = InputProducer::new(self.command_line_args);
+        let mut input_producer = InputProducer::new(self.command_line_args);
 
         while let Some(InputMessage {
             command_and_args,
             input_line_number,
-        }) = receiver.recv().await
+        }) = input_producer.receiver().recv().await
         {
             let Some(command_and_args) = self
                 .command_path_cache
