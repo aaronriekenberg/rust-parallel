@@ -58,6 +58,23 @@ fn runs_echo_commands_from_args_j1() {
 }
 
 #[test]
+fn timeout_sleep_commands_from_args() {
+    rust_parallel()
+        .arg("-t1")
+        .arg("sleep")
+        .arg(":::")
+        .arg("0")
+        .arg("5")
+        .assert()
+        .success()
+        .stdout(
+            (predicate::str::contains("\n").count(1))
+                .and(predicate::str::contains("timeout").count(1)),
+        )
+        .stderr(predicate::str::is_empty());
+}
+
+#[test]
 fn runs_echo_stdin() {
     let stdin = r#"
         echo A
