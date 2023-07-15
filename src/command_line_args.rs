@@ -38,7 +38,7 @@ pub struct CommandLineArgs {
     pub shell: bool,
 
     /// Timeout seconds for running commands.
-    #[arg(short, long)]
+    #[arg(short, long, value_parser = clap::value_parser!(u64).range(1..))]
     pub timeout_seconds: Option<u64>,
 
     /// Input and output channel capacity, defaults to num cpus * 2
