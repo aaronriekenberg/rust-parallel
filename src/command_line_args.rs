@@ -37,6 +37,10 @@ pub struct CommandLineArgs {
     #[arg(short, long)]
     pub shell: bool,
 
+    /// Timeout seconds for running commands.
+    #[arg(short, long)]
+    pub timeout_seconds: Option<u64>,
+
     /// Input and output channel capacity, defaults to num cpus * 2
     #[arg(long, default_value_t = num_cpus::get() * 2, value_parser = Self::parse_semaphore_permits)]
     pub channel_capacity: usize,

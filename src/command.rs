@@ -52,12 +52,12 @@ impl Command {
             let child_pid = child_process.id();
             Span::current().record("child_pid", child_pid);
 
-            debug!("spawned child process, awaiting output");
+            debug!("spawned child process, awaiting completion");
         }
 
-        match child_process.await_output().await {
+        match child_process.await_completion().await {
             Err(e) => {
-                warn!("await_output error command: {}: {}", self, e);
+                warn!("child process error command: {}: {}", self, e);
             }
             Ok(output) => {
                 debug!("command exit status = {}", output.status);
