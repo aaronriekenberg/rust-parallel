@@ -1,4 +1,7 @@
-use tokio::process::{Child, Command};
+use tokio::{
+    process::{Child, Command},
+    time::Duration,
+};
 
 use std::{
     ffi::OsStr,
@@ -7,10 +10,20 @@ use std::{
 
 use crate::command_line_args::{CommandLineArgs, DiscardOutput};
 
+#[derive(thiserror::Error, Debug)]
+pub enum CommandExecutionError {
+    #[error("timeout: {0}")]
+    Timeout(#[from] tokio::time::error::Elapsed),
+
+    #[error("i/o error: {0}")]
+    IOError(#[from] std::io::Error),
+}
+
 #[derive(Debug)]
 pub struct ChildProcess {
     child: Child,
     discard_all_output: bool,
+    timeout: Option<Duration>,
 }
 
 impl ChildProcess {
@@ -18,7 +31,7 @@ impl ChildProcess {
         self.child.id()
     }
 
-    pub async fn await_output(mut self) -> std::io::Result<Output> {
+    async fn await_output(mut self) -> Result<Output, CommandExecutionError> {
         let output = if self.discard_all_output {
             Output {
                 status: self.child.wait().await?,
@@ -31,12 +44,26 @@ impl ChildProcess {
 
         Ok(output)
     }
+
+    pub async fn await_completion(self) -> Result<Output, CommandExecutionError> {
+        match self.timeout {
+            None => self.await_output().await,
+            Some(timeout) => {
+                let result = tokio::time::timeout(timeout, self.await_output()).await?;
+
+                let output = result?;
+
+                Ok(output)
+            }
+        }
+    }
 }
 
 #[derive(Debug, Clone)]
 pub struct ChildProcessFactory {
     discard_stdout: bool,
     discard_stderr: bool,
+    timeout: Option<Duration>,
 }
 
 impl ChildProcessFactory {
@@ -50,6 +77,7 @@ impl ChildProcessFactory {
                 command_line_args.discard_output,
                 Some(DiscardOutput::All) | Some(DiscardOutput::Stderr)
             ),
+            timeout: command_line_args.timeout_seconds.map(Duration::from_secs),
         }
     }
 
@@ -84,11 +112,13 @@ impl ChildProcessFactory {
             .stdin(Stdio::null())
             .stdout(self.stdout())
             .stderr(self.stderr())
+            .kill_on_drop(self.timeout.is_some())
             .spawn()?;
 
         Ok(ChildProcess {
             child,
             discard_all_output: self.discard_all_output(),
+            timeout: self.timeout,
         })
     }
 }

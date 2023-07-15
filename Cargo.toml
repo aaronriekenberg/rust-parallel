@@ -18,6 +18,7 @@ anyhow = "1"
 clap = { version = "4", features = ["derive"] }
 itertools = "0.11"
 num_cpus = "1"
+thiserror = "1"
 tokio = { version = "1", features = ["full"] }
 tracing = "0.1"
 tracing-subscriber = "0.3"
