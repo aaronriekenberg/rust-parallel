@@ -126,8 +126,7 @@ The `-t` option can be used to specify a command timeout in seconds:
 
 echo '```'
 
-echo '
-$ rust-parallel -t1 sleep ::: 0 3 5'
+echo '$ rust-parallel -t1 sleep ::: 0 3 5'
 $RUST_PARALLEL -t1 sleep ::: 0 3 5 | ansi-stripper
 
 echo '```'
