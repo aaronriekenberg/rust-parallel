@@ -71,6 +71,9 @@ Options:
 
           Each command line is passed to "<shell-path> -c" as a single argument.
 
+  -t, --timeout-seconds <TIMEOUT_SECONDS>
+          Timeout seconds for running commands
+
       --channel-capacity <CHANNEL_CAPACITY>
           Input and output channel capacity, defaults to num cpus * 2
 
