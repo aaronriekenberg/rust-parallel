@@ -20,11 +20,7 @@ impl CommandLineArgsParser {
     pub fn new(command_line_args: &CommandLineArgs) -> Self {
         let argument_groups = Self::build_argument_groups(command_line_args);
 
-        let shell_command_and_args = if command_line_args.shell {
-            Some(vec![command_line_args.shell_path.clone(), "-c".to_owned()])
-        } else {
-            None
-        };
+        let shell_command_and_args = super::build_shell_command_and_args(command_line_args);
 
         Self {
             argument_groups,
