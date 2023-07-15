@@ -128,7 +128,7 @@ echo '```'
 
 echo '
 $ rust-parallel -t1 sleep ::: 0 3 5'
-$RUST_PARALLEL -t1 sleep ::: 0 3 5
+$RUST_PARALLEL -t1 sleep ::: 0 3 5 | ansi-stripper
 
 echo '```'
 
