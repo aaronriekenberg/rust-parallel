@@ -13,6 +13,7 @@ Demos of command line arguments mode are first as it is simpler to understand:
 1. [Commands from arguments](#commands-from-arguments)
 1. [Small demo of echo commands](#small-demo-of-echo-commands)
 1. [Debug logging](#debug-logging)
+1. [Timeout](#timeout)
 1. [Specifying command and intial arguments on command line](#specifying-command-and-intial-arguments-on-command-line)
 1. [Using awk to form complete commands](#using-awk-to-form-complete-commands)
 1. [Using as part of a shell pipeline](#using-as-part-of-a-shell-pipeline)
@@ -116,6 +117,19 @@ RUST_LOG=debug $RUST_PARALLEL echo ::: hi there how are you | grep command_line_
 echo '
 $ RUST_LOG=debug rust-parallel echo ::: hi there how are you | grep 'command_line_args:1''
 RUST_LOG=debug $RUST_PARALLEL echo ::: hi there how are you | grep 'command_line_args:1' | ansi-stripper
+echo '```'
+
+echo '## Timeout.
+
+The `-t` option can be used to specify a command timeout in seconds:
+'
+
+echo '```'
+
+echo '
+$ rust-parallel -t1 sleep ::: 0 3 5'
+$RUST_PARALLEL -t1 sleep ::: 0 3 5
+
 echo '```'
 
 echo '## Specifying command and intial arguments on command line:
