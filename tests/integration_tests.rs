@@ -154,6 +154,18 @@ fn fails_j0() {
 }
 
 #[test]
+fn fails_t0() {
+    rust_parallel()
+        .arg("-t0")
+        .assert()
+        .failure()
+        .stdout(predicate::str::is_empty())
+        .stderr(predicate::str::contains(
+            "invalid value '0' for '--timeout-seconds <TIMEOUT_SECONDS>'",
+        ));
+}
+
+#[test]
 fn runs_shell_commands_from_file_j1() {
     rust_parallel()
         .arg("-j1")
