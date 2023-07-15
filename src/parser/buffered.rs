@@ -13,9 +13,8 @@ impl BufferedInputLineParser {
 
         let mut prepend_command_and_args = command_line_args.command_and_initial_arguments.clone();
 
-        if command_line_args.shell {
-            let shell_command_and_args =
-                vec![command_line_args.shell_path.clone(), "-c".to_owned()];
+        if let Some(shell_command_and_args) = super::build_shell_command_and_args(command_line_args)
+        {
             prepend_command_and_args = [shell_command_and_args, prepend_command_and_args].concat();
         }
 
