@@ -42,15 +42,6 @@ $ rust-parallel gzip -k ::: *.html
 ```'
 
 echo '
-If there is no leading command and args before the first `:::` then the cartesian product of all commands and arguments are run:
-```'
-
-echo '# runs ls and md5 on all combinations of argument groups:
-$ rust-parallel ::: ls md5 ::: /usr/share/dict/words /usr/share/dict/README ~/.profile'
-$RUST_PARALLEL ::: ls md5 ::: /usr/share/dict/words /usr/share/dict/README ~/.profile
-echo '```'
-
-echo '
 ## Small demo of echo commands.
 
 Using command line arguments mode we can run 5 echo commands.
