@@ -57,7 +57,7 @@ impl Command {
 
         match child_process.await_completion().await {
             Err(e) => {
-                warn!("child process error command: {}: {}", self, e);
+                warn!("child process error command: {} error: {}", self, e);
             }
             Ok(output) => {
                 debug!("command exit status = {}", output.status);
