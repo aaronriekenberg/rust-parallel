@@ -77,7 +77,9 @@ impl ChildProcessFactory {
                 command_line_args.discard_output,
                 Some(DiscardOutput::All) | Some(DiscardOutput::Stderr)
             ),
-            timeout: command_line_args.timeout_seconds.map(Duration::from_secs),
+            timeout: command_line_args
+                .timeout_seconds
+                .map(Duration::from_secs_f64),
         }
     }
 

@@ -38,8 +38,8 @@ pub struct CommandLineArgs {
     pub shell: bool,
 
     /// Timeout seconds for running commands.
-    #[arg(short, long, value_parser = clap::value_parser!(u64).range(1..))]
-    pub timeout_seconds: Option<u64>,
+    #[arg(short, long, value_parser = Self::parse_timeout_seconds)]
+    pub timeout_seconds: Option<f64>,
 
     /// Input and output channel capacity, defaults to num cpus * 2
     #[arg(long, default_value_t = num_cpus::get() * 2, value_parser = Self::parse_semaphore_permits)]
@@ -90,6 +90,15 @@ impl CommandLineArgs {
             Ok(value)
         } else {
             Err(format!("value not in range {:?}", range))
+        }
+    }
+
+    fn parse_timeout_seconds(s: &str) -> Result<f64, String> {
+        let value: f64 = s.parse().map_err(|_| format!("`{s}` isn't a number"))?;
+        if value > 0f64 {
+            Ok(value)
+        } else {
+            Err("value not greater than 0".to_string())
         }
     }
 }
