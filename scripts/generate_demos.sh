@@ -136,8 +136,8 @@ echo '```
 echo '## Using `awk` to form complete commands:'
 
 echo '
-```
-$ head -100 /usr/share/dict/words | awk '{printf "md5 -s %s\n", $1}' | rust-parallel | head -10'
+```'
+echo -e '$ head -100 /usr/share/dict/words | awk \x27{printf \x22md5 -s %s\\n\x22, $1}\x27 | rust-parallel | head -10'
 head -100 /usr/share/dict/words | awk '{printf "md5 -s %s\n", $1}' | $RUST_PARALLEL | head -10
 echo '```
 '
