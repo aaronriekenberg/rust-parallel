@@ -22,10 +22,9 @@ impl TryFrom<VecDeque<String>> for OwnedCommandAndArgs {
     type Error = OwnedCommandAndArgsConversionError;
 
     fn try_from(mut deque: VecDeque<String>) -> Result<Self, Self::Error> {
-        let command = match deque.pop_front() {
-            Some(command) => command,
-            None => return Err(OwnedCommandAndArgsConversionError::EmptyInput),
-        };
+        let command = deque
+            .pop_front()
+            .ok_or(OwnedCommandAndArgsConversionError::EmptyInput)?;
 
         Ok(Self {
             command_path: PathBuf::from(command),
