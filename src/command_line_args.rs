@@ -37,7 +37,7 @@ pub struct CommandLineArgs {
     #[arg(short, long)]
     pub shell: bool,
 
-    /// Timeout seconds for running commands.
+    /// Timeout seconds for running commands.  Defaults to infinite timeout if not specified.
     #[arg(short, long, value_parser = Self::parse_timeout_seconds)]
     pub timeout_seconds: Option<f64>,
 
