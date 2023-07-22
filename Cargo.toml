@@ -16,6 +16,7 @@ repository = "https://github.com/aaronriekenberg/rust-parallel"
 [dependencies]
 anyhow = "1"
 clap = { version = "4", features = ["derive"] }
+indicatif = "0.17.5"
 itertools = "0.11"
 num_cpus = "1"
 thiserror = "1"
