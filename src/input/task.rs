@@ -44,13 +44,13 @@ impl InputSenderTask {
             buffered_input
         );
 
+        let mut input_reader =
+            BufferedInputReader::new(buffered_input, self.command_line_args).await?;
+
         let parser = self
             .buffered_input_line_parser
             .get_or_init(|| async move { BufferedInputLineParser::new(self.command_line_args) })
             .await;
-
-        let mut input_reader =
-            BufferedInputReader::new(buffered_input, self.command_line_args).await?;
 
         loop {
             match input_reader
