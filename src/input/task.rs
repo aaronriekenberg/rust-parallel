@@ -9,7 +9,10 @@ use crate::{
     parser::{buffered::BufferedInputLineParser, command_line::CommandLineArgsParser},
 };
 
-use super::{BufferedInput, BufferedInputReader, Input, InputLineNumber, InputList, InputMessage};
+use super::{
+    buffered_reader::BufferedInputReader, BufferedInput, Input, InputLineNumber, InputList,
+    InputMessage,
+};
 
 pub struct InputSenderTask {
     sender: Sender<InputMessage>,
