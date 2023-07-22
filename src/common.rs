@@ -12,13 +12,19 @@ impl std::fmt::Display for OwnedCommandAndArgs {
     }
 }
 
+#[derive(thiserror::Error, Debug)]
+pub enum OwnedCommandAndArgsConversionError {
+    #[error("empty input")]
+    EmptyInput,
+}
+
 impl TryFrom<VecDeque<String>> for OwnedCommandAndArgs {
-    type Error = &'static str;
+    type Error = OwnedCommandAndArgsConversionError;
 
     fn try_from(mut deque: VecDeque<String>) -> Result<Self, Self::Error> {
         let command = match deque.pop_front() {
             Some(command) => command,
-            None => return Err("deque is empty"),
+            None => return Err(OwnedCommandAndArgsConversionError::EmptyInput),
         };
 
         Ok(Self {
@@ -29,7 +35,7 @@ impl TryFrom<VecDeque<String>> for OwnedCommandAndArgs {
 }
 
 impl TryFrom<Vec<String>> for OwnedCommandAndArgs {
-    type Error = &'static str;
+    type Error = OwnedCommandAndArgsConversionError;
 
     fn try_from(vec: Vec<String>) -> Result<Self, Self::Error> {
         Self::try_from(VecDeque::from(vec))
