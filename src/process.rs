@@ -11,7 +11,7 @@ use std::{
 use crate::command_line_args::{CommandLineArgs, DiscardOutput};
 
 #[derive(thiserror::Error, Debug)]
-pub enum CommandExecutionError {
+pub enum ChildProcessExecutionError {
     #[error("timeout: {0}")]
     Timeout(#[from] tokio::time::error::Elapsed),
 
@@ -31,7 +31,7 @@ impl ChildProcess {
         self.child.id()
     }
 
-    async fn await_output(mut self) -> Result<Output, CommandExecutionError> {
+    async fn await_output(mut self) -> Result<Output, ChildProcessExecutionError> {
         let output = if self.discard_all_output {
             Output {
                 status: self.child.wait().await?,
@@ -45,7 +45,7 @@ impl ChildProcess {
         Ok(output)
     }
 
-    pub async fn await_completion(self) -> Result<Output, CommandExecutionError> {
+    pub async fn await_completion(self) -> Result<Output, ChildProcessExecutionError> {
         match self.timeout {
             None => self.await_output().await,
             Some(timeout) => {
