@@ -14,6 +14,7 @@ use crate::{
     input::{InputLineNumber, InputMessage, InputProducer},
     output::{OutputSender, OutputWriter},
     process::ChildProcessFactory,
+    progress::Progress,
 };
 
 use self::path_cache::CommandPathCache;
@@ -85,6 +86,7 @@ pub struct CommandService {
     output_writer: OutputWriter,
     command_path_cache: CommandPathCache,
     command_line_args: &'static CommandLineArgs,
+    progress: Arc<Progress>,
 }
 
 impl CommandService {
@@ -95,6 +97,7 @@ impl CommandService {
             output_writer: OutputWriter::new(command_line_args),
             command_path_cache: CommandPathCache::new(command_line_args),
             command_line_args,
+            progress: Arc::new(Progress::new(command_line_args)),
         }
     }
 
@@ -112,6 +115,8 @@ impl CommandService {
 
         let output_sender = self.output_writer.sender();
 
+        let progress_clone = Arc::clone(&self.progress);
+
         let permit = Arc::clone(&self.command_semaphore)
             .acquire_owned()
             .await
@@ -119,6 +124,8 @@ impl CommandService {
 
         tokio::spawn(async move {
             command.run(child_process_factory, output_sender).await;
+
+            progress_clone.command_finished();
 
             drop(permit);
         });
@@ -128,6 +135,8 @@ impl CommandService {
 
     async fn process_inputs(&self) -> anyhow::Result<()> {
         let mut input_producer = InputProducer::new(self.command_line_args);
+
+        let mut num_inputs = 0u64;
 
         while let Some(InputMessage {
             command_and_args,
@@ -140,6 +149,10 @@ impl CommandService {
                 .await? else {
                 continue;
             };
+
+            num_inputs += 1;
+
+            self.progress.set_total_commands(num_inputs);
 
             self.spawn_command(command_and_args, input_line_number)
                 .await?;
@@ -159,6 +172,8 @@ impl CommandService {
         debug!("before output_writer.wait_for_completion",);
 
         self.output_writer.wait_for_completion().await?;
+
+        self.progress.finish();
 
         debug!("end run_commands");
 
