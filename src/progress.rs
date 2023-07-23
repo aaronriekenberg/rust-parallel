@@ -13,7 +13,9 @@ pub struct Progress {
 
 impl Progress {
     pub fn new(command_line_args: &CommandLineArgs) -> Self {
-        let progress_bar = if command_line_args.progress_bar {
+        let progress_bar = if !command_line_args.progress_bar {
+            None
+        } else {
             let progress_bar = ProgressBar::new(10);
 
             progress_bar.enable_steady_tick(Duration::from_millis(100));
@@ -23,8 +25,6 @@ impl Progress {
             progress_bar.set_style(style);
 
             Some(progress_bar)
-        } else {
-            None
         };
 
         Self { progress_bar }
