@@ -31,6 +31,10 @@ pub struct CommandLineArgs {
     #[arg(short('0'), long)]
     pub null_separator: bool,
 
+    /// Display progress bar.
+    #[arg(short, long)]
+    pub progress_bar: bool,
+
     /// Use shell mode for running commands.
     ///
     /// Each command line is passed to "<shell-path> -c" as a single argument.
