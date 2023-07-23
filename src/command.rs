@@ -136,7 +136,7 @@ impl CommandService {
     async fn process_inputs(&self) -> anyhow::Result<()> {
         let mut input_producer = InputProducer::new(self.command_line_args);
 
-        let mut num_inputs = 0u64;
+        let mut num_commands = 0u64;
 
         while let Some(InputMessage {
             command_and_args,
@@ -150,9 +150,9 @@ impl CommandService {
                 continue;
             };
 
-            num_inputs += 1;
+            num_commands += 1;
 
-            self.progress.set_total_commands(num_inputs);
+            self.progress.set_total_commands(num_commands);
 
             self.spawn_command(command_and_args, input_line_number)
                 .await?;
