@@ -18,7 +18,7 @@ impl Progress {
         let progress_bar = if !command_line_args.progress_bar {
             None
         } else {
-            let progress_bar = ProgressBar::new(10);
+            let progress_bar = ProgressBar::new(0);
 
             progress_bar.enable_steady_tick(Duration::from_millis(100));
 
