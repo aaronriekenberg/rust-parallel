@@ -21,6 +21,7 @@ Demos of command line arguments mode are first as it is simpler to understand:
 1. [Reading multiple inputs](#reading-multiple-inputs)
 1. [Calling a bash function](#calling-a-bash-function)
 1. [Calling a bash function commands from arguments](#calling-a-bash-function-commands-from-arguments)
+1. [Progress bar](#progress-bar)
 '
 
 echo '## Commands from arguments.
@@ -271,4 +272,17 @@ echo '
 $ rust-parallel -s logargs ::: A B C ::: D E F'
 $RUST_PARALLEL -s logargs ::: A B C ::: D E F
 
+echo '```'
+
+echo '## Progress bar.
+
+The `-p` option can be used to enable a graphical progress bar.
+
+This is best used for commands which are running for at least a few seconds, and which do not produce output to stdout or stderr.
+
+In the below command `-d all` is used to discard all output from commands run:'
+
+echo '```
+$ rust-parallel -d all -p sleep ::: 1 2 3'
+echo '⠤ [00:00:01] Commands Done/Total:  1/3  █████████░░░░░░░░░░░░░░░░░░ ETA 00:00:02'
 echo '```'
