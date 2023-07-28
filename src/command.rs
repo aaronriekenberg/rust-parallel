@@ -82,22 +82,22 @@ impl std::fmt::Display for Command {
 
 pub struct CommandService {
     child_process_factory: ChildProcessFactory,
+    command_line_args: &'static CommandLineArgs,
+    command_path_cache: CommandPathCache,
     command_semaphore: Arc<Semaphore>,
     output_writer: OutputWriter,
-    command_path_cache: CommandPathCache,
-    command_line_args: &'static CommandLineArgs,
     progress: Arc<Progress>,
 }
 
 impl CommandService {
-    pub fn new(command_line_args: &'static CommandLineArgs) -> Self {
+    pub fn new(command_line_args: &'static CommandLineArgs, progress: Arc<Progress>) -> Self {
         Self {
             child_process_factory: ChildProcessFactory::new(command_line_args),
+            command_line_args,
+            command_path_cache: CommandPathCache::new(command_line_args),
             command_semaphore: Arc::new(Semaphore::new(command_line_args.jobs)),
             output_writer: OutputWriter::new(command_line_args),
-            command_path_cache: CommandPathCache::new(command_line_args),
-            command_line_args,
-            progress: Arc::new(Progress::new(command_line_args)),
+            progress,
         }
     }
 

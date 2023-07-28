@@ -20,7 +20,9 @@ async fn try_main() -> anyhow::Result<()> {
 
     let command_line_args = CommandLineArgs::instance().await;
 
-    let command_service = command::CommandService::new(command_line_args);
+    let progress = progress::Progress::new(command_line_args)?;
+
+    let command_service = command::CommandService::new(command_line_args, progress);
 
     command_service.run_commands().await?;
 
