@@ -5,9 +5,7 @@ use tokio::time::Duration;
 use crate::command_line_args::CommandLineArgs;
 
 const PROGRESS_STYLE: &str =
-    "{spinner:.green} [{elapsed_precise}] Commands Done/Total: {pos:>2}/{len:2} [{wide_bar:.cyan/blue}] ETA {eta_precise}";
-
-const PROGRESS_CHARS: &str = "#>-";
+    "{spinner} [{elapsed_precise}] Commands Done/Total: {pos:>2}/{len:2} {wide_bar} ETA {eta_precise}";
 
 pub struct Progress {
     progress_bar: Option<ProgressBar>,
@@ -22,9 +20,7 @@ impl Progress {
 
             progress_bar.enable_steady_tick(Duration::from_millis(100));
 
-            let style = ProgressStyle::with_template(PROGRESS_STYLE)
-                .unwrap()
-                .progress_chars(PROGRESS_CHARS);
+            let style = ProgressStyle::with_template(PROGRESS_STYLE).unwrap();
 
             progress_bar.set_style(style);
 
