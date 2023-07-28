@@ -1,6 +1,10 @@
+use anyhow::Context;
+
 use indicatif::{ProgressBar, ProgressStyle};
 
 use tokio::time::Duration;
+
+use std::sync::Arc;
 
 use crate::command_line_args::CommandLineArgs;
 
@@ -12,22 +16,22 @@ pub struct Progress {
 }
 
 impl Progress {
-    pub fn new(command_line_args: &CommandLineArgs) -> Self {
+    pub fn new(command_line_args: &CommandLineArgs) -> anyhow::Result<Arc<Self>> {
         let progress_bar = if !command_line_args.progress_bar {
             None
         } else {
             let progress_bar = ProgressBar::new(0);
-
             progress_bar.enable_steady_tick(Duration::from_millis(100));
 
-            let style = ProgressStyle::with_template(PROGRESS_STYLE).unwrap();
+            let style = ProgressStyle::with_template(PROGRESS_STYLE)
+                .context("ProgressStyle::with_template error")?;
 
             progress_bar.set_style(style);
 
             Some(progress_bar)
         };
 
-        Self { progress_bar }
+        Ok(Arc::new(Self { progress_bar }))
     }
 
     pub fn set_total_commands(&self, total_commands: u64) {
