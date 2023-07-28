@@ -66,13 +66,16 @@ Options:
   -0, --null-separator
           Use null separator for reading input files instead of newline
 
+  -p, --progress-bar
+          Display progress bar
+
   -s, --shell
           Use shell mode for running commands.
 
           Each command line is passed to "<shell-path> -c" as a single argument.
 
   -t, --timeout-seconds <TIMEOUT_SECONDS>
-          Timeout seconds for running commands
+          Timeout seconds for running commands.  Defaults to infinite timeout if not specified
 
       --channel-capacity <CHANNEL_CAPACITY>
           Input and output channel capacity, defaults to num cpus * 2
