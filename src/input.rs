@@ -10,7 +10,9 @@ use tokio::{
 
 use tracing::debug;
 
-use crate::{command_line_args::CommandLineArgs, common::OwnedCommandAndArgs};
+use std::sync::Arc;
+
+use crate::{command_line_args::CommandLineArgs, common::OwnedCommandAndArgs, progress::Progress};
 
 #[derive(Debug, Clone, Copy)]
 pub enum BufferedInput {
@@ -92,13 +94,31 @@ pub struct InputMessage {
     pub input_line_number: InputLineNumber,
 }
 
+#[derive(Debug)]
+pub struct InputMessageList {
+    pub message_list: Vec<InputMessage>,
+}
+
+impl From<InputMessage> for InputMessageList {
+    fn from(input_message: InputMessage) -> Self {
+        Self {
+            message_list: vec![input_message],
+        }
+    }
+}
+
+impl From<Vec<InputMessage>> for InputMessageList {
+    fn from(message_list: Vec<InputMessage>) -> Self {
+        Self { message_list }
+    }
+}
 pub struct InputProducer {
     sender_task_join_handle: JoinHandle<()>,
-    receiver: Receiver<InputMessage>,
+    receiver: Receiver<InputMessageList>,
 }
 
 impl InputProducer {
-    pub fn new(command_line_args: &'static CommandLineArgs) -> Self {
+    pub fn new(command_line_args: &'static CommandLineArgs, progress: &Arc<Progress>) -> Self {
         let (sender, receiver) = channel(command_line_args.channel_capacity);
         debug!(
             "created input channel with capacity {}",
@@ -106,7 +126,7 @@ impl InputProducer {
         );
 
         let sender_task_join_handle =
-            tokio::spawn(task::InputSenderTask::new(command_line_args, sender).run());
+            tokio::spawn(task::InputSenderTask::new(command_line_args, sender, progress).run());
 
         Self {
             sender_task_join_handle,
@@ -114,7 +134,7 @@ impl InputProducer {
         }
     }
 
-    pub fn receiver(&mut self) -> &mut Receiver<InputMessage> {
+    pub fn receiver(&mut self) -> &mut Receiver<InputMessageList> {
         &mut self.receiver
     }
 

@@ -1,36 +1,50 @@
 use anyhow::Context;
 
+use itertools::Itertools;
+
 use tokio::sync::{mpsc::Sender, OnceCell};
 
 use tracing::{debug, instrument, warn};
 
+use std::sync::Arc;
+
 use crate::{
     command_line_args::CommandLineArgs,
     parser::{buffered::BufferedInputLineParser, command_line::CommandLineArgsParser},
+    progress::Progress,
 };
 
 use super::{
     buffered_reader::BufferedInputReader, BufferedInput, Input, InputLineNumber, InputList,
-    InputMessage,
+    InputMessage, InputMessageList,
 };
 
 pub struct InputSenderTask {
-    sender: Sender<InputMessage>,
+    sender: Sender<InputMessageList>,
     command_line_args: &'static CommandLineArgs,
     buffered_input_line_parser: OnceCell<BufferedInputLineParser>,
+    progress: Arc<Progress>,
 }
 
 impl InputSenderTask {
-    pub fn new(command_line_args: &'static CommandLineArgs, sender: Sender<InputMessage>) -> Self {
+    pub fn new(
+        command_line_args: &'static CommandLineArgs,
+        sender: Sender<InputMessageList>,
+        progress: &Arc<Progress>,
+    ) -> Self {
         Self {
             sender,
             command_line_args,
             buffered_input_line_parser: OnceCell::new(),
+            progress: Arc::clone(progress),
         }
     }
 
-    async fn send(&self, input_message: InputMessage) {
-        if let Err(e) = self.sender.send(input_message).await {
+    async fn send(&self, input_message_list: InputMessageList) {
+        self.progress
+            .increment_total_commands(input_message_list.message_list.len());
+
+        if let Err(e) = self.sender.send(input_message_list).await {
             warn!("input sender send error: {}", e);
         }
     }
@@ -63,12 +77,14 @@ impl InputSenderTask {
                         continue;
                      };
 
-                    let input_message = InputMessage {
-                        command_and_args,
-                        input_line_number,
-                    };
-
-                    self.send(input_message).await;
+                    self.send(
+                        InputMessage {
+                            command_and_args,
+                            input_line_number,
+                        }
+                        .into(),
+                    )
+                    .await;
                 }
                 None => {
                     debug!("input_reader.next_segment EOF");
@@ -85,16 +101,20 @@ impl InputSenderTask {
 
         let parser = CommandLineArgsParser::new(self.command_line_args);
 
-        for (i, command_and_args) in parser.parse_command_line_args().into_iter().enumerate() {
-            let input_message = InputMessage {
+        let message_list = parser
+            .parse_command_line_args()
+            .into_iter()
+            .enumerate()
+            .map(|(i, command_and_args)| InputMessage {
                 command_and_args,
                 input_line_number: InputLineNumber {
                     input: Input::CommandLineArgs,
                     line_number: i,
                 },
-            };
-            self.send(input_message).await;
-        }
+            })
+            .collect_vec();
+
+        self.send(message_list.into()).await;
     }
 
     #[instrument(skip_all, name = "InputSenderTask::run", level = "debug")]

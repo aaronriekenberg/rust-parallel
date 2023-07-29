@@ -34,9 +34,9 @@ impl Progress {
         Ok(Arc::new(Self { progress_bar }))
     }
 
-    pub fn set_total_commands(&self, total_commands: u64) {
+    pub fn increment_total_commands(&self, delta: usize) {
         if let Some(progress_bar) = &self.progress_bar {
-            progress_bar.set_length(total_commands);
+            progress_bar.inc_length(delta.try_into().unwrap_or_default());
         }
     }
 

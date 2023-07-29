@@ -11,7 +11,7 @@ use std::sync::Arc;
 use crate::{
     command_line_args::CommandLineArgs,
     common::OwnedCommandAndArgs,
-    input::{InputLineNumber, InputMessage, InputProducer},
+    input::{InputLineNumber, InputMessage, InputMessageList, InputProducer},
     output::{OutputSender, OutputWriter},
     process::ChildProcessFactory,
     progress::Progress,
@@ -125,37 +125,43 @@ impl CommandService {
         tokio::spawn(async move {
             command.run(child_process_factory, output_sender).await;
 
-            progress_clone.command_finished();
-
             drop(permit);
+
+            progress_clone.command_finished();
         });
 
         Ok(())
     }
 
-    async fn process_inputs(&self) -> anyhow::Result<()> {
-        let mut input_producer = InputProducer::new(self.command_line_args);
+    async fn process_input_message_list(
+        &self,
+        input_message_list: InputMessageList,
+    ) -> anyhow::Result<()> {
+        for input_message in input_message_list.message_list {
+            let InputMessage {
+                command_and_args,
+                input_line_number,
+            } = input_message;
 
-        let mut num_commands = 0u64;
-
-        while let Some(InputMessage {
-            command_and_args,
-            input_line_number,
-        }) = input_producer.receiver().recv().await
-        {
             let Some(command_and_args) = self
                 .command_path_cache
                 .resolve_command_path(command_and_args)
                 .await? else {
-                continue;
+                break;
             };
-
-            num_commands += 1;
-
-            self.progress.set_total_commands(num_commands);
 
             self.spawn_command(command_and_args, input_line_number)
                 .await?;
+        }
+
+        Ok(())
+    }
+
+    async fn process_inputs(&self) -> anyhow::Result<()> {
+        let mut input_producer = InputProducer::new(self.command_line_args, &self.progress);
+
+        while let Some(input_message_list) = input_producer.receiver().recv().await {
+            self.process_input_message_list(input_message_list).await?;
         }
 
         input_producer.wait_for_completion().await?;
