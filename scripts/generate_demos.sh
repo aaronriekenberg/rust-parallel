@@ -9,11 +9,12 @@ echo 'There are 2 major ways to use rust-parallel:
 1. Run commands from arguments using `:::` syntax to separate argument groups similar to GNU parallel.
 1. Reading commands from stdin and/or input files similar to xargs.
 
-Demos of command line arguments mode are first as it is simpler to understand:
+Demos of command from arguments are first as it is simpler to understand:
 1. [Commands from arguments](#commands-from-arguments)
 1. [Small demo of echo commands](#small-demo-of-echo-commands)
 1. [Debug logging](#debug-logging)
 1. [Timeout](#timeout)
+1. [Progress bar](#progress-bar)
 1. [Specifying command and intial arguments on command line](#specifying-command-and-intial-arguments-on-command-line)
 1. [Using awk to form complete commands](#using-awk-to-form-complete-commands)
 1. [Using as part of a shell pipeline](#using-as-part-of-a-shell-pipeline)
@@ -21,7 +22,6 @@ Demos of command line arguments mode are first as it is simpler to understand:
 1. [Reading multiple inputs](#reading-multiple-inputs)
 1. [Calling a bash function](#calling-a-bash-function)
 1. [Calling a bash function commands from arguments](#calling-a-bash-function-commands-from-arguments)
-1. [Progress bar](#progress-bar)
 '
 
 echo '## Commands from arguments.
@@ -45,7 +45,7 @@ $ rust-parallel gzip -k ::: *.html
 echo '
 ## Small demo of echo commands.
 
-Using command line arguments mode we can run 5 echo commands.
+Using command line arguments we can run 5 echo commands.
 
 With `-j5` all commands run in parallel, with `-j1` commands run sequentially.
 '
@@ -121,6 +121,19 @@ echo '```'
 echo '$ rust-parallel -t 0.5 sleep ::: 0 3 5'
 $RUST_PARALLEL -t 0.5 sleep ::: 0 3 5 | ansi-stripper
 
+echo '```'
+
+echo '## Progress bar.
+
+The `-p` option can be used to enable a graphical progress bar.
+
+This is best used for commands which are running for at least a few seconds, and which do not produce output to stdout or stderr.
+
+In the below command `-d all` is used to discard all output from commands run:'
+
+echo '```
+$ rust-parallel -d all -p sleep ::: 1 2 3'
+echo '⠤ [00:00:01] Commands Done/Total:  1/3  █████████░░░░░░░░░░░░░░░░░░ ETA 00:00:02'
 echo '```'
 
 echo '## Specifying command and intial arguments on command line:
@@ -272,17 +285,4 @@ echo '
 $ rust-parallel -s logargs ::: A B C ::: D E F'
 $RUST_PARALLEL -s logargs ::: A B C ::: D E F
 
-echo '```'
-
-echo '## Progress bar.
-
-The `-p` option can be used to enable a graphical progress bar.
-
-This is best used for commands which are running for at least a few seconds, and which do not produce output to stdout or stderr.
-
-In the below command `-d all` is used to discard all output from commands run:'
-
-echo '```
-$ rust-parallel -d all -p sleep ::: 1 2 3'
-echo '⠤ [00:00:01] Commands Done/Total:  1/3  █████████░░░░░░░░░░░░░░░░░░ ETA 00:00:02'
 echo '```'
