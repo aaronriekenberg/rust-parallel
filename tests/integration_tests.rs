@@ -166,23 +166,44 @@ fn fails_t0() {
 }
 
 #[test]
-fn runs_shell_commands_from_file_j1() {
+fn runs_shell_function_from_stdin_j1() {
+    let stdin = r#"A
+        B
+        C"#;
+
     rust_parallel()
+        .write_stdin(stdin)
         .arg("-j1")
-        .arg("-i")
-        .arg("shell_input.txt")
         .arg("-s")
         .arg("--shell-path=./dummy_shell.sh")
+        .arg("shell_function")
         .assert()
         .success()
         .stdout(predicate::eq(
-            "dummy_shell arg1=-c arg2=shell_function 1\ndummy_shell arg1=-c arg2=shell_function 2\ndummy_shell arg1=-c arg2=shell_function 3\ndummy_shell arg1=-c arg2=shell_function 4\n",
+            "dummy_shell arg1=-c arg2=shell_function A\ndummy_shell arg1=-c arg2=shell_function B\ndummy_shell arg1=-c arg2=shell_function C\n",
         ))
         .stderr(predicate::str::is_empty());
 }
 
 #[test]
-fn runs_shell_commands_from_args_j1() {
+fn runs_shell_function_from_file_j1() {
+    rust_parallel()
+        .arg("-j1")
+        .arg("-i")
+        .arg("file.txt")
+        .arg("-s")
+        .arg("--shell-path=./dummy_shell.sh")
+        .arg("shell_function")
+        .assert()
+        .success()
+        .stdout(predicate::eq(
+            "dummy_shell arg1=-c arg2=shell_function hello\ndummy_shell arg1=-c arg2=shell_function from\ndummy_shell arg1=-c arg2=shell_function input\ndummy_shell arg1=-c arg2=shell_function file\n",
+        ))
+        .stderr(predicate::str::is_empty());
+}
+
+#[test]
+fn runs_shell_function_from_args_j1() {
     rust_parallel()
         .arg("-j1")
         .arg("-s")

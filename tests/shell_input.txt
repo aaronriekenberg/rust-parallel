@@ -1,4 +1,0 @@
-shell_function 1
-shell_function 2
-shell_function 3
-shell_function 4
