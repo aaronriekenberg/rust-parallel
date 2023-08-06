@@ -15,7 +15,7 @@ Demos of command from arguments are first as it is simpler to understand:
 1. [Debug logging](#debug-logging)
 1. [Timeout](#timeout)
 1. [Progress bar](#progress-bar)
-1. [Specifying command and intial arguments on command line](#specifying-command-and-intial-arguments-on-command-line)
+1. [Specifying command and initial arguments on command line](#specifying-command-and-initial-arguments-on-command-line)
 1. [Using awk to form complete commands](#using-awk-to-form-complete-commands)
 1. [Using as part of a shell pipeline](#using-as-part-of-a-shell-pipeline)
 1. [Working on a set of files from find command](#working-on-a-set-of-files-from-find-command)
@@ -137,7 +137,7 @@ $ rust-parallel -d all -p sleep ::: 1 2 3'
 echo '⠤ [00:00:01] Commands Done/Total:  1/3  █████████░░░░░░░░░░░░░░░░░░ ETA 00:00:02'
 echo '```'
 
-echo '## Specifying command and intial arguments on command line:
+echo '## Specifying command and initial arguments on command line:
 
 Here `md5 -s` will be prepended to each input line to form a command like `md5 -s aal`
 '
