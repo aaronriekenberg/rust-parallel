@@ -223,7 +223,7 @@ echo '## Bash Function
 
 Use `-s` shell mode to invoke an arbitrary bash function.
 
-Similar to normal commands bash function can be called using stdin, input files, or from command line arguments.'
+Similar to normal commands bash functions can be called using stdin, input files, or from command line arguments.'
 
 echo '### Function Setup
 
@@ -245,7 +245,16 @@ export -f logargs
 
 echo '```'
 
-echo '### Demo of bash function and command line arguments read from stdin:'
+echo '### Demo of command line arguments:
+'
+
+echo '```
+$ rust-parallel -s logargs ::: A B C ::: D E F'
+$RUST_PARALLEL -s logargs ::: A B C ::: D E F
+
+echo '```'
+
+echo '### Demo of function and command line arguments from stdin:'
 
 echo '```
 $ cat >./test <<EOL
@@ -268,7 +277,7 @@ rm -f test
 echo '```
 '
 
-echo '### Demo of bash function and initial arguments on command line, additional arguments read from stdin:'
+echo '### Demo of function and initial arguments on command line, additional arguments from stdin:'
 
 echo '```
 $ cat >./test <<EOL
@@ -290,12 +299,3 @@ rm -f test
 
 echo '```
 '
-
-echo '### Demo of command line arguments to invoke bash function:
-'
-
-echo '```
-$ rust-parallel -s logargs ::: A B C ::: D E F'
-$RUST_PARALLEL -s logargs ::: A B C ::: D E F
-
-echo '```'
