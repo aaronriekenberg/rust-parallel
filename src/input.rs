@@ -112,6 +112,7 @@ impl From<Vec<InputMessage>> for InputMessageList {
         Self { message_list }
     }
 }
+
 pub struct InputProducer {
     sender_task_join_handle: JoinHandle<()>,
     receiver: Receiver<InputMessageList>,
