@@ -21,8 +21,8 @@ Demos of command from arguments are first as it is simpler to understand:
 1. [Working on a set of files from find command](#working-on-a-set-of-files-from-find-command)
 1. [Reading multiple inputs](#reading-multiple-inputs)
 1. [Calling a bash function](#calling-a-bash-function)
-1. [Calling a bash function name on command line](#calling-a-bash-function-name-on-command-line)
-1. [Calling a bash function commands from arguments](#calling-a-bash-function-commands-from-arguments)
+1. [Bash function name on command line](#bash-function-name-on-command-line)
+1. [Bash function commands from arguments](#bash-function-commands-from-arguments)
 '
 
 echo '## Commands from arguments.
@@ -265,7 +265,7 @@ echo '```
 '
 
 
-echo '## Calling a bash function name on command line.
+echo '## Bash function name on command line.
 
 The bash function name can be specified on the command line:
 '
@@ -308,7 +308,7 @@ rm -f test
 echo '```
 '
 
-echo '## Calling a bash function commands from arguments.
+echo '## Bash function commands from arguments.
 
 Commands from arguments can also be used to invoke a bash function:
 '
