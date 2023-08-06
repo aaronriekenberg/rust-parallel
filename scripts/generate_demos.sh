@@ -21,6 +21,7 @@ Demos of command from arguments are first as it is simpler to understand:
 1. [Working on a set of files from find command](#working-on-a-set-of-files-from-find-command)
 1. [Reading multiple inputs](#reading-multiple-inputs)
 1. [Calling a bash function](#calling-a-bash-function)
+1. [Calling a bash function name on command line](#calling-a-bash-function-name-on-command-line)
 1. [Calling a bash function commands from arguments](#calling-a-bash-function-commands-from-arguments)
 '
 
@@ -258,6 +259,50 @@ echo '
 $ cat test | rust-parallel -s'
 
 cat test | $RUST_PARALLEL -s
+rm -f test
+
+echo '```
+'
+
+
+echo '## Calling a bash function name on command line.
+
+The bash function name can be specified on the command line:
+'
+
+echo '```'
+
+echo '$ doit() {
+  echo Doing it for $1
+  sleep .5
+  echo Done with $1
+}'
+doit() {
+  echo Doing it for $1
+  sleep .5
+  echo Done with $1
+}
+
+echo '
+$ export -f doit'
+export -f doit
+
+echo '
+$ cat >./test <<EOL
+1
+2
+3
+EOL'
+cat >./test <<EOL
+1
+2
+3
+EOL
+
+echo '
+$ cat test | rust-parallel -s doit'
+
+cat test | $RUST_PARALLEL -s doit
 rm -f test
 
 echo '```
