@@ -20,9 +20,7 @@ Demos of command from arguments are first as it is simpler to understand:
 1. [Using as part of a shell pipeline](#using-as-part-of-a-shell-pipeline)
 1. [Working on a set of files from find command](#working-on-a-set-of-files-from-find-command)
 1. [Reading multiple inputs](#reading-multiple-inputs)
-1. [Calling a bash function](#calling-a-bash-function)
-1. [Bash function name on command line](#bash-function-name-on-command-line)
-1. [Bash function commands from arguments](#bash-function-commands-from-arguments)
+1. [Bash Function](#bash-function)
 '
 
 echo '## Commands from arguments.
@@ -221,96 +219,15 @@ rm -f test
 
 echo '```'
 
-echo '## Calling a bash function.
+echo '## Bash Function
 
-Use `-s` shell mode so that each input line is passed to `/bin/bash -c` as a single argument:
-'
+Use `-s` shell mode to invoke an arbitrary bash function.
 
-echo '```'
+Similar to normal commands bash function can be called using stdin, input files, or from command line arguments.'
 
-echo '$ doit() {
-  echo Doing it for $1
-  sleep .5
-  echo Done with $1
-}'
-doit() {
-  echo Doing it for $1
-  sleep .5
-  echo Done with $1
-}
+echo '### Function Setup
 
-echo '
-$ export -f doit'
-export -f doit
-
-echo '
-$ cat >./test <<EOL
-doit 1
-doit 2
-doit 3
-EOL'
-cat >./test <<EOL
-doit 1
-doit 2
-doit 3
-EOL
-
-echo '
-$ cat test | rust-parallel -s'
-
-cat test | $RUST_PARALLEL -s
-rm -f test
-
-echo '```
-'
-
-
-echo '## Bash function name on command line.
-
-The bash function name can be specified on the command line:
-'
-
-echo '```'
-
-echo '$ doit() {
-  echo Doing it for $1
-  sleep .5
-  echo Done with $1
-}'
-doit() {
-  echo Doing it for $1
-  sleep .5
-  echo Done with $1
-}
-
-echo '
-$ export -f doit'
-export -f doit
-
-echo '
-$ cat >./test <<EOL
-1
-2
-3
-EOL'
-cat >./test <<EOL
-1
-2
-3
-EOL
-
-echo '
-$ cat test | rust-parallel -s doit'
-
-cat test | $RUST_PARALLEL -s doit
-rm -f test
-
-echo '```
-'
-
-echo '## Bash function commands from arguments.
-
-Commands from arguments can also be used to invoke a bash function:
+Define a bash fuction `logargs` that logs all arguments and make visible with `export -f`:
 '
 
 echo '```'
@@ -326,7 +243,58 @@ echo '
 $ export -f logargs'
 export -f logargs
 
+echo '```'
+
+echo '### Demo of bash function and command line arguments read from stdin:'
+
+echo '```
+$ cat >./test <<EOL
+logargs hello alice
+logargs hello bob
+logargs hello charlie
+EOL'
+cat >./test <<EOL
+logargs hello alice
+logargs hello bob
+logargs hello charlie
+EOL
+
 echo '
+$ cat test | rust-parallel -s'
+
+cat test | $RUST_PARALLEL -s
+rm -f test
+
+echo '```
+'
+
+echo '### Demo of bash function and initial arguments on command line, additional arguments read from stdin:'
+
+echo '```
+$ cat >./test <<EOL
+alice
+bob
+charlie
+EOL'
+cat >./test <<EOL
+alice
+bob
+charlie
+EOL
+
+echo '
+$ cat test | rust-parallel -s logargs hello'
+
+cat test | $RUST_PARALLEL -s logargs hello
+rm -f test
+
+echo '```
+'
+
+echo '### Demo of command line arguments to invoke bash function:
+'
+
+echo '```
 $ rust-parallel -s logargs ::: A B C ::: D E F'
 $RUST_PARALLEL -s logargs ::: A B C ::: D E F
 
