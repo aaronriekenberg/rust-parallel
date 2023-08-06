@@ -15,7 +15,9 @@ fn prepend_shell_command_and_args(
     shell_command_and_args: &[String],
     command_and_args: Vec<String>,
 ) -> Option<OwnedCommandAndArgs> {
-    let merged_args = vec![command_and_args.join(" ")];
-    let cmd_and_args = [shell_command_and_args.to_owned(), merged_args].concat();
-    OwnedCommandAndArgs::try_from(cmd_and_args).ok()
+    let mut result = Vec::with_capacity(shell_command_and_args.len() + 1);
+    result.extend_from_slice(shell_command_and_args);
+    result.push(command_and_args.join(" "));
+
+    OwnedCommandAndArgs::try_from(result).ok()
 }
