@@ -4,22 +4,21 @@ use crate::{command_line_args::CommandLineArgs, common::OwnedCommandAndArgs};
 
 pub struct BufferedInputLineParser {
     split_whitespace: bool,
+    shell_command_and_args: Option<Vec<String>>,
     prepend_command_and_args: Vec<String>,
 }
 
 impl BufferedInputLineParser {
     pub fn new(command_line_args: &CommandLineArgs) -> Self {
-        let split_whitespace = !(command_line_args.null_separator || command_line_args.shell);
+        let split_whitespace = !command_line_args.null_separator;
 
-        let mut prepend_command_and_args = command_line_args.command_and_initial_arguments.clone();
+        let prepend_command_and_args = command_line_args.command_and_initial_arguments.clone();
 
-        if let Some(shell_command_and_args) = super::build_shell_command_and_args(command_line_args)
-        {
-            prepend_command_and_args = [shell_command_and_args, prepend_command_and_args].concat();
-        }
+        let shell_command_and_args = super::build_shell_command_and_args(command_line_args);
 
         Self {
             split_whitespace,
+            shell_command_and_args,
             prepend_command_and_args,
         }
     }
@@ -43,7 +42,12 @@ impl BufferedInputLineParser {
             vec = [self.prepend_command_and_args.clone(), vec].concat();
         }
 
-        OwnedCommandAndArgs::try_from(vec).ok()
+        match &self.shell_command_and_args {
+            None => OwnedCommandAndArgs::try_from(vec).ok(),
+            Some(shell_command_and_args) => {
+                super::prepend_shell_command_and_args(shell_command_and_args, vec)
+            }
+        }
     }
 }
 
@@ -165,7 +169,7 @@ mod test {
             result,
             Some(OwnedCommandAndArgs {
                 command_path: PathBuf::from("/bin/zsh"),
-                args: vec!["-c", " awesomebashfunction 1 2 3 "]
+                args: vec!["-c", "awesomebashfunction 1 2 3"]
                     .into_iter()
                     .map_into()
                     .collect(),

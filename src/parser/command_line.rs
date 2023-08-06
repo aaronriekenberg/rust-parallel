@@ -73,9 +73,7 @@ impl CommandLineArgsParser {
                 match &self.shell_command_and_args {
                     None => OwnedCommandAndArgs::try_from(cmd_and_args).ok(),
                     Some(shell_command_and_args) => {
-                        let merged_args = vec![cmd_and_args.join(" ")];
-                        let cmd_and_args = [shell_command_and_args.clone(), merged_args].concat();
-                        OwnedCommandAndArgs::try_from(cmd_and_args).ok()
+                        super::prepend_shell_command_and_args(shell_command_and_args, cmd_and_args)
                     }
                 }
             })
