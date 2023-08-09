@@ -70,12 +70,7 @@ impl CommandLineArgsParser {
             .multi_cartesian_product()
             .filter_map(|current_args| {
                 let cmd_and_args = [first_command_and_args.clone(), current_args].concat();
-                match &self.shell_command_and_args {
-                    None => OwnedCommandAndArgs::try_from(cmd_and_args).ok(),
-                    Some(shell_command_and_args) => {
-                        super::prepend_shell_command_and_args(shell_command_and_args, cmd_and_args)
-                    }
-                }
+                super::build_owned_command_and_args(&self.shell_command_and_args, cmd_and_args)
             })
             .collect()
     }

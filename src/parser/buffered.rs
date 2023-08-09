@@ -42,12 +42,7 @@ impl BufferedInputLineParser {
             vec = [self.prepend_command_and_args.clone(), vec].concat();
         }
 
-        match &self.shell_command_and_args {
-            None => OwnedCommandAndArgs::try_from(vec).ok(),
-            Some(shell_command_and_args) => {
-                super::prepend_shell_command_and_args(shell_command_and_args, vec)
-            }
-        }
+        super::build_owned_command_and_args(&self.shell_command_and_args, vec)
     }
 }
 

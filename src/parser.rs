@@ -11,13 +11,18 @@ fn build_shell_command_and_args(command_line_args: &CommandLineArgs) -> Option<V
     }
 }
 
-fn prepend_shell_command_and_args(
-    shell_command_and_args: &[String],
+fn build_owned_command_and_args(
+    shell_command_and_args: &Option<Vec<String>>,
     command_and_args: Vec<String>,
 ) -> Option<OwnedCommandAndArgs> {
-    let mut result = Vec::with_capacity(shell_command_and_args.len() + 1);
-    result.extend_from_slice(shell_command_and_args);
-    result.push(command_and_args.join(" "));
+    match shell_command_and_args {
+        None => OwnedCommandAndArgs::try_from(command_and_args).ok(),
+        Some(shell_command_and_args) => {
+            let mut result = Vec::with_capacity(shell_command_and_args.len() + 1);
+            result.extend_from_slice(shell_command_and_args);
+            result.push(command_and_args.join(" "));
 
-    OwnedCommandAndArgs::try_from(result).ok()
+            OwnedCommandAndArgs::try_from(result).ok()
+        }
+    }
 }
