@@ -599,6 +599,7 @@ dependencies = [
  "itertools 0.11.0",
  "num_cpus",
  "predicates",
+ "regex",
  "thiserror",
  "tokio",
  "tracing",
