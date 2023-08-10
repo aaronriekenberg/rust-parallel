@@ -3,6 +3,7 @@ use itertools::Itertools;
 use crate::{
     command_line_args::{CommandLineArgs, COMMANDS_FROM_ARGS_SEPARATOR},
     common::OwnedCommandAndArgs,
+    parser::ShellCommandAndArgs,
 };
 
 #[derive(Debug)]
@@ -13,7 +14,7 @@ struct ArgumentGroups {
 
 pub struct CommandLineArgsParser {
     argument_groups: ArgumentGroups,
-    shell_command_and_args: Option<Vec<String>>,
+    shell_command_and_args: ShellCommandAndArgs,
 }
 
 impl CommandLineArgsParser {

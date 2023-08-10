@@ -1,10 +1,12 @@
 use itertools::Itertools;
 
-use crate::{command_line_args::CommandLineArgs, common::OwnedCommandAndArgs};
+use crate::{
+    command_line_args::CommandLineArgs, common::OwnedCommandAndArgs, parser::ShellCommandAndArgs,
+};
 
 pub struct BufferedInputLineParser {
     split_whitespace: bool,
-    shell_command_and_args: Option<Vec<String>>,
+    shell_command_and_args: ShellCommandAndArgs,
     prepend_command_and_args: Vec<String>,
 }
 
