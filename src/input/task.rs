@@ -75,7 +75,7 @@ impl InputSenderTask {
                 Some((input_line_number, segment)) => {
                     let Some(command_and_args) = parser.parse_segment(segment) else {
                         continue;
-                     };
+                    };
 
                     self.send(
                         InputMessage {
