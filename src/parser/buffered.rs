@@ -2,12 +2,14 @@ use itertools::Itertools;
 
 use crate::{
     command_line_args::CommandLineArgs, common::OwnedCommandAndArgs, parser::ShellCommandAndArgs,
+    regex::RegexProcessor,
 };
 
 pub struct BufferedInputLineParser {
     split_whitespace: bool,
     shell_command_and_args: ShellCommandAndArgs,
     prepend_command_and_args: Vec<String>,
+    regex_processor: RegexProcessor,
 }
 
 impl BufferedInputLineParser {
@@ -22,6 +24,7 @@ impl BufferedInputLineParser {
             split_whitespace,
             shell_command_and_args,
             prepend_command_and_args,
+            regex_processor: RegexProcessor::new(command_line_args),
         }
     }
 
@@ -34,15 +37,20 @@ impl BufferedInputLineParser {
     }
 
     pub fn parse_line(&self, input_line: &str) -> Option<OwnedCommandAndArgs> {
-        let mut vec = if self.split_whitespace {
+        let mut vec: Vec<String> = if self.split_whitespace {
             input_line.split_whitespace().map_into().collect()
         } else {
-            vec![input_line.to_owned()]
+            vec![input_line.into()]
         };
 
         if !self.prepend_command_and_args.is_empty() {
             vec = [self.prepend_command_and_args.clone(), vec].concat();
         }
+
+        let vec = vec
+            .into_iter()
+            .map(|s| self.regex_processor.process_string(&s, input_line).into())
+            .collect_vec();
 
         super::build_owned_command_and_args(&self.shell_command_and_args, vec)
     }

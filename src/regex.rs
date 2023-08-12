@@ -1,10 +1,10 @@
 use regex::Regex;
 
-use tracing::info;
+use tracing::debug;
 
-use crate::{command_line_args::CommandLineArgs, common::OwnedCommandAndArgs};
+use crate::command_line_args::CommandLineArgs;
 
-use std::{borrow::Cow, collections::HashMap};
+use std::borrow::Cow;
 
 pub struct RegexProcessor {
     regex: Option<regex::Regex>,
@@ -19,63 +19,33 @@ impl RegexProcessor {
         Self { regex }
     }
 
-    pub fn process_command_and_args(
-        &self,
-        command_and_args: OwnedCommandAndArgs,
-    ) -> OwnedCommandAndArgs {
-        info!(
-            "in process_command_and_args command_and_args = {:?}",
-            command_and_args
+    pub fn process_string<'a>(&self, arg: &'a str, input_line: &'a str) -> Cow<'a, str> {
+        debug!(
+            "in process_string arg = {:?} input_line = {:?}",
+            arg, input_line
         );
+
         let regex = match &self.regex {
-            None => return command_and_args,
+            None => return Cow::from(arg),
             Some(regex) => regex,
         };
 
-        let args = command_and_args.args;
+        let captures = match regex.captures(&input_line) {
+            None => return Cow::from(arg),
+            Some(captures) => captures,
+        };
 
-        let args = args
-            .into_iter()
-            .map(|arg| {
-                let mut numbered_groups = vec![];
+        debug!("captures = ${:?}", captures);
 
-                let mut named_map = HashMap::new();
+        let mut dest = String::new();
 
-                let group_names = regex
-                    .capture_names()
-                    .filter_map(|x| x)
-                    .collect::<Vec<&str>>();
+        captures.expand(&arg, &mut dest);
 
-                for caps in regex.captures_iter(&arg) {
-                    for cap_wrapper in caps.iter() {
-                        if let Some(mat) = cap_wrapper {
-                            numbered_groups.push(Cow::Borrowed(mat.as_str()));
-                        }
-                    }
+        debug!(
+            "after expand input_line = {:?} dest = {:?}",
+            input_line, dest
+        );
 
-                    for name in group_names.iter() {
-                        if let Some(mat) = caps.name(name) {
-                            named_map.insert(name.to_string(), Cow::Borrowed(mat.as_str()));
-                        }
-                    }
-
-                    info!(
-                        "arg = {:?} numbered_groups = {:?} named_map = {:?}",
-                        arg, numbered_groups, named_map
-                    );
-                }
-
-                // numbered_groups.iter().enumerate().for_each(|(s, i)| {
-
-                // });
-
-                arg
-            })
-            .collect();
-
-        OwnedCommandAndArgs {
-            command_path: command_and_args.command_path,
-            args,
-        }
+        Cow::from(dest)
     }
 }
