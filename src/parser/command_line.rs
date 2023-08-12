@@ -4,6 +4,7 @@ use crate::{
     command_line_args::{CommandLineArgs, COMMANDS_FROM_ARGS_SEPARATOR},
     common::OwnedCommandAndArgs,
     parser::ShellCommandAndArgs,
+    regex::RegexProcessor,
 };
 
 #[derive(Debug)]
@@ -15,6 +16,7 @@ struct ArgumentGroups {
 pub struct CommandLineArgsParser {
     argument_groups: ArgumentGroups,
     shell_command_and_args: ShellCommandAndArgs,
+    regex_processor: RegexProcessor,
 }
 
 impl CommandLineArgsParser {
@@ -26,6 +28,7 @@ impl CommandLineArgsParser {
         Self {
             argument_groups,
             shell_command_and_args,
+            regex_processor: RegexProcessor::new(command_line_args),
         }
     }
 
@@ -70,8 +73,24 @@ impl CommandLineArgsParser {
             .into_iter()
             .multi_cartesian_product()
             .filter_map(|current_args| {
-                let cmd_and_args = [first_command_and_args.clone(), current_args].concat();
-                super::build_owned_command_and_args(&self.shell_command_and_args, cmd_and_args)
+                if !self.regex_processor.regex_mode() {
+                    let cmd_and_args = [first_command_and_args.clone(), current_args].concat();
+
+                    super::build_owned_command_and_args(&self.shell_command_and_args, cmd_and_args)
+                } else {
+                    let input_line = current_args.join(" ");
+
+                    let cmd_and_args = first_command_and_args
+                        .iter()
+                        .map(|arg| {
+                            self.regex_processor
+                                .process_string(&arg, &input_line)
+                                .into()
+                        })
+                        .collect_vec();
+
+                    super::build_owned_command_and_args(&self.shell_command_and_args, cmd_and_args)
+                }
             })
             .collect()
     }
