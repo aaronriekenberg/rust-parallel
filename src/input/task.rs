@@ -26,7 +26,6 @@ pub struct InputSenderTask {
     command_line_args: &'static CommandLineArgs,
     buffered_input_line_parser: OnceCell<BufferedInputLineParser>,
     progress: Arc<Progress>,
-    regex_processor: RegexProcessor,
 }
 
 impl InputSenderTask {
@@ -40,16 +39,7 @@ impl InputSenderTask {
             command_line_args,
             buffered_input_line_parser: OnceCell::new(),
             progress: Arc::clone(progress),
-            regex_processor: RegexProcessor::new(command_line_args),
         }
-    }
-
-    fn process_command_and_args(
-        &self,
-        command_and_args: OwnedCommandAndArgs,
-    ) -> OwnedCommandAndArgs {
-        self.regex_processor
-            .process_command_and_args(command_and_args)
     }
 
     async fn send(&self, input_message_list: InputMessageList) {
@@ -89,8 +79,6 @@ impl InputSenderTask {
                         continue;
                     };
 
-                    let command_and_args = self.process_command_and_args(command_and_args);
-
                     self.send(
                         InputMessage {
                             command_and_args,
@@ -119,16 +107,12 @@ impl InputSenderTask {
             .parse_command_line_args()
             .into_iter()
             .enumerate()
-            .map(|(i, command_and_args)| {
-                let command_and_args = self.process_command_and_args(command_and_args);
-
-                InputMessage {
-                    command_and_args,
-                    input_line_number: InputLineNumber {
-                        input: Input::CommandLineArgs,
-                        line_number: i,
-                    },
-                }
+            .map(|(i, command_and_args)| InputMessage {
+                command_and_args,
+                input_line_number: InputLineNumber {
+                    input: Input::CommandLineArgs,
+                    line_number: i,
+                },
             })
             .collect_vec();
 
