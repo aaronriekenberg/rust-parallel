@@ -8,7 +8,7 @@ use crate::{
 pub struct BufferedInputLineParser {
     split_whitespace: bool,
     shell_command_and_args: ShellCommandAndArgs,
-    prepend_command_and_args: Vec<String>,
+    command_and_initial_arguments: Vec<String>,
     regex_processor: RegexProcessor,
 }
 
@@ -16,14 +16,14 @@ impl BufferedInputLineParser {
     pub fn new(command_line_args: &CommandLineArgs) -> Self {
         let split_whitespace = !command_line_args.null_separator;
 
-        let prepend_command_and_args = command_line_args.command_and_initial_arguments.clone();
+        let command_and_initial_arguments = command_line_args.command_and_initial_arguments.clone();
 
         let shell_command_and_args = super::build_shell_command_and_args(command_line_args);
 
         Self {
             split_whitespace,
             shell_command_and_args,
-            prepend_command_and_args,
+            command_and_initial_arguments,
             regex_processor: RegexProcessor::new(command_line_args),
         }
     }
@@ -37,22 +37,27 @@ impl BufferedInputLineParser {
     }
 
     pub fn parse_line(&self, input_line: &str) -> Option<OwnedCommandAndArgs> {
-        let mut vec: Vec<String> = if self.split_whitespace {
-            input_line.split_whitespace().map_into().collect()
+        if !self.regex_processor.regex_mode() {
+            let mut vec: Vec<String> = if self.split_whitespace {
+                input_line.split_whitespace().map_into().collect()
+            } else {
+                vec![input_line.into()]
+            };
+
+            if !self.command_and_initial_arguments.is_empty() {
+                vec = [self.command_and_initial_arguments.clone(), vec].concat();
+            }
+
+            super::build_owned_command_and_args(&self.shell_command_and_args, vec)
         } else {
-            vec![input_line.into()]
-        };
+            let vec = self
+                .command_and_initial_arguments
+                .iter()
+                .map(|arg| self.regex_processor.process_string(&arg, input_line).into())
+                .collect_vec();
 
-        if !self.prepend_command_and_args.is_empty() {
-            vec = [self.prepend_command_and_args.clone(), vec].concat();
+            super::build_owned_command_and_args(&self.shell_command_and_args, vec)
         }
-
-        let vec = vec
-            .into_iter()
-            .map(|s| self.regex_processor.process_string(&s, input_line).into())
-            .collect_vec();
-
-        super::build_owned_command_and_args(&self.shell_command_and_args, vec)
     }
 }
 
