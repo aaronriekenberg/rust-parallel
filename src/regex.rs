@@ -19,6 +19,10 @@ impl RegexProcessor {
         Self { regex }
     }
 
+    pub fn regex_mode(&self) -> bool {
+        self.regex.is_some()
+    }
+
     pub fn process_string<'a>(&self, arg: &'a str, input_line: &'a str) -> Cow<'a, str> {
         debug!(
             "in process_string arg = {:?} input_line = {:?}",
