@@ -250,7 +250,7 @@ mod test {
     }
 
     #[test]
-    fn test_numbered_groups() {
+    fn test_regex_numbered_groups() {
         let command_line_args = CommandLineArgs {
             command_and_initial_arguments: vec![
                 "echo".to_owned(),
