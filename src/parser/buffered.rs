@@ -1,8 +1,9 @@
 use itertools::Itertools;
 
 use crate::{
-    command_line_args::CommandLineArgs, common::OwnedCommandAndArgs, parser::ShellCommandAndArgs,
-    regex::RegexProcessor,
+    command_line_args::CommandLineArgs,
+    common::OwnedCommandAndArgs,
+    parser::{regex::RegexProcessor, ShellCommandAndArgs},
 };
 
 pub struct BufferedInputLineParser {
@@ -37,27 +38,26 @@ impl BufferedInputLineParser {
     }
 
     pub fn parse_line(&self, input_line: &str) -> Option<OwnedCommandAndArgs> {
-        if !self.regex_processor.regex_mode() {
-            let mut vec: Vec<String> = if self.split_whitespace {
+        let cmd_and_args = if !self.regex_processor.regex_mode() {
+            let mut cmd_and_args = if self.split_whitespace {
                 input_line.split_whitespace().map_into().collect()
             } else {
                 vec![input_line.into()]
             };
 
             if !self.command_and_initial_arguments.is_empty() {
-                vec = [self.command_and_initial_arguments.clone(), vec].concat();
+                cmd_and_args = [self.command_and_initial_arguments.clone(), cmd_and_args].concat();
             }
 
-            super::build_owned_command_and_args(&self.shell_command_and_args, vec)
+            cmd_and_args
         } else {
-            let vec = self
-                .command_and_initial_arguments
+            self.command_and_initial_arguments
                 .iter()
                 .map(|arg| self.regex_processor.process_string(&arg, input_line).into())
-                .collect_vec();
+                .collect_vec()
+        };
 
-            super::build_owned_command_and_args(&self.shell_command_and_args, vec)
-        }
+        super::build_owned_command_and_args(&self.shell_command_and_args, cmd_and_args)
     }
 }
 

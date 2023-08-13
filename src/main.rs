@@ -13,7 +13,6 @@ mod output;
 mod parser;
 mod process;
 mod progress;
-mod regex;
 
 #[instrument(skip_all, name = "try_main", level = "debug")]
 async fn try_main() -> anyhow::Result<()> {
