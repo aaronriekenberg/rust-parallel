@@ -7,10 +7,12 @@ Similar interface to [GNU Parallel](https://www.gnu.org/software/parallel/parall
   * `head -1000 /usr/share/dict/words | rust-parallel md5 -s`
 * Supports `:::` syntax to run all combinations of argument groups similar to GNU Parallel, for example:
   * `rust-parallel gzip -k ::: *.html`
+ 
+See the [demos](https://github.com/aaronriekenberg/rust-parallel/wiki/Demos) for example usage.
 
 Prevents [output interleaving](https://github.com/aaronriekenberg/rust-parallel/wiki/Output-Interleaving) and is [very fast](https://github.com/aaronriekenberg/rust-parallel/wiki/Benchmarks).
 
-See the [demos](https://github.com/aaronriekenberg/rust-parallel/wiki/Demos) for example usage.
+Supports optional processing of inputs using regular expression capture groups.
 
 [crates-badge]: https://img.shields.io/crates/v/rust-parallel.svg
 [crates-url]: https://crates.io/crates/rust-parallel
