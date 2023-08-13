@@ -240,6 +240,20 @@ $RUST_PARALLEL -r '(?P<url>.*) (?P<filename>.*)' echo got url={url} filename={fi
 
 echo '```'
 
+echo 'Suppose we have an input CSV file of http method and URL, this could be used to make parallel calls with `curl`:'
+
+echo '```'
+echo '$ cat >./test <<EOL
+GET,http://example.com/endpoint1
+PUT,http://example.com/endpoint2
+POST,http://example.com/endpoint3
+EOL'
+
+echo
+echo -e '$ cat test | rust-parallel -r \x27(?P<method>.*),(?P<url>.*)\x27 curl -X {method} {url}'
+
+echo '```'
+
 echo 'In the next example input file arguments `{0}` `{1}` `{2}` `{3}` are numbered capture groups, and the input is a csv file:'
 
 echo '```'
@@ -261,20 +275,6 @@ cat test | $RUST_PARALLEL -r '(.*),(.*),(.*)' echo got arg1={1} arg2={2} arg3={3
 echo '```'
 
 rm -f test
-
-echo 'Suppose we have an input CSV file of http method and URL, this could be used to make parallel calls with `curl`:'
-
-echo '```'
-echo '$ cat >./test <<EOL
-GET,http://example.com/endpoint1
-PUT,http://example.com/endpoint2
-POST,http://example.com/endpoint3
-EOL'
-
-echo
-echo -e '$ cat test | rust-parallel -r \x27(?P<method>.*),(?P<url>.*)\x27 curl -X {method} {url}'
-
-echo '```'
 
 echo '## Bash Function
 
