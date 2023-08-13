@@ -1,6 +1,6 @@
 use regex::Regex;
 
-use tracing::debug;
+use tracing::trace;
 
 use crate::command_line_args::CommandLineArgs;
 
@@ -29,9 +29,10 @@ impl RegexProcessor {
     }
 
     pub fn process_string<'a>(&self, argument: &'a str, input_data: &'a str) -> Cow<'a, str> {
-        debug!(
+        trace!(
             "in process_string argument = {:?} input_data = {:?}",
-            argument, input_data
+            argument,
+            input_data
         );
 
         let regex = match &self.regex {
@@ -44,7 +45,7 @@ impl RegexProcessor {
             Some(captures) => captures,
         };
 
-        debug!("captures = ${:?}", captures);
+        trace!("captures = ${:?}", captures);
 
         // expand expects capture group references of the form ${ref}.
         // on the command line we take {ref} so replace { with ${ before calling expand.
@@ -54,9 +55,11 @@ impl RegexProcessor {
 
         captures.expand(&argument, &mut dest);
 
-        debug!(
+        trace!(
             "after expand argument = {:?} input_data = {:?} dest = {:?}",
-            argument, input_data, dest
+            argument,
+            input_data,
+            dest
         );
 
         Cow::from(dest)
