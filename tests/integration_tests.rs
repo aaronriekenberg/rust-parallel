@@ -220,3 +220,24 @@ fn runs_shell_function_from_args_j1() {
         ))
         .stderr(predicate::str::is_empty());
 }
+
+#[test]
+fn runs_regex_from_input_file_j1() {
+    rust_parallel()
+        .arg("-j1")
+        .arg("-i")
+        .arg("csv_file.txt")
+        .arg("-r")
+        .arg("(?P<arg1>.*),(?P<arg2>.*),(?P<arg3>.*)")
+        .arg("echo")
+        .arg("arg1={arg1}")
+        .arg("arg2={arg2}")
+        .arg("arg3={arg3}")
+        .arg("dollarzero={0}")
+        .assert()
+        .success()
+        .stdout(predicate::eq(
+            "arg1=1 arg2=2 arg3=3 dollarzero=1,2,3\narg1=foo arg2=bar arg3=baz dollarzero=foo,bar,baz\n",
+        ))
+        .stderr(predicate::str::is_empty());
+}
