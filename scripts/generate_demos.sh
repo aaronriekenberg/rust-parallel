@@ -20,6 +20,7 @@ Demos of command from arguments are first as it is simpler to understand:
 1. [Using as part of a shell pipeline](#using-as-part-of-a-shell-pipeline)
 1. [Working on a set of files from find command](#working-on-a-set-of-files-from-find-command)
 1. [Reading multiple inputs](#reading-multiple-inputs)
+1. [Regular Expression](#regular-expression)
 1. [Bash Function](#bash-function)
 '
 
@@ -218,6 +219,48 @@ head -5 /usr/share/dict/words | $RUST_PARALLEL -i - -i ./test echo
 rm -f test
 
 echo '```'
+
+echo '
+## Regular Expression
+
+Regular expressions can be specified by the `-r` or `--regex` command line argument.
+
+If specified named or numbered capture groups of inputs are expanded with data values from the current input before the command is executed.
+
+In these examples using command line arguments `{url}` and `{filename}` are named capture groups.  `{0}` is a numbered capture group.
+'
+
+echo '```'
+echo -e '$ rust-parallel -r \x27(?P<url>.*),(?P<filename>.*)\x27 echo got url={url} filename={filename} ::: URL1,filename1  URL2,filename2'
+$RUST_PARALLEL -r '(?P<url>.*),(?P<filename>.*)' echo got url={url} filename={filename} ::: URL1,filename1  URL2,filename2
+
+echo
+echo -e '$ rust-parallel -r \x27(?P<url>.*) (?P<filename>.*)\x27 echo got url={url} filename={filename} full input={0} ::: URL1 URL2 ::: filename1 filename2'
+$RUST_PARALLEL -r '(?P<url>.*) (?P<filename>.*)' echo got url={url} filename={filename} full input={0} ::: URL1 URL2 ::: filename1 filename2
+
+echo '```'
+
+echo 'In the next example input file arguments `{0}` `{1}` `{2}` `{3}` are numbered capture groups, and the input is a csv file:'
+
+echo '```'
+echo '$ cat >./test <<EOL
+foo,bar,baz
+foo2,bar2,baz2
+foo3,bar3,baz3
+EOL'
+cat >./test <<EOL
+foo,bar,baz
+foo2,bar2,baz2
+foo3,bar3,baz3
+EOL
+
+echo
+echo -e '$ rust-parallel -r \x27(.*),(.*),(.*)\x27 echo got arg1={1} arg2={2} arg3={3} full input={0}'
+cat test | $RUST_PARALLEL -r '(.*),(.*),(.*)' echo got arg1={1} arg2={2} arg3={3} full input={0}
+
+echo '```'
+
+rm -f test
 
 echo '## Bash Function
 
