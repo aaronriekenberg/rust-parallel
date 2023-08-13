@@ -60,7 +60,7 @@ impl OutputWriter {
 
         self.receiver_task_join_handle
             .await
-            .context("receiver_task_join_handle.await error")?;
+            .context("OutputWriter::wait_for_completion: receiver_task_join_handle.await error")?;
 
         Ok(())
     }
