@@ -6,10 +6,6 @@ use crate::command_line_args::CommandLineArgs;
 
 use std::borrow::Cow;
 
-// Examples:
-// cat test | RUST_LOG=debug ./target/debug/rust-parallel -r '(?P<url>.*),(?P<filename>.*)' echo got url={url} filename={filename}
-// ./target/debug/rust-parallel -r '(?P<url>.*),(?P<filename>.*)' echo  got url={url} filename={filename} ::: URL1,filename1  URL2,filename2
-
 pub struct RegexProcessor {
     regex: Option<Regex>,
 }
