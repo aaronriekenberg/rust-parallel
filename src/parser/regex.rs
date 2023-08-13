@@ -18,7 +18,9 @@ impl RegexProcessor {
     pub fn new(command_line_args: &CommandLineArgs) -> Self {
         let regex = match &command_line_args.regex {
             None => None,
-            Some(regex) => Some(Regex::new(regex).unwrap()),
+            Some(regex) => {
+                Some(Regex::new(regex).expect("RegexProcessor::new error creating regex"))
+            }
         };
         Self { regex }
     }

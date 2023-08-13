@@ -142,7 +142,7 @@ impl InputProducer {
     pub async fn wait_for_completion(self) -> anyhow::Result<()> {
         self.sender_task_join_handle
             .await
-            .context("sender_task_join_handle.await error")?;
+            .context("InputProducer::wait_for_completion: sender_task_join_handle.await error")?;
 
         Ok(())
     }
