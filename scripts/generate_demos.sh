@@ -255,7 +255,7 @@ foo3,bar3,baz3
 EOL
 
 echo
-echo -e '$ rust-parallel -r \x27(.*),(.*),(.*)\x27 echo got arg1={1} arg2={2} arg3={3} full input={0}'
+echo -e '$ cat test | rust-parallel -r \x27(.*),(.*),(.*)\x27 echo got arg1={1} arg2={2} arg3={3} full input={0}'
 cat test | $RUST_PARALLEL -r '(.*),(.*),(.*)' echo got arg1={1} arg2={2} arg3={3} full input={0}
 
 echo '```'
