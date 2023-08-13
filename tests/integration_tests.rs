@@ -241,3 +241,25 @@ fn runs_regex_from_input_file_j1() {
         ))
         .stderr(predicate::str::is_empty());
 }
+
+#[test]
+fn runs_regex_from_command_line_args_j1() {
+    rust_parallel()
+        .arg("-j1")
+        .arg("-r")
+        .arg("(.*),(.*),(.*)")
+        .arg("echo")
+        .arg("arg1={1}")
+        .arg("arg2={2}")
+        .arg("arg3={3}")
+        .arg("dollarzero={0}")
+        .arg(":::")
+        .arg("a,b,c")
+        .arg("d,e,f")
+        .assert()
+        .success()
+        .stdout(predicate::eq(
+            "arg1=a arg2=b arg3=c dollarzero=a,b,c\narg1=d arg2=e arg3=f dollarzero=d,e,f\n",
+        ))
+        .stderr(predicate::str::is_empty());
+}
