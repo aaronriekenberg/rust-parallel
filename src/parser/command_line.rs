@@ -3,8 +3,7 @@ use itertools::Itertools;
 use crate::{
     command_line_args::{CommandLineArgs, COMMANDS_FROM_ARGS_SEPARATOR},
     common::OwnedCommandAndArgs,
-    parser::ShellCommandAndArgs,
-    regex::RegexProcessor,
+    parser::{regex::RegexProcessor, ShellCommandAndArgs},
 };
 
 #[derive(Debug)]
@@ -73,24 +72,21 @@ impl CommandLineArgsParser {
             .into_iter()
             .multi_cartesian_product()
             .filter_map(|current_args| {
-                if !self.regex_processor.regex_mode() {
-                    let cmd_and_args = [first_command_and_args.clone(), current_args].concat();
-
-                    super::build_owned_command_and_args(&self.shell_command_and_args, cmd_and_args)
+                let cmd_and_args = if !self.regex_processor.regex_mode() {
+                    [first_command_and_args.clone(), current_args].concat()
                 } else {
                     let input_line = current_args.join(" ");
 
-                    let cmd_and_args = first_command_and_args
+                    first_command_and_args
                         .iter()
                         .map(|arg| {
                             self.regex_processor
                                 .process_string(&arg, &input_line)
                                 .into()
                         })
-                        .collect_vec();
-
-                    super::build_owned_command_and_args(&self.shell_command_and_args, cmd_and_args)
-                }
+                        .collect_vec()
+                };
+                super::build_owned_command_and_args(&self.shell_command_and_args, cmd_and_args)
             })
             .collect()
     }

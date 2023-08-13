@@ -10,10 +10,8 @@ use std::sync::Arc;
 
 use crate::{
     command_line_args::CommandLineArgs,
-    common::OwnedCommandAndArgs,
     parser::{buffered::BufferedInputLineParser, command_line::CommandLineArgsParser},
     progress::Progress,
-    regex::RegexProcessor,
 };
 
 use super::{
