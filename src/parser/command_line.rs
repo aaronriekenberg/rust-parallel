@@ -315,4 +315,94 @@ mod test {
             ]
         );
     }
+
+    #[test]
+    fn test_regex_named_groups() {
+        let command_line_args = CommandLineArgs {
+            command_and_initial_arguments: vec![
+                "echo",
+                "got",
+                "arg1={arg1}",
+                "arg2={arg2}",
+                "arg3={arg3}",
+                ":::",
+                "foo,bar,baz",
+                "foo2,bar2,baz2",
+            ]
+            .into_iter()
+            .map_into()
+            .collect(),
+            regex: Some("(?P<arg1>.*),(?P<arg2>.*),(?P<arg3>.*)".to_owned()),
+            ..Default::default()
+        };
+
+        let parser = CommandLineArgsParser::new(&command_line_args);
+
+        let result = parser.parse_command_line_args();
+
+        assert_eq!(
+            result,
+            vec![
+                OwnedCommandAndArgs {
+                    command_path: PathBuf::from("echo"),
+                    args: vec!["got", "arg1=foo", "arg2=bar", "arg3=baz"]
+                        .into_iter()
+                        .map_into()
+                        .collect(),
+                },
+                OwnedCommandAndArgs {
+                    command_path: PathBuf::from("echo"),
+                    args: vec!["got", "arg1=foo2", "arg2=bar2", "arg3=baz2"]
+                        .into_iter()
+                        .map_into()
+                        .collect(),
+                },
+            ]
+        );
+    }
+
+    #[test]
+    fn test_regex_numbered_groups() {
+        let command_line_args = CommandLineArgs {
+            command_and_initial_arguments: vec![
+                "echo",
+                "got",
+                "arg1={0}",
+                "arg2={1}",
+                "arg3={2}",
+                ":::",
+                "foo,bar,baz",
+                "foo2,bar2,baz2",
+            ]
+            .into_iter()
+            .map_into()
+            .collect(),
+            regex: Some("(.*),(.*),(.*)".to_owned()),
+            ..Default::default()
+        };
+
+        let parser = CommandLineArgsParser::new(&command_line_args);
+
+        let result = parser.parse_command_line_args();
+
+        assert_eq!(
+            result,
+            vec![
+                OwnedCommandAndArgs {
+                    command_path: PathBuf::from("echo"),
+                    args: vec!["got", "arg1=foo,bar,baz", "arg2=foo", "arg3=bar"]
+                        .into_iter()
+                        .map_into()
+                        .collect(),
+                },
+                OwnedCommandAndArgs {
+                    command_path: PathBuf::from("echo"),
+                    args: vec!["got", "arg1=foo2,bar2,baz2", "arg2=foo2", "arg3=bar2"]
+                        .into_iter()
+                        .map_into()
+                        .collect(),
+                },
+            ]
+        );
+    }
 }
