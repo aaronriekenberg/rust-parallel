@@ -69,6 +69,9 @@ Options:
   -p, --progress-bar
           Display progress bar
 
+  -r, --regex <REGEX>
+          Apply regex pattern to inputs
+
   -s, --shell
           Use shell mode for running commands.
 
