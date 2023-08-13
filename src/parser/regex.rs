@@ -16,13 +16,12 @@ pub struct RegexProcessor {
 
 impl RegexProcessor {
     pub fn new(command_line_args: &CommandLineArgs) -> Self {
-        let regex = match &command_line_args.regex {
-            None => None,
-            Some(regex) => {
-                Some(Regex::new(regex).expect("RegexProcessor::new error creating regex"))
-            }
-        };
-        Self { regex }
+        Self {
+            regex: command_line_args
+                .regex
+                .as_ref()
+                .map(|regex| Regex::new(regex).expect("RegexProcessor::new error creating regex")),
+        }
     }
 
     pub fn regex_mode(&self) -> bool {
@@ -40,7 +39,7 @@ impl RegexProcessor {
             Some(regex) => regex,
         };
 
-        let captures = match regex.captures(&input_data) {
+        let captures = match regex.captures(input_data) {
             None => return Cow::from(argument),
             Some(captures) => captures,
         };
@@ -49,7 +48,7 @@ impl RegexProcessor {
 
         // expand expects capture group references of the form ${ref}.
         // on the command line we take {ref} so replace { with ${ before calling expand.
-        let argument = argument.replace("{", "${");
+        let argument = argument.replace('{', "${");
 
         let mut dest = String::new();
 

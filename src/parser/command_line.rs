@@ -79,11 +79,7 @@ impl CommandLineArgsParser {
 
                     first_command_and_args
                         .iter()
-                        .map(|arg| {
-                            self.regex_processor
-                                .process_string(&arg, &input_line)
-                                .into()
-                        })
+                        .map(|arg| self.regex_processor.process_string(arg, &input_line).into())
                         .collect_vec()
                 };
                 super::build_owned_command_and_args(&self.shell_command_and_args, cmd_and_args)
