@@ -1,27 +1,31 @@
 use itertools::Itertools;
 
 use crate::{
-    command_line_args::CommandLineArgs, common::OwnedCommandAndArgs, parser::ShellCommandAndArgs,
+    command_line_args::CommandLineArgs,
+    common::OwnedCommandAndArgs,
+    parser::{regex::RegexProcessor, ShellCommandAndArgs},
 };
 
 pub struct BufferedInputLineParser {
     split_whitespace: bool,
     shell_command_and_args: ShellCommandAndArgs,
-    prepend_command_and_args: Vec<String>,
+    command_and_initial_arguments: Vec<String>,
+    regex_processor: RegexProcessor,
 }
 
 impl BufferedInputLineParser {
     pub fn new(command_line_args: &CommandLineArgs) -> Self {
         let split_whitespace = !command_line_args.null_separator;
 
-        let prepend_command_and_args = command_line_args.command_and_initial_arguments.clone();
+        let command_and_initial_arguments = command_line_args.command_and_initial_arguments.clone();
 
         let shell_command_and_args = super::build_shell_command_and_args(command_line_args);
 
         Self {
             split_whitespace,
             shell_command_and_args,
-            prepend_command_and_args,
+            command_and_initial_arguments,
+            regex_processor: RegexProcessor::new(command_line_args),
         }
     }
 
@@ -34,17 +38,26 @@ impl BufferedInputLineParser {
     }
 
     pub fn parse_line(&self, input_line: &str) -> Option<OwnedCommandAndArgs> {
-        let mut vec = if self.split_whitespace {
-            input_line.split_whitespace().map_into().collect()
+        let cmd_and_args = if !self.regex_processor.regex_mode() {
+            let mut cmd_and_args = if self.split_whitespace {
+                input_line.split_whitespace().map_into().collect()
+            } else {
+                vec![input_line.into()]
+            };
+
+            if !self.command_and_initial_arguments.is_empty() {
+                cmd_and_args = [self.command_and_initial_arguments.clone(), cmd_and_args].concat();
+            }
+
+            cmd_and_args
         } else {
-            vec![input_line.to_owned()]
+            self.command_and_initial_arguments
+                .iter()
+                .map(|arg| self.regex_processor.process_string(arg, input_line).into())
+                .collect_vec()
         };
 
-        if !self.prepend_command_and_args.is_empty() {
-            vec = [self.prepend_command_and_args.clone(), vec].concat();
-        }
-
-        super::build_owned_command_and_args(&self.shell_command_and_args, vec)
+        super::build_owned_command_and_args(&self.shell_command_and_args, cmd_and_args)
     }
 }
 
@@ -202,6 +215,60 @@ mod test {
             Some(OwnedCommandAndArgs {
                 command_path: PathBuf::from("md5"),
                 args: vec!["-s", "stuff", "things"]
+                    .into_iter()
+                    .map_into()
+                    .collect(),
+            })
+        );
+    }
+
+    #[test]
+    fn test_regex_named_groups() {
+        let command_line_args = CommandLineArgs {
+            command_and_initial_arguments: vec![
+                "echo".to_owned(),
+                "got arg1={arg1} arg2={arg2}".to_owned(),
+            ],
+            regex: Some("(?P<arg1>.*),(?P<arg2>.*)".to_owned()),
+            ..Default::default()
+        };
+
+        let parser = BufferedInputLineParser::new(&command_line_args);
+
+        let result = parser.parse_line("foo,bar");
+
+        assert_eq!(
+            result,
+            Some(OwnedCommandAndArgs {
+                command_path: PathBuf::from("echo"),
+                args: vec!["got arg1=foo arg2=bar"]
+                    .into_iter()
+                    .map_into()
+                    .collect(),
+            })
+        );
+    }
+
+    #[test]
+    fn test_regex_numbered_groups() {
+        let command_line_args = CommandLineArgs {
+            command_and_initial_arguments: vec![
+                "echo".to_owned(),
+                "got arg1={2} arg2={1} arg3={0}".to_owned(),
+            ],
+            regex: Some("(.*),(.*)".to_owned()),
+            ..Default::default()
+        };
+
+        let parser = BufferedInputLineParser::new(&command_line_args);
+
+        let result = parser.parse_line("foo,bar");
+
+        assert_eq!(
+            result,
+            Some(OwnedCommandAndArgs {
+                command_path: PathBuf::from("echo"),
+                args: vec!["got arg1=bar arg2=foo arg3=foo,bar"]
                     .into_iter()
                     .map_into()
                     .collect(),
