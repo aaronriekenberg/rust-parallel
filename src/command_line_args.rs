@@ -35,6 +35,10 @@ pub struct CommandLineArgs {
     #[arg(short, long)]
     pub progress_bar: bool,
 
+    /// Apply regex pattern to commands.
+    #[arg(short, long)]
+    pub regex: Option<String>,
+
     /// Use shell mode for running commands.
     ///
     /// Each command line is passed to "<shell-path> -c" as a single argument.

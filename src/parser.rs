@@ -2,6 +2,7 @@ use crate::{command_line_args::CommandLineArgs, common::OwnedCommandAndArgs};
 
 pub mod buffered;
 pub mod command_line;
+mod regex;
 
 struct ShellCommandAndArgs(Option<Vec<String>>);
 
