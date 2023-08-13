@@ -3,16 +3,13 @@
 Command-line utility to execute commands in parallel and aggregate their output.
 
 Similar interface to [GNU Parallel](https://www.gnu.org/software/parallel/parallel_examples.html) or [xargs](https://man7.org/linux/man-pages/man1/xargs.1.html) but implemented in rust and [tokio](https://tokio.rs).
-* Supports running commands read from stdin or input files similar to xargs, for example:
-  * `head -1000 /usr/share/dict/words | rust-parallel md5 -s`
-* Supports `:::` syntax to run all combinations of argument groups similar to GNU Parallel, for example:
-  * `rust-parallel gzip -k ::: *.html`
+* Supports running commands read from stdin or input files similar to xargs.
+* Supports `:::` syntax to run all combinations of argument groups similar to GNU Parallel.
+* Optional processing of inputs using regular expression capture groups.
  
 See the [demos](https://github.com/aaronriekenberg/rust-parallel/wiki/Demos) for example usage.
 
 Prevents [output interleaving](https://github.com/aaronriekenberg/rust-parallel/wiki/Output-Interleaving) and is [very fast](https://github.com/aaronriekenberg/rust-parallel/wiki/Benchmarks).
-
-Supports optional processing of inputs using regular expression capture groups.
 
 [crates-badge]: https://img.shields.io/crates/v/rust-parallel.svg
 [crates-url]: https://crates.io/crates/rust-parallel
@@ -125,6 +122,7 @@ See the [wiki page for benchmarks](https://github.com/aaronriekenberg/rust-paral
 ## Features:
 * Use only safe rust.  
   * main.rs contains `#![forbid(unsafe_code)]`)
+* Supports optional processing of inputs using regular expression capture groups.  This is implemented using the [`expand`](https://docs.rs/regex/latest/regex/struct.Captures.html#method.expand) function to replace specified capture groups with input data.
 * Prevent [output interleaving](https://github.com/aaronriekenberg/rust-parallel/wiki/Output-Interleaving).
 * Use only asynchronous operations supported by [tokio](https://tokio.rs), do not use any blocking operations.  This includes writing to stdout and stderr.
   * There is one exception to this: the `which` library used to build the path cache only has a blocking interface, so [`tokio::task::spawn_blocking`](https://docs.rs/tokio/latest/tokio/task/fn.spawn_blocking.html) is used to invoke this.
@@ -138,6 +136,7 @@ See the [wiki page for benchmarks](https://github.com/aaronriekenberg/rust-paral
 * [clap](https://docs.rs/clap/latest/clap/) command line argument parser.
 * [itertools](https://docs.rs/itertools/latest/itertools/) using [`multi_cartesian_product`](https://docs.rs/itertools/latest/itertools/trait.Itertools.html#method.multi_cartesian_product) to process `:::` command line inputs.
 * [indicatif](https://github.com/console-rs/indicatif) optional graphical progress bar.
+* [regex](https://github.com/rust-lang/regex) optional regular expression capture groups processing for `-r`/`--regex` option.
 * [tokio](https://tokio.rs/) asynchronous runtime for rust.  From tokio this app uses:
   * `async` / `await` functions (aka coroutines)
   * Singleton `CommandLineArgs` instance using [`tokio::sync::OnceCell`](https://docs.rs/tokio/latest/tokio/sync/struct.OnceCell.html).
