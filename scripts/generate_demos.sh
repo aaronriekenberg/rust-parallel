@@ -262,6 +262,20 @@ echo '```'
 
 rm -f test
 
+echo 'Suppose we have an input CSV file of http method and URL, this could be used to make parallel calls with `curl`:'
+
+echo '```'
+echo '$ cat >./test <<EOL
+GET,http://example.com/endpoint1
+PUT,http://example.com/endpoint2
+POST,http://example.com/endpoint3
+EOL'
+
+echo
+echo -e '$ cat test | rust-parallel -r \x27(?P<method>.*),(?P<url>.*)\x27 curl -X {method} {url}'
+
+echo '```'
+
 echo '## Bash Function
 
 Use `-s` shell mode to invoke an arbitrary bash function.
