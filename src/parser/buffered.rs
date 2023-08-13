@@ -221,4 +221,58 @@ mod test {
             })
         );
     }
+
+    #[test]
+    fn test_regex_named_groups() {
+        let command_line_args = CommandLineArgs {
+            command_and_initial_arguments: vec![
+                "echo".to_owned(),
+                "got arg1={arg1} arg2={arg2}".to_owned(),
+            ],
+            regex: Some("(?P<arg1>.*),(?P<arg2>.*)".to_owned()),
+            ..Default::default()
+        };
+
+        let parser = BufferedInputLineParser::new(&command_line_args);
+
+        let result = parser.parse_line("foo,bar");
+
+        assert_eq!(
+            result,
+            Some(OwnedCommandAndArgs {
+                command_path: PathBuf::from("echo"),
+                args: vec!["got arg1=foo arg2=bar"]
+                    .into_iter()
+                    .map_into()
+                    .collect(),
+            })
+        );
+    }
+
+    #[test]
+    fn test_numbered_groups() {
+        let command_line_args = CommandLineArgs {
+            command_and_initial_arguments: vec![
+                "echo".to_owned(),
+                "got arg1={2} arg2={1} arg3={0}".to_owned(),
+            ],
+            regex: Some("(.*),(.*)".to_owned()),
+            ..Default::default()
+        };
+
+        let parser = BufferedInputLineParser::new(&command_line_args);
+
+        let result = parser.parse_line("foo,bar");
+
+        assert_eq!(
+            result,
+            Some(OwnedCommandAndArgs {
+                command_path: PathBuf::from("echo"),
+                args: vec!["got arg1=bar arg2=foo arg3=foo,bar"]
+                    .into_iter()
+                    .map_into()
+                    .collect(),
+            })
+        );
+    }
 }
