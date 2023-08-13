@@ -35,7 +35,7 @@ pub struct CommandLineArgs {
     #[arg(short, long)]
     pub progress_bar: bool,
 
-    /// Apply regex pattern to commands.
+    /// Apply regex pattern to inputs.
     #[arg(short, long)]
     pub regex: Option<String>,
 
