@@ -7,7 +7,7 @@ Similar interface to [GNU Parallel](https://www.gnu.org/software/parallel/parall
 * Supports `:::` syntax to run all combinations of argument groups similar to GNU Parallel.
 * Optional processing of inputs using regular expression capture groups.
  
-See the [demos](https://github.com/aaronriekenberg/rust-parallel/wiki/Demos) for example usage.
+See the [demos](https://github.com/aaronriekenberg/rust-parallel/wiki/Demos) for examples.
 
 Prevents [output interleaving](https://github.com/aaronriekenberg/rust-parallel/wiki/Output-Interleaving) and is [very fast](https://github.com/aaronriekenberg/rust-parallel/wiki/Benchmarks).
 
