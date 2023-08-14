@@ -24,7 +24,7 @@ impl RegexProcessor {
         self.regex.is_some()
     }
 
-    pub fn process_string<'a>(&self, argument: &'a str, input_data: &'a str) -> Cow<'a, str> {
+    pub fn process_string<'a>(&self, argument: &'a str, input_data: &str) -> Cow<'a, str> {
         trace!(
             "in process_string argument = {:?} input_data = {:?}",
             argument,
