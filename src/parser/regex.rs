@@ -64,3 +64,21 @@ impl RegexProcessor {
         Cow::from(dest)
     }
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn test_regex_disabled() {
+        let command_line_args = CommandLineArgs {
+            regex: None,
+            ..Default::default()
+        };
+
+        let regex_processor = RegexProcessor::new(&command_line_args).unwrap();
+
+        assert_eq!(regex_processor.regex_mode(), false);
+        assert_eq!(regex_processor.process_string("{0}", "input line"), "{0}");
+    }
+}
