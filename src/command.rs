@@ -158,7 +158,7 @@ impl CommandService {
     }
 
     async fn process_inputs(&self) -> anyhow::Result<()> {
-        let mut input_producer = InputProducer::new(self.command_line_args, &self.progress);
+        let mut input_producer = InputProducer::new(self.command_line_args, &self.progress)?;
 
         while let Some(input_message_list) = input_producer.receiver().recv().await {
             self.process_input_message_list(input_message_list).await?;

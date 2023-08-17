@@ -1,3 +1,4 @@
+use anyhow::Context;
 use regex::Regex;
 
 use tracing::trace;
@@ -6,18 +7,20 @@ use crate::command_line_args::CommandLineArgs;
 
 use std::borrow::Cow;
 
+#[derive(Clone)]
 pub struct RegexProcessor {
     regex: Option<Regex>,
 }
 
 impl RegexProcessor {
-    pub fn new(command_line_args: &CommandLineArgs) -> Self {
-        Self {
-            regex: command_line_args
-                .regex
-                .as_ref()
-                .map(|regex| Regex::new(regex).expect("RegexProcessor::new error creating regex")),
-        }
+    pub fn new(command_line_args: &CommandLineArgs) -> anyhow::Result<Self> {
+        let regex = match &command_line_args.regex {
+            None => None,
+            Some(regex) => {
+                Some(Regex::new(regex).context("RegexProcessor::new error creating regex")?)
+            }
+        };
+        Ok(Self { regex })
     }
 
     pub fn regex_mode(&self) -> bool {

@@ -119,20 +119,24 @@ pub struct InputProducer {
 }
 
 impl InputProducer {
-    pub fn new(command_line_args: &'static CommandLineArgs, progress: &Arc<Progress>) -> Self {
+    pub fn new(
+        command_line_args: &'static CommandLineArgs,
+        progress: &Arc<Progress>,
+    ) -> anyhow::Result<Self> {
         let (sender, receiver) = channel(command_line_args.channel_capacity);
         debug!(
             "created input channel with capacity {}",
             command_line_args.channel_capacity
         );
 
-        let sender_task_join_handle =
-            tokio::spawn(task::InputSenderTask::new(command_line_args, sender, progress).run());
+        let input_sender_task = task::InputSenderTask::new(command_line_args, sender, progress)?;
 
-        Self {
+        let sender_task_join_handle = tokio::spawn(input_sender_task.run());
+
+        Ok(Self {
             sender_task_join_handle,
             receiver,
-        }
+        })
     }
 
     pub fn receiver(&mut self) -> &mut Receiver<InputMessageList> {
