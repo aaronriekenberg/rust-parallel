@@ -5,7 +5,7 @@ Command-line utility to execute commands in parallel and aggregate their output.
 Similar interface to [GNU Parallel](https://www.gnu.org/software/parallel/parallel_examples.html) or [xargs](https://man7.org/linux/man-pages/man1/xargs.1.html) but implemented in rust and [tokio](https://tokio.rs).
 * Supports running commands read from stdin or input files similar to xargs.
 * Supports `:::` syntax to run all combinations of argument groups similar to GNU Parallel.
-* Optional processing of inputs using regular expression capture groups.
+* Optional transformation of inputs using regular expression capture groups similar to sed or awk.
  
 See the [demos](https://github.com/aaronriekenberg/rust-parallel/wiki/Demos) for examples.
 
