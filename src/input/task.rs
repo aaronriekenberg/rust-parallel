@@ -2,17 +2,13 @@ use anyhow::Context;
 
 use itertools::Itertools;
 
-use tokio::sync::{mpsc::Sender, OnceCell};
+use tokio::sync::mpsc::Sender;
 
 use tracing::{debug, instrument, warn};
 
 use std::sync::Arc;
 
-use crate::{
-    command_line_args::CommandLineArgs,
-    parser::{buffered::BufferedInputLineParser, command_line::CommandLineArgsParser},
-    progress::Progress,
-};
+use crate::{command_line_args::CommandLineArgs, parser::Parser, progress::Progress};
 
 use super::{
     buffered_reader::BufferedInputReader, BufferedInput, Input, InputLineNumber, InputList,
@@ -22,8 +18,8 @@ use super::{
 pub struct InputSenderTask {
     sender: Sender<InputMessageList>,
     command_line_args: &'static CommandLineArgs,
-    buffered_input_line_parser: OnceCell<BufferedInputLineParser>,
     progress: Arc<Progress>,
+    parser: Parser,
 }
 
 impl InputSenderTask {
@@ -31,13 +27,14 @@ impl InputSenderTask {
         command_line_args: &'static CommandLineArgs,
         sender: Sender<InputMessageList>,
         progress: &Arc<Progress>,
-    ) -> Self {
-        Self {
+    ) -> anyhow::Result<Self> {
+        let parser = Parser::new(command_line_args)?;
+        Ok(Self {
             sender,
             command_line_args,
-            buffered_input_line_parser: OnceCell::new(),
             progress: Arc::clone(progress),
-        }
+            parser,
+        })
     }
 
     async fn send(&self, input_message_list: InputMessageList) {
@@ -61,10 +58,7 @@ impl InputSenderTask {
         let mut input_reader =
             BufferedInputReader::new(buffered_input, self.command_line_args).await?;
 
-        let parser = self
-            .buffered_input_line_parser
-            .get_or_init(|| async move { BufferedInputLineParser::new(self.command_line_args) })
-            .await;
+        let parser = self.parser.buffered_input_line_parser().await;
 
         loop {
             match input_reader
@@ -99,7 +93,7 @@ impl InputSenderTask {
     async fn process_command_line_args_input(self) {
         debug!("begin process_command_line_args_input");
 
-        let parser = CommandLineArgsParser::new(self.command_line_args);
+        let parser = self.parser.command_line_args_parser().await;
 
         let message_list = parser
             .parse_command_line_args()

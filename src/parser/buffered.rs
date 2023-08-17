@@ -14,7 +14,7 @@ pub struct BufferedInputLineParser {
 }
 
 impl BufferedInputLineParser {
-    pub fn new(command_line_args: &CommandLineArgs) -> Self {
+    pub fn new(command_line_args: &CommandLineArgs, regex_processor: RegexProcessor) -> Self {
         let split_whitespace = !command_line_args.null_separator;
 
         let command_and_initial_arguments = command_line_args.command_and_initial_arguments.clone();
@@ -25,7 +25,7 @@ impl BufferedInputLineParser {
             split_whitespace,
             shell_command_and_args,
             command_and_initial_arguments,
-            regex_processor: RegexProcessor::new(command_line_args),
+            regex_processor,
         }
     }
 
@@ -76,7 +76,10 @@ mod test {
             ..Default::default()
         };
 
-        let parser = BufferedInputLineParser::new(&command_line_args);
+        let parser = BufferedInputLineParser::new(
+            &command_line_args,
+            RegexProcessor::new(&command_line_args).unwrap(),
+        );
 
         let result = parser.parse_line("echo hi there");
 
@@ -122,7 +125,10 @@ mod test {
             ..Default::default()
         };
 
-        let parser = BufferedInputLineParser::new(&command_line_args);
+        let parser = BufferedInputLineParser::new(
+            &command_line_args,
+            RegexProcessor::new(&command_line_args).unwrap(),
+        );
 
         let result = parser.parse_line("file with spaces");
 
@@ -148,7 +154,10 @@ mod test {
             ..Default::default()
         };
 
-        let parser = BufferedInputLineParser::new(&command_line_args);
+        let parser = BufferedInputLineParser::new(
+            &command_line_args,
+            RegexProcessor::new(&command_line_args).unwrap(),
+        );
 
         let result = parser.parse_line("awesomebashfunction 1 2 3");
 
@@ -171,7 +180,10 @@ mod test {
             ..Default::default()
         };
 
-        let parser = BufferedInputLineParser::new(&command_line_args);
+        let parser = BufferedInputLineParser::new(
+            &command_line_args,
+            RegexProcessor::new(&command_line_args).unwrap(),
+        );
 
         let result = parser.parse_line(" awesomebashfunction 1 2 3 ");
 
@@ -196,7 +208,10 @@ mod test {
             ..Default::default()
         };
 
-        let parser = BufferedInputLineParser::new(&command_line_args);
+        let parser = BufferedInputLineParser::new(
+            &command_line_args,
+            RegexProcessor::new(&command_line_args).unwrap(),
+        );
 
         let result = parser.parse_line("stuff");
 
@@ -233,7 +248,10 @@ mod test {
             ..Default::default()
         };
 
-        let parser = BufferedInputLineParser::new(&command_line_args);
+        let parser = BufferedInputLineParser::new(
+            &command_line_args,
+            RegexProcessor::new(&command_line_args).unwrap(),
+        );
 
         let result = parser.parse_line("foo,bar");
 
@@ -260,7 +278,10 @@ mod test {
             ..Default::default()
         };
 
-        let parser = BufferedInputLineParser::new(&command_line_args);
+        let parser = BufferedInputLineParser::new(
+            &command_line_args,
+            RegexProcessor::new(&command_line_args).unwrap(),
+        );
 
         let result = parser.parse_line("foo,bar");
 

@@ -6,7 +6,7 @@ use crate::{
     parser::{regex::RegexProcessor, ShellCommandAndArgs},
 };
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct ArgumentGroups {
     first_command_and_args: Vec<String>,
     remaining_argument_groups: Vec<Vec<String>>,
@@ -19,7 +19,7 @@ pub struct CommandLineArgsParser {
 }
 
 impl CommandLineArgsParser {
-    pub fn new(command_line_args: &CommandLineArgs) -> Self {
+    pub fn new(command_line_args: &CommandLineArgs, regex_processor: RegexProcessor) -> Self {
         let argument_groups = Self::build_argument_groups(command_line_args);
 
         let shell_command_and_args = super::build_shell_command_and_args(command_line_args);
@@ -27,7 +27,7 @@ impl CommandLineArgsParser {
         Self {
             argument_groups,
             shell_command_and_args,
-            regex_processor: RegexProcessor::new(command_line_args),
+            regex_processor,
         }
     }
 
@@ -62,11 +62,11 @@ impl CommandLineArgsParser {
         }
     }
 
-    pub fn parse_command_line_args(self) -> Vec<OwnedCommandAndArgs> {
+    pub fn parse_command_line_args(&self) -> Vec<OwnedCommandAndArgs> {
         let ArgumentGroups {
             first_command_and_args,
             remaining_argument_groups,
-        } = self.argument_groups;
+        } = self.argument_groups.clone();
 
         remaining_argument_groups
             .into_iter()
@@ -107,7 +107,10 @@ mod test {
             ..Default::default()
         };
 
-        let parser = CommandLineArgsParser::new(&command_line_args);
+        let parser = CommandLineArgsParser::new(
+            &command_line_args,
+            RegexProcessor::new(&command_line_args).unwrap(),
+        );
 
         let result = parser.parse_command_line_args();
 
@@ -155,7 +158,10 @@ mod test {
             ..Default::default()
         };
 
-        let parser = CommandLineArgsParser::new(&command_line_args);
+        let parser = CommandLineArgsParser::new(
+            &command_line_args,
+            RegexProcessor::new(&command_line_args).unwrap(),
+        );
 
         let result = parser.parse_command_line_args();
 
@@ -198,7 +204,10 @@ mod test {
             ..Default::default()
         };
 
-        let parser = CommandLineArgsParser::new(&command_line_args);
+        let parser = CommandLineArgsParser::new(
+            &command_line_args,
+            RegexProcessor::new(&command_line_args).unwrap(),
+        );
 
         let result = parser.parse_command_line_args();
 
@@ -213,7 +222,10 @@ mod test {
             ..Default::default()
         };
 
-        let parser = CommandLineArgsParser::new(&command_line_args);
+        let parser = CommandLineArgsParser::new(
+            &command_line_args,
+            RegexProcessor::new(&command_line_args).unwrap(),
+        );
 
         let result = parser.parse_command_line_args();
 
@@ -234,7 +246,10 @@ mod test {
             ..Default::default()
         };
 
-        let parser = CommandLineArgsParser::new(&command_line_args);
+        let parser = CommandLineArgsParser::new(
+            &command_line_args,
+            RegexProcessor::new(&command_line_args).unwrap(),
+        );
 
         let result = parser.parse_command_line_args();
 
@@ -281,7 +296,10 @@ mod test {
             ..Default::default()
         };
 
-        let parser = CommandLineArgsParser::new(&command_line_args);
+        let parser = CommandLineArgsParser::new(
+            &command_line_args,
+            RegexProcessor::new(&command_line_args).unwrap(),
+        );
 
         let result = parser.parse_command_line_args();
 
@@ -336,7 +354,10 @@ mod test {
             ..Default::default()
         };
 
-        let parser = CommandLineArgsParser::new(&command_line_args);
+        let parser = CommandLineArgsParser::new(
+            &command_line_args,
+            RegexProcessor::new(&command_line_args).unwrap(),
+        );
 
         let result = parser.parse_command_line_args();
 
@@ -381,7 +402,10 @@ mod test {
             ..Default::default()
         };
 
-        let parser = CommandLineArgsParser::new(&command_line_args);
+        let parser = CommandLineArgsParser::new(
+            &command_line_args,
+            RegexProcessor::new(&command_line_args).unwrap(),
+        );
 
         let result = parser.parse_command_line_args();
 
