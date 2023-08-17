@@ -17,7 +17,7 @@ impl RegexProcessor {
         let regex = match &command_line_args.regex {
             None => None,
             Some(regex) => {
-                Some(Regex::new(regex).context("RegexProcessor::new error creating regex")?)
+                Some(Regex::new(regex).context("RegexProcessor::new: error creating regex")?)
             }
         };
         Ok(Self { regex })
