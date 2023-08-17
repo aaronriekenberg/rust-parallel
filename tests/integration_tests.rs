@@ -263,3 +263,20 @@ fn runs_regex_from_command_line_args_j1() {
         ))
         .stderr(predicate::str::is_empty());
 }
+
+#[test]
+fn fails_invalid_regex() {
+    rust_parallel()
+        .arg("-r")
+        .arg("((.*),(.*),(.*)")
+        .arg("echo")
+        .arg(":::")
+        .arg("a,b,c")
+        .arg("d,e,f")
+        .assert()
+        .failure()
+        .stdout(predicate::str::contains(
+            "RegexProcessor::new: error creating regex: regex parse error:",
+        ))
+        .stderr(predicate::str::is_empty());
+}
