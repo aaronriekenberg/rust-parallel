@@ -45,7 +45,7 @@ $ cargo install rust-parallel
 See the [wiki page for the manual](https://github.com/aaronriekenberg/rust-parallel/wiki/Manual).
 
 ## Examples:
-See the [wiki page for demos](https://github.com/aaronriekenberg/rust-parallel/wiki/Examples).
+See the [wiki page for examples](https://github.com/aaronriekenberg/rust-parallel/wiki/Examples).
 
 ## Benchmarks:
 See the [wiki page for benchmarks](https://github.com/aaronriekenberg/rust-parallel/wiki/Benchmarks).
