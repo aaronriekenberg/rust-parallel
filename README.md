@@ -7,7 +7,7 @@ Similar interface to [GNU Parallel](https://www.gnu.org/software/parallel/parall
 * Supports `:::` syntax to run all combinations of argument groups similar to GNU Parallel.
 * Optional transformation of inputs using regular expression capture groups.
  
-See the [demos](https://github.com/aaronriekenberg/rust-parallel/wiki/Demos) for examples.
+See the [manual](https://github.com/aaronriekenberg/rust-parallel/wiki/Manual) for detailed usage.
 
 Prevents [output interleaving](https://github.com/aaronriekenberg/rust-parallel/wiki/Output-Interleaving) and is [very fast](https://github.com/aaronriekenberg/rust-parallel/wiki/Benchmarks).
 
@@ -20,84 +20,12 @@ Prevents [output interleaving](https://github.com/aaronriekenberg/rust-parallel/
 [![Crates.io][crates-badge]][crates-url] [![CI workflow][ci-badge]][ci-url]
 
 ## Contents:
-* [Usage](#usage)
 * [Installation](#installation)
+* [Manual](#manual)
 * [Demos](#demos)
 * [Benchmarks](#benchmarks)
 * [Features](#features)
 * [Tech Stack](#tech-stack)
-
-## Usage:
-```
-$ rust-parallel --help
-Execute commands in parallel
-
-By Aaron Riekenberg <aaron.riekenberg@gmail.com>
-
-https://github.com/aaronriekenberg/rust-parallel
-https://crates.io/crates/rust-parallel
-
-Usage: rust-parallel [OPTIONS] [COMMAND_AND_INITIAL_ARGUMENTS]...
-
-Arguments:
-  [COMMAND_AND_INITIAL_ARGUMENTS]...
-          Optional command and initial arguments.
-
-          If this contains 1 or more ::: delimiters the cartesian product of arguments from all groups are run.
-
-Options:
-  -d, --discard-output <DISCARD_OUTPUT>
-          Discard output for commands
-
-          Possible values:
-          - stdout: Redirect stdout for commands to /dev/null
-          - stderr: Redirect stderr for commands to /dev/null
-          - all:    Redirect stdout and stderr for commands to /dev/null
-
-  -i, --input-file <INPUT_FILE>
-          Input file or - for stdin.  Defaults to stdin if no inputs are specified
-
-  -j, --jobs <JOBS>
-          Maximum number of commands to run in parallel, defauts to num cpus
-
-          [default: 8]
-
-  -0, --null-separator
-          Use null separator for reading input files instead of newline
-
-  -p, --progress-bar
-          Display progress bar
-
-  -r, --regex <REGEX>
-          Apply regex pattern to inputs
-
-  -s, --shell
-          Use shell mode for running commands.
-
-          Each command line is passed to "<shell-path> -c" as a single argument.
-
-  -t, --timeout-seconds <TIMEOUT_SECONDS>
-          Timeout seconds for running commands.  Defaults to infinite timeout if not specified
-
-      --channel-capacity <CHANNEL_CAPACITY>
-          Input and output channel capacity, defaults to num cpus * 2
-
-          [default: 16]
-
-      --disable-path-cache
-          Disable command path cache
-
-      --shell-path <SHELL_PATH>
-          Path to shell to use for shell mode
-
-          [default: /bin/bash]
-
-  -h, --help
-          Print help (see a summary with '-h')
-
-  -V, --version
-          Print version
-```
 
 ## Installation:
 Recommended:
@@ -112,6 +40,9 @@ For manual installation/update:
 $ cargo install rust-parallel   
 ```
 3. The same `cargo install rust-parallel` command will also update to the latest version after initial installation.
+
+## Manual:
+See the [wiki page for the manual](https://github.com/aaronriekenberg/rust-parallel/wiki/Manual).
 
 ## Demos:
 See the [wiki page for demos](https://github.com/aaronriekenberg/rust-parallel/wiki/Demos).
