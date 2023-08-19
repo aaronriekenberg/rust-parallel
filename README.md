@@ -7,7 +7,7 @@ Similar interface to [GNU Parallel](https://www.gnu.org/software/parallel/parall
 * Supports `:::` syntax to run all combinations of argument groups similar to GNU Parallel.
 * Optional transformation of inputs using regular expression capture groups.
  
-See the [manual](https://github.com/aaronriekenberg/rust-parallel/wiki/Manual) for detailed usage.
+See the [manual](https://github.com/aaronriekenberg/rust-parallel/wiki/Manual) for detailed usage and [examples](https://github.com/aaronriekenberg/rust-parallel/wiki/Examples) for example commands.
 
 Prevents [output interleaving](https://github.com/aaronriekenberg/rust-parallel/wiki/Output-Interleaving) and is [very fast](https://github.com/aaronriekenberg/rust-parallel/wiki/Benchmarks).
 
@@ -22,7 +22,7 @@ Prevents [output interleaving](https://github.com/aaronriekenberg/rust-parallel/
 ## Contents:
 * [Installation](#installation)
 * [Manual](#manual)
-* [Demos](#demos)
+* [Examples](#examples)
 * [Benchmarks](#benchmarks)
 * [Features](#features)
 * [Tech Stack](#tech-stack)
@@ -44,8 +44,8 @@ $ cargo install rust-parallel
 ## Manual:
 See the [wiki page for the manual](https://github.com/aaronriekenberg/rust-parallel/wiki/Manual).
 
-## Demos:
-See the [wiki page for demos](https://github.com/aaronriekenberg/rust-parallel/wiki/Demos).
+## Examples:
+See the [wiki page for demos](https://github.com/aaronriekenberg/rust-parallel/wiki/Examples).
 
 ## Benchmarks:
 See the [wiki page for benchmarks](https://github.com/aaronriekenberg/rust-parallel/wiki/Benchmarks).
