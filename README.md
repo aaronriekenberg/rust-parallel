@@ -20,7 +20,7 @@ Prevents [output interleaving](https://github.com/aaronriekenberg/rust-parallel/
 [![Crates.io][crates-badge]][crates-url] [![CI workflow][ci-badge]][ci-url]
 
 ## Contents:
-* [Installation](#installation
+* [Installation](#installation)
 * [Examples](#examples)
 * [Manual](#manual)
 * [Benchmarks](#benchmarks)
