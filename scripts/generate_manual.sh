@@ -61,10 +61,7 @@ $RUST_PARALLEL -j1 echo ::: hi there how are you
 
 echo '```'
 
-echo 'Exactly equivalent to above a file `test` is created with 5 echo commands and piped to stdin of `rust-parallel`.
-
-One advantage of reading input from stdin or input files is it can process much larger amounts of inputs than command line arguments.  Also this mode can be used as part of a shell pipeline.
-'
+echo 'Exactly equivalent to above a file `test` is created with 5 echo commands and piped to stdin of `rust-parallel`.'
 
 echo '```
 $ cat >./test <<EOL
@@ -100,7 +97,7 @@ Set environment variable `RUST_LOG=debug` to see debug output.
 
 This logs structured information about command line arguments and commands being run.
 
-Recommend enabling debug logging for all demos to understand what is happening in more detail.
+Recommend enabling debug logging for all examples to understand what is happening in more detail.
 '
 
 echo '```
