@@ -79,6 +79,53 @@ mod test {
         let regex_processor = RegexProcessor::new(&command_line_args).unwrap();
 
         assert_eq!(regex_processor.regex_mode(), false);
+
         assert_eq!(regex_processor.process_string("{0}", "input line"), "{0}");
+    }
+
+    #[test]
+    fn test_regex_numbered_groups() {
+        let command_line_args = CommandLineArgs {
+            regex: Some("(.*),(.*)".to_string()),
+            ..Default::default()
+        };
+
+        let regex_processor = RegexProcessor::new(&command_line_args).unwrap();
+
+        assert_eq!(regex_processor.regex_mode(), true);
+
+        assert_eq!(
+            regex_processor.process_string("{1} {2}", "hello,world"),
+            "hello world"
+        );
+    }
+
+    #[test]
+    fn test_regex_named_groups() {
+        let command_line_args = CommandLineArgs {
+            regex: Some("(?P<arg1>.*),(?P<arg2>.*)".to_string()),
+            ..Default::default()
+        };
+
+        let regex_processor = RegexProcessor::new(&command_line_args).unwrap();
+
+        assert_eq!(regex_processor.regex_mode(), true);
+
+        assert_eq!(
+            regex_processor.process_string("{arg1} {arg2}", "hello,world"),
+            "hello world"
+        );
+    }
+
+    #[test]
+    fn test_regex_invalid() {
+        let command_line_args = CommandLineArgs {
+            regex: Some("(?Parg1>.*),(?P<arg2>.*)".to_string()),
+            ..Default::default()
+        };
+
+        let result = RegexProcessor::new(&command_line_args);
+
+        assert!(result.is_err());
     }
 }
