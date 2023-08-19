@@ -147,7 +147,7 @@ impl CommandService {
                 .command_path_cache
                 .resolve_command_path(command_and_args)
                 .await? else {
-                break;
+                continue;
             };
 
             self.spawn_command(command_and_args, input_line_number)
