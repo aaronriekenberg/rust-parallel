@@ -11,6 +11,8 @@ See [examples](https://github.com/aaronriekenberg/rust-parallel/wiki/Examples) f
 
 Prevents [output interleaving](https://github.com/aaronriekenberg/rust-parallel/wiki/Output-Interleaving) and is [very fast](https://github.com/aaronriekenberg/rust-parallel/wiki/Benchmarks).
 
+Listed in [Awesome Rust - utilities](https://github.com/rust-unofficial/awesome-rust#utilities)
+
 [crates-badge]: https://img.shields.io/crates/v/rust-parallel.svg
 [crates-url]: https://crates.io/crates/rust-parallel
 
