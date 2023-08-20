@@ -45,7 +45,7 @@ $ cargo install rust-parallel
 1. [Examples](https://github.com/aaronriekenberg/rust-parallel/wiki/Examples) - complete runnable commands to give an idea of overall features.
 1. [Manual](https://github.com/aaronriekenberg/rust-parallel/wiki/Manual) - more detailed manual on how to use individual features.
 1. [Benchmarks](https://github.com/aaronriekenberg/rust-parallel/wiki/Benchmarks)
-1. [Output Interleaving](https://github.com/aaronriekenberg/rust-parallel/wiki/Output-Interleaving) discussion of output interleaving in rust-parallel compared with other commands.
+1. [Output Interleaving](https://github.com/aaronriekenberg/rust-parallel/wiki/Output-Interleaving) - output interleaving in rust-parallel compared with other commands.
 
 ## Features:
 * Use only safe rust.  
