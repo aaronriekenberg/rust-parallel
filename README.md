@@ -23,9 +23,7 @@ Listed in [Awesome Rust - utilities](https://github.com/rust-unofficial/awesome-
 
 ## Contents:
 * [Installation](#installation)
-* [Examples](#examples)
-* [Manual](#manual)
-* [Benchmarks](#benchmarks)
+* [Documents](#documents)
 * [Features](#features)
 * [Tech Stack](#tech-stack)
 
@@ -43,14 +41,11 @@ $ cargo install rust-parallel
 ```
 3. The same `cargo install rust-parallel` command will also update to the latest version after initial installation.
 
-## Examples:
-See the [wiki page for examples](https://github.com/aaronriekenberg/rust-parallel/wiki/Examples).
-
-## Manual:
-See the [wiki page for the manual](https://github.com/aaronriekenberg/rust-parallel/wiki/Manual).
-
-## Benchmarks:
-See the [wiki page for benchmarks](https://github.com/aaronriekenberg/rust-parallel/wiki/Benchmarks).
+## Documents:
+1. [Examples](https://github.com/aaronriekenberg/rust-parallel/wiki/Examples) - complete runnable commands to give an idea of overall features.
+1. [Manual](https://github.com/aaronriekenberg/rust-parallel/wiki/Manual) - more detailed manual on how to use individual features.
+1. [Benchmarks](https://github.com/aaronriekenberg/rust-parallel/wiki/Benchmarks)
+1. [Output Interleaving](https://github.com/aaronriekenberg/rust-parallel/wiki/Output-Interleaving) discussion of output interleaving in rust-parallel compared with other commands.
 
 ## Features:
 * Use only safe rust.  
