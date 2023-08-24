@@ -4,7 +4,7 @@ Command-line utility to execute commands in parallel and aggregate their output.
 
 See [examples](https://github.com/aaronriekenberg/rust-parallel/wiki/Examples) for example commands and [manual](https://github.com/aaronriekenberg/rust-parallel/wiki/Manual) for more details.
 
-Similar interface to [GNU Parallel](https://www.gnu.org/software/parallel/parallel_examples.html) or [xargs](https://man7.org/linux/man-pages/man1/xargs.1.html) with handy features:
+Similar interface to [GNU Parallel](https://www.gnu.org/software/parallel/parallel_examples.html) or [xargs](https://man7.org/linux/man-pages/man1/xargs.1.html) with useful features:
 * Run commands from stdin, input files, or `:::` arguments
 * Automatic parallelism to all cpus, can configure manually
 * Transform inputs with regular expression [named or numbered capture groups](https://docs.rs/regex/latest/regex/#grouping-and-flags)
