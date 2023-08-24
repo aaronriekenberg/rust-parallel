@@ -2,15 +2,16 @@
 
 Command-line utility to execute commands in parallel and aggregate their output.
 
-Similar interface to [GNU Parallel](https://www.gnu.org/software/parallel/parallel_examples.html) or [xargs](https://man7.org/linux/man-pages/man1/xargs.1.html) but implemented in rust and [tokio](https://tokio.rs).
+Similar interface to [GNU Parallel](https://www.gnu.org/software/parallel/parallel_examples.html) or [xargs](https://man7.org/linux/man-pages/man1/xargs.1.html) but implemented in rust and [tokio](https://tokio.rs) with some useful features:
 * Run commands from stdin, input files, or `:::` arguments
+* Automatic parallelism to all cpus, can also be configured manually
 * Transform inputs with regular expression capture groups
 * TUI progress bar using [indicatif](https://github.com/console-rs/indicatif)
 * Path cache
 * Command timeouts
 * Structured debug logging
 * Prevents [output interleaving](https://github.com/aaronriekenberg/rust-parallel/wiki/Output-Interleaving)
-* [Very fast](https://github.com/aaronriekenberg/rust-parallel/wiki/Benchmarks).
+* [Very fast](https://github.com/aaronriekenberg/rust-parallel/wiki/Benchmarks)
  
 See [examples](https://github.com/aaronriekenberg/rust-parallel/wiki/Examples) for example commands and [manual](https://github.com/aaronriekenberg/rust-parallel/wiki/Manual) for more details.
 
