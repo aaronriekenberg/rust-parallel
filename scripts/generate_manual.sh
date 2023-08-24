@@ -48,7 +48,7 @@ echo '
 
 By default the number of parallel jobs to run simulatenously is the number of cpus detected at run time.
 
-This can be override with the `-j`/`--jobs` options.
+This can be override with the `-j`/`--jobs` option.
 
 With `-j5` all echo commands below run in parallel.
 
