@@ -46,9 +46,13 @@ $ rust-parallel gzip -k ::: *.html
 echo '
 ## Parallelism
 
-Using command line arguments we can run 5 echo commands.
+By default the number of parallel jobs to run simulatenously is the number of cpus detected at run time.
 
-With `-j5` all commands run in parallel, with `-j1` commands run sequentially.
+This can be override with the `-j`/`--jobs` options.
+
+With `-j5` all echo commands below run in parallel.
+
+With `-j1` all jobs run sequentially.
 '
 
 echo '```
@@ -58,36 +62,6 @@ $RUST_PARALLEL -j5 echo ::: hi there how are you
 echo '
 $ rust-parallel -j1 echo ::: hi there how are you'
 $RUST_PARALLEL -j1 echo ::: hi there how are you
-
-echo '```'
-
-echo 'Exactly equivalent to above a file `test` is created with 5 echo commands and piped to stdin of `rust-parallel`.'
-
-echo '```
-$ cat >./test <<EOL
-echo hi
-echo there
-echo how
-echo are
-echo you
-EOL'
-cat >./test<<EOL
-echo hi
-echo there
-echo how
-echo are
-echo you
-EOL
-
-echo '
-$ cat test | rust-parallel -j5'
-cat test | $RUST_PARALLEL -j5
-
-echo '
-$ cat test | rust-parallel -j1'
-cat test | $RUST_PARALLEL -j1
-
-rm -f test
 
 echo '```'
 
