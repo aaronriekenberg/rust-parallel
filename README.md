@@ -7,7 +7,7 @@ Similar interface to [GNU Parallel](https://www.gnu.org/software/parallel/parall
 * Automatic parallelism to all cpus, can also be configured manually
 * Transform inputs with regular expression [named or numbered capture groups](https://docs.rs/regex/latest/regex/#grouping-and-flags
 * Prevents [output interleaving](https://github.com/aaronriekenberg/rust-parallel/wiki/Output-Interleaving)
-* [Very fast](https://github.com/aaronriekenberg/rust-parallel/wiki/Benchmarks)
+* [Very fast in benchmarks](https://github.com/aaronriekenberg/rust-parallel/wiki/Benchmarks)
 * Shell mode to run bash functions or other shell commands
 * TUI progress bar using [indicatif](https://github.com/console-rs/indicatif)
 * Path cache
