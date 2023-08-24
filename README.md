@@ -55,7 +55,7 @@ $ cargo install rust-parallel
 * [anyhow](https://github.com/dtolnay/anyhow) used for application error handling to propogate and format fatal errors.
 * [clap](https://docs.rs/clap/latest/clap/) command line argument parser.
 * [itertools](https://docs.rs/itertools/latest/itertools/) using [`multi_cartesian_product`](https://docs.rs/itertools/latest/itertools/trait.Itertools.html#method.multi_cartesian_product) to process `:::` command line inputs.
-* [indicatif](https://github.com/console-rs/indicatif) optional graphical progress bar.
+* [indicatif](https://github.com/console-rs/indicatif) optional TUI progress bar.
 * [regex](https://github.com/rust-lang/regex) optional regular expression capture groups processing for `-r`/`--regex` option.
   * The [expand function](https://docs.rs/regex/latest/regex/struct.Captures.html#method.expand) is used to replace capture groups in command arguments with input data.
 * [tokio](https://tokio.rs/) asynchronous runtime for rust.  From tokio this app uses:
