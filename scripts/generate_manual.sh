@@ -8,6 +8,7 @@ echo "## Manual for rust-parallel $VERSION"
 echo '
 1. [Command line](#command-line)
 1. [Commands from arguments](#commands-from-arguments)
+1. [Commands from stdin](#commands-from-stdin)
 1. [Parallelism](#parallelism)
 1. [Debug logging](#debug-logging)
 1. [Timeout](#timeout)
@@ -42,6 +43,35 @@ echo '
 # run gzip -k on all *.html files in current directory
 $ rust-parallel gzip -k ::: *.html
 ```'
+
+echo '## Commands from stdin.
+
+Run complete commands from stdin.
+
+'
+echo '```
+$ cat >./test <<EOL
+echo hi
+echo there
+echo how
+echo are
+echo you
+EOL'
+cat >./test<<EOL
+echo hi
+echo there
+echo how
+echo are
+echo you
+EOL
+
+echo '
+$ cat test | rust-parallel'
+cat test | $RUST_PARALLEL
+
+rm -f test
+
+echo '```'
 
 echo '
 ## Parallelism
