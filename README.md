@@ -28,7 +28,6 @@ Listed in [Awesome Rust - utilities](https://github.com/rust-unofficial/awesome-
 ## Contents:
 * [Installation](#installation)
 * [Documents](#documents)
-* [Features](#features)
 * [Tech Stack](#tech-stack)
 
 ## Installation:
@@ -51,24 +50,13 @@ $ cargo install rust-parallel
 1. [Benchmarks](https://github.com/aaronriekenberg/rust-parallel/wiki/Benchmarks)
 1. [Output Interleaving](https://github.com/aaronriekenberg/rust-parallel/wiki/Output-Interleaving) - output interleaving in rust-parallel compared with other commands.
 
-## Features:
-* Use only safe rust.  
-  * main.rs contains `#![forbid(unsafe_code)]`)
-* Supports optional processing of inputs using regular expression capture groups.  This is implemented using the [`expand`](https://docs.rs/regex/latest/regex/struct.Captures.html#method.expand) function to replace specified capture groups with input data.
-* Prevent [output interleaving](https://github.com/aaronriekenberg/rust-parallel/wiki/Output-Interleaving).
-* Use only asynchronous operations supported by [tokio](https://tokio.rs), do not use any blocking operations.  This includes writing to stdout and stderr.
-  * There is one exception to this: the `which` library used to build the path cache only has a blocking interface, so [`tokio::task::spawn_blocking`](https://docs.rs/tokio/latest/tokio/task/fn.spawn_blocking.html) is used to invoke this.
-* Support arbitrarily large number of input lines, avoid `O(number of input lines)` memory usage.  In support of this:
-  * [`tokio::sync::Semaphore`](https://docs.rs/tokio/latest/tokio/sync/struct.Semaphore.html) is used carefully to limit the number of commands that run concurrently.  Do not spawn tasks for all input lines immediately to limit memory usage.
-* Cache resolved command paths so expensive lookup in $PATH is not done for every command executed.  This can be disabled with `--disable-path-cache` option.
-* Support running commands on local machine only, not on remote machines.
-
 ## Tech Stack:
 * [anyhow](https://github.com/dtolnay/anyhow) used for application error handling to propogate and format fatal errors.
 * [clap](https://docs.rs/clap/latest/clap/) command line argument parser.
 * [itertools](https://docs.rs/itertools/latest/itertools/) using [`multi_cartesian_product`](https://docs.rs/itertools/latest/itertools/trait.Itertools.html#method.multi_cartesian_product) to process `:::` command line inputs.
 * [indicatif](https://github.com/console-rs/indicatif) optional graphical progress bar.
 * [regex](https://github.com/rust-lang/regex) optional regular expression capture groups processing for `-r`/`--regex` option.
+  * The [expand function](https://docs.rs/regex/latest/regex/struct.Captures.html#method.expand) is used to replace capture groups in command arguments with input data.
 * [tokio](https://tokio.rs/) asynchronous runtime for rust.  From tokio this app uses:
   * `async` / `await` functions (aka coroutines)
   * Singleton `CommandLineArgs` instance using [`tokio::sync::OnceCell`](https://docs.rs/tokio/latest/tokio/sync/struct.OnceCell.html).
