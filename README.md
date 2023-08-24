@@ -3,9 +3,9 @@
 Command-line utility to execute commands in parallel and aggregate their output.
 
 Similar interface to [GNU Parallel](https://www.gnu.org/software/parallel/parallel_examples.html) or [xargs](https://man7.org/linux/man-pages/man1/xargs.1.html) but implemented in rust and [tokio](https://tokio.rs).
-* Run commands read from stdin, input files, or `:::` on command line.
+* Run commands from stdin, input files, or `:::` arguments
 * Transform inputs with regular expression capture groups
-* TUI progress bar
+* TUI progress bar using [indicatif](https://github.com/console-rs/indicatif)
 * Path cache
 * Command timeouts
 * Structured debug logging
