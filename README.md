@@ -1,6 +1,6 @@
 # rust-parallel
 
-Run commands in parallel and aggregate their outputs.  Async application using rust and [tokio](https://tokio.rs).
+Run commands in parallel and aggregate their outputs.  Async application using [tokio](https://tokio.rs).
 
 [Example commands](https://github.com/aaronriekenberg/rust-parallel/wiki/Examples) and [detailed manual](https://github.com/aaronriekenberg/rust-parallel/wiki/Manual).
 
