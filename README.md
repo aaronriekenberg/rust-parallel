@@ -2,7 +2,7 @@
 
 Run commands in parallel and aggregate their outputs.  Async application using rust and [tokio](https://tokio.rs).
 
-See [example commands](https://github.com/aaronriekenberg/rust-parallel/wiki/Examples) and [detailed manual](https://github.com/aaronriekenberg/rust-parallel/wiki/Manual).
+[Example commands](https://github.com/aaronriekenberg/rust-parallel/wiki/Examples) and [detailed manual](https://github.com/aaronriekenberg/rust-parallel/wiki/Manual).
 
 Similar interface to [GNU Parallel](https://www.gnu.org/software/parallel/parallel_examples.html) or [xargs](https://man7.org/linux/man-pages/man1/xargs.1.html) plus useful features:
 * Run commands from stdin, input files, or `:::` arguments
