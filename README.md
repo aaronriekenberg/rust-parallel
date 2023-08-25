@@ -2,15 +2,15 @@
 
 Run commands in parallel and aggregate their outputs.  Async application using rust and [tokio](https://tokio.rs).
 
-See [examples](https://github.com/aaronriekenberg/rust-parallel/wiki/Examples) for example commands and [manual](https://github.com/aaronriekenberg/rust-parallel/wiki/Manual) for more details.
+See [example commands](https://github.com/aaronriekenberg/rust-parallel/wiki/Examples) and [detailed manual](https://github.com/aaronriekenberg/rust-parallel/wiki/Manual).
 
 Similar interface to [GNU Parallel](https://www.gnu.org/software/parallel/parallel_examples.html) or [xargs](https://man7.org/linux/man-pages/man1/xargs.1.html) plus useful features:
 * Run commands from stdin, input files, or `:::` arguments
-* Automatic parallelism to all cpus using, can configure manually.
+* Automatic parallelism to all cpus, or configure manually
 * Transform inputs with regular expression [named or numbered capture groups](https://docs.rs/regex/latest/regex/#grouping-and-flags)
 * Prevent [output interleaving](https://github.com/aaronriekenberg/rust-parallel/wiki/Output-Interleaving)
 * [Very fast in benchmarks](https://github.com/aaronriekenberg/rust-parallel/wiki/Benchmarks)
-* Shell mode to run bash functions or other shell commands
+* Shell mode to run bash functions/commands
 * TUI progress bar using [indicatif](https://github.com/console-rs/indicatif)
 * Path cache
 * Command timeouts
