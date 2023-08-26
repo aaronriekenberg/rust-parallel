@@ -179,7 +179,7 @@ echo '
 
 Regular expressions can be specified by the `-r` or `--regex` command line argument.
 
-Named or numbered capture groups are expanded with data values from the current input before the command is executed.
+[Named or numbered capture groups](https://docs.rs/regex/latest/regex/#grouping-and-flags) are expanded with data values from the current input before the command is executed.
 
 In these examples using command line arguments `{url}` and `{filename}` are named capture groups.  `{0}` is a numbered capture group.
 '
