@@ -146,7 +146,8 @@ impl CommandService {
             let Some(command_and_args) = self
                 .command_path_cache
                 .resolve_command_path(command_and_args)
-                .await? else {
+                .await?
+            else {
                 continue;
             };
 
