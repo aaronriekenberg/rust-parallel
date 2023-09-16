@@ -6,6 +6,11 @@ use tracing::debug;
 
 pub const COMMANDS_FROM_ARGS_SEPARATOR: &str = ":::";
 
+#[cfg(unix)]
+const DEFAULT_SHELL: &str = "/bin/bash";
+#[cfg(windows)]
+const DEFAULT_SHELL: &str = "cmd";
+
 /// Execute commands in parallel
 ///
 /// By Aaron Riekenberg <aaron.riekenberg@gmail.com>
@@ -58,7 +63,7 @@ pub struct CommandLineArgs {
     pub disable_path_cache: bool,
 
     /// Path to shell to use for shell mode
-    #[arg(long, default_value = "/bin/bash")]
+    #[arg(long, default_value = DEFAULT_SHELL)]
     pub shell_path: String,
 
     /// Optional command and initial arguments.
