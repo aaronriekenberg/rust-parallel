@@ -23,7 +23,6 @@ jobs:
   upload-assets:
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
         include:
           - target: aarch64-unknown-linux-gnu
             os: ubuntu-latest
@@ -36,6 +35,8 @@ jobs:
           # Universal macOS binary is supported as universal-apple-darwin.
           - target: universal-apple-darwin
             os: macos-latest
+          - target: x86_64-pc-windows-msvc
+            os: windows-latest
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
