@@ -10,19 +10,22 @@ use self::{
     buffered::BufferedInputLineParser, command_line::CommandLineArgsParser, regex::RegexProcessor,
 };
 
-#[cfg(unix)]
-const SHELL_ARGUMENT: &str = "-c";
-#[cfg(windows)]
-const SHELL_ARGUMENT: &str = "/c";
-
 struct ShellCommandAndArgs(Option<Vec<String>>);
 
 fn build_shell_command_and_args(command_line_args: &CommandLineArgs) -> ShellCommandAndArgs {
+    fn shell_argument() -> String {
+        if cfg!(unix) {
+            "-c"
+        } else if cfg!(windows) {
+            "/c"
+        } else {
+            unreachable!()
+        }
+        .to_owned()
+    }
+
     ShellCommandAndArgs(if command_line_args.shell {
-        Some(vec![
-            command_line_args.shell_path.clone(),
-            SHELL_ARGUMENT.to_owned(),
-        ])
+        Some(vec![command_line_args.shell_path.clone(), shell_argument()])
     } else {
         None
     })
