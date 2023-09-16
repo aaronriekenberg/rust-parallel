@@ -23,6 +23,7 @@ jobs:
   upload-assets:
     strategy:
       matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
         include:
           - target: aarch64-unknown-linux-gnu
             os: ubuntu-latest
@@ -43,6 +44,8 @@ jobs:
           # (required) Comma-separated list of binary names (non-extension portion of filename) to build and upload.
           # Note that glob pattern is not supported yet.
           bin: rust-parallel
+          tar: unix
+          zip: windows
           # (optional) Target triple, default is host triple.
           target: ${{ matrix.target }}
           # (required) GitHub token for uploading assets to GitHub Releases.
