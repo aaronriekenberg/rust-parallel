@@ -280,3 +280,43 @@ fn fails_invalid_regex() {
         ))
         .stderr(predicate::str::is_empty());
 }
+
+#[test]
+fn runs_regex_from_input_file_produce_json_named_groups_j1() {
+    let expected_stdout = r#"{"id": 123, "zero": "1,2,3", "one": "1", "two": "2", "three": "3"}
+{"id": 123, "zero": "foo,bar,baz", "one": "foo", "two": "bar", "three": "baz"}
+"#;
+
+    rust_parallel()
+        .arg("-j1")
+        .arg("-i")
+        .arg("csv_file.txt")
+        .arg("-r")
+        .arg("(?P<arg1>.*),(?P<arg2>.*),(?P<arg3>.*)")
+        .arg("echo")
+        .arg(r#"{"id": 123, "zero": "{0}", "one": "{arg1}", "two": "{arg2}", "three": "{arg3}"}"#)
+        .assert()
+        .success()
+        .stdout(predicate::eq(expected_stdout))
+        .stderr(predicate::str::is_empty());
+}
+
+#[test]
+fn runs_regex_from_input_file_produce_json_numbered_groups_j1() {
+    let expected_stdout = r#"{"id": 123, "zero": "1,2,3", "three": "3", "two": "2", "one": "1"}
+{"id": 123, "zero": "foo,bar,baz", "three": "baz", "two": "bar", "one": "foo"}
+"#;
+
+    rust_parallel()
+        .arg("-j1")
+        .arg("-i")
+        .arg("csv_file.txt")
+        .arg("-r")
+        .arg("(.*),(.*),(.*)")
+        .arg("echo")
+        .arg(r#"{"id": 123, "zero": "{0}", "three": "{3}", "two": "{2}", "one": "{1}"}"#)
+        .assert()
+        .success()
+        .stdout(predicate::eq(expected_stdout))
+        .stderr(predicate::str::is_empty());
+}
