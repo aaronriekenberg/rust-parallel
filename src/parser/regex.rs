@@ -9,23 +9,38 @@ use crate::command_line_args::CommandLineArgs;
 use std::borrow::Cow;
 
 #[derive(Clone)]
+struct InternalState {
+    command_line_regex: Regex,
+    replace_capture_groups_regex: Regex,
+}
+
+#[derive(Clone)]
 pub struct RegexProcessor {
-    regex: Option<Regex>,
+    internal_state: Option<InternalState>,
 }
 
 impl RegexProcessor {
     pub fn new(command_line_args: &CommandLineArgs) -> anyhow::Result<Self> {
-        let regex = match &command_line_args.regex {
+        let internal_state = match &command_line_args.regex {
             None => None,
-            Some(regex) => {
-                Some(Regex::new(regex).context("RegexProcessor::new: error creating regex")?)
+            Some(command_line_args_regex) => {
+                let command_line_regex = Regex::new(command_line_args_regex)
+                    .context("RegexProcessor::new: error creating command_line_regex")?;
+
+                let replace_capture_groups_regex = Regex::new(r"(\{[a-zA-Z0-9_]+\})")
+                    .context("RegexProcessor::new: error creating replace_capture_groups_regex")?;
+
+                Some(InternalState {
+                    command_line_regex,
+                    replace_capture_groups_regex,
+                })
             }
         };
-        Ok(Self { regex })
+        Ok(Self { internal_state })
     }
 
     pub fn regex_mode(&self) -> bool {
-        self.regex.is_some()
+        self.internal_state.is_some()
     }
 
     pub fn process_string<'a>(&self, argument: &'a str, input_data: &str) -> Cow<'a, str> {
@@ -35,12 +50,12 @@ impl RegexProcessor {
             input_data
         );
 
-        let regex = match &self.regex {
+        let internal_state = match &self.internal_state {
             None => return Cow::from(argument),
-            Some(regex) => regex,
+            Some(internal_state) => internal_state,
         };
 
-        let captures = match regex.captures(input_data) {
+        let captures = match internal_state.command_line_regex.captures(input_data) {
             None => return Cow::from(argument),
             Some(captures) => captures,
         };
@@ -48,8 +63,14 @@ impl RegexProcessor {
         trace!("captures = ${:?}", captures);
 
         // expand expects capture group references of the form ${ref}.
-        // on the command line we take {ref} so replace { with ${ before calling expand.
-        let argument = argument.replace('{', "${");
+        // On the command line we take {ref} so prepend all {[a-zA-Z0-9_]+} with $ before calling expand.
+        // The replace_capture_groups_regex is used so we do not replace other { or } characters
+        // in argument that should not be expanded.
+        let argument = internal_state
+            .replace_capture_groups_regex
+            .replace_all(argument, r"$$${1}");
+
+        trace!("after replace_all argument = {:?}", argument);
 
         let mut dest = String::new();
 
@@ -115,6 +136,46 @@ mod test {
         assert_eq!(
             regex_processor.process_string("{arg1} {arg2}", "hello,world"),
             "hello world"
+        );
+    }
+
+    #[test]
+    fn test_regex_numbered_groups_json() {
+        let command_line_args = CommandLineArgs {
+            regex: Some("(.*),(.*)".to_string()),
+            ..Default::default()
+        };
+
+        let regex_processor = RegexProcessor::new(&command_line_args).unwrap();
+
+        assert_eq!(regex_processor.regex_mode(), true);
+
+        assert_eq!(
+            regex_processor.process_string(
+                r#"{"id": 123, "zero": "{0}", "one": "{1}", "two": "{2}"}"#,
+                "hello,world",
+            ),
+            r#"{"id": 123, "zero": "hello,world", "one": "hello", "two": "world"}"#
+        );
+    }
+
+    #[test]
+    fn test_regex_named_groups_json() {
+        let command_line_args = CommandLineArgs {
+            regex: Some("(?P<arg1>.*),(?P<arg2>.*)".to_string()),
+            ..Default::default()
+        };
+
+        let regex_processor = RegexProcessor::new(&command_line_args).unwrap();
+
+        assert_eq!(regex_processor.regex_mode(), true);
+
+        assert_eq!(
+            regex_processor.process_string(
+                r#"{"id": 123, "zero": "{0}", "one": "{arg1}", "two": "{arg2}"}"#,
+                "hello,world",
+            ),
+            r#"{"id": 123, "zero": "hello,world", "one": "hello", "two": "world"}"#
         );
     }
 

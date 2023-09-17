@@ -276,7 +276,7 @@ fn fails_invalid_regex() {
         .assert()
         .failure()
         .stdout(predicate::str::contains(
-            "RegexProcessor::new: error creating regex: regex parse error:",
+            "RegexProcessor::new: error creating command_line_regex: regex parse error:",
         ))
         .stderr(predicate::str::is_empty());
 }
