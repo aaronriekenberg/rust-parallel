@@ -320,3 +320,22 @@ fn runs_regex_from_input_file_produce_json_numbered_groups_j1() {
         .stdout(predicate::eq(expected_stdout))
         .stderr(predicate::str::is_empty());
 }
+
+#[test]
+fn runs_regex_command_with_dollar_signs() {
+    let expected_stdout = "input 1$ input bar\n";
+
+    let stdin = "input";
+
+    rust_parallel()
+        .write_stdin(stdin)
+        .arg("-j1")
+        .arg("-r")
+        .arg(".*")
+        .arg("-s")
+        .arg(r#"foo={0}; echo $foo 1$ "$foo" "$(echo bar)""#)
+        .assert()
+        .success()
+        .stdout(predicate::eq(expected_stdout))
+        .stderr(predicate::str::is_empty());
+}
