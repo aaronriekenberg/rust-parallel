@@ -27,7 +27,7 @@ impl RegexProcessor {
                 let command_line_regex = Regex::new(command_line_args_regex)
                     .context("RegexProcessor::new: error creating command_line_regex")?;
 
-                let replace_capture_groups_regex = Regex::new(r"(\{[a-zA-Z0-9_]+\})")
+                let replace_capture_groups_regex = Regex::new(r"\{[a-zA-Z0-9_]+\}")
                     .context("RegexProcessor::new: error creating replace_capture_groups_regex")?;
 
                 Some(InternalState {
@@ -62,13 +62,16 @@ impl RegexProcessor {
 
         trace!("captures = ${:?}", captures);
 
+        // escape all $ characters in argument so they do not get expanded.
+        let argument = argument.replace('$', "$$");
+
         // expand expects capture group references of the form ${ref}.
         // On the command line we take {ref} so prepend all {[a-zA-Z0-9_]+} with $ before calling expand.
         // The replace_capture_groups_regex is used so we do not replace other { or } characters
         // in argument that should not be expanded.
         let argument = internal_state
             .replace_capture_groups_regex
-            .replace_all(argument, r"$$${1}");
+            .replace_all(&argument, r"$$${0}");
 
         trace!("after replace_all argument = {:?}", argument);
 
@@ -152,10 +155,10 @@ mod test {
 
         assert_eq!(
             regex_processor.process_string(
-                r#"{"id": 123, "zero": "{0}", "one": "{1}", "two": "{2}"}"#,
+                r#"{"id": 123, "$zero": "{0}", "one": "{1}", "two": "{2}"}"#,
                 "hello,world",
             ),
-            r#"{"id": 123, "zero": "hello,world", "one": "hello", "two": "world"}"#
+            r#"{"id": 123, "$zero": "hello,world", "one": "hello", "two": "world"}"#
         );
     }
 
@@ -172,10 +175,10 @@ mod test {
 
         assert_eq!(
             regex_processor.process_string(
-                r#"{"id": 123, "zero": "{0}", "one": "{arg1}", "two": "{arg2}"}"#,
+                r#"{"id": 123, "$zero": "{0}", "one": "{arg1}", "two": "{arg2}"}"#,
                 "hello,world",
             ),
-            r#"{"id": 123, "zero": "hello,world", "one": "hello", "two": "world"}"#
+            r#"{"id": 123, "$zero": "hello,world", "one": "hello", "two": "world"}"#
         );
     }
 
