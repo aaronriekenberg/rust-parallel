@@ -181,6 +181,8 @@ Regular expressions can be specified by the `-r` or `--regex` command line argum
 
 [Named or numbered capture groups](https://docs.rs/regex/latest/regex/#grouping-and-flags) are expanded with data values from the current input before the command is executed.
 
+Only capture groups matching `{[a-zA-Z0-9_]+]}` are expanded to avoid expanding unintended characters in inputs.
+
 In these examples using command line arguments `{url}` and `{filename}` are named capture groups.  `{0}` is a numbered capture group.
 '
 
