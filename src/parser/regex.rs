@@ -2,8 +2,6 @@ use anyhow::Context;
 
 use regex::Regex;
 
-use tracing::trace;
-
 use crate::command_line_args::CommandLineArgs;
 
 use std::borrow::Cow;
@@ -44,12 +42,6 @@ impl RegexProcessor {
     }
 
     pub fn process_string<'a>(&self, argument: &'a str, input_data: &str) -> Cow<'a, str> {
-        trace!(
-            "in process_string argument = {:?} input_data = {:?}",
-            argument,
-            input_data
-        );
-
         let internal_state = match &self.internal_state {
             None => return Cow::from(argument),
             Some(internal_state) => internal_state,
@@ -59,8 +51,6 @@ impl RegexProcessor {
             None => return Cow::from(argument),
             Some(captures) => captures,
         };
-
-        trace!("captures = ${:?}", captures);
 
         // escape all $ characters in argument so they do not get expanded.
         let argument = argument.replace('$', "$$");
@@ -73,18 +63,9 @@ impl RegexProcessor {
             .replace_capture_groups_regex
             .replace_all(&argument, r"$$${0}");
 
-        trace!("after replace_all argument = {:?}", argument);
-
         let mut dest = String::new();
 
         captures.expand(&argument, &mut dest);
-
-        trace!(
-            "after expand argument = {:?} input_data = {:?} dest = {:?}",
-            argument,
-            input_data,
-            dest
-        );
 
         Cow::from(dest)
     }
