@@ -17,6 +17,7 @@ echo '
 1. [Reading multiple inputs](#reading-multiple-inputs)
 1. [Regular Expression](#regular-expression)
 1. [Bash Function](#bash-function)
+1. [Shell Commands](#shell-commands)
 '
 
 echo '## Command line'
@@ -326,3 +327,13 @@ rm -f test
 
 echo '```
 '
+echo '## Shell Commands
+
+Shell commands can be written using `-s` shell mode.
+
+Multiline commands can be written using `;`.  Environment variables, `$` characters, nested commands and much more are possible:'
+
+echo '```'
+echo -e '$ rust-parallel -s -r \x27(?P<arg1>.*) (?P<arg2>.*)\x27 \x27FOO={arg1}; BAR={arg2}; echo "FOO = $FOO, BAR = $BAR, shell pid = $$, date = $(date)"\x27 ::: A B ::: C D'
+$RUST_PARALLEL -s -r '(?P<arg1>.*) (?P<arg2>.*)' 'FOO={arg1}; BAR={arg2}; echo "FOO = $FOO, BAR = $BAR, shell pid = $$, date = $(date)"' ::: A B ::: C D
+echo '```'
