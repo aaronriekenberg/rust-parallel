@@ -181,14 +181,14 @@ Regular expressions can be specified by the `-r` or `--regex` command line argum
 
 [Named or numbered capture groups](https://docs.rs/regex/latest/regex/#grouping-and-flags) are expanded with data values from the current input before the command is executed.
 
-Only capture groups matching `{[a-zA-Z0-9_]+]}` are expanded to avoid expanding unintended characters in inputs.
+Only capture groups matching `{[a-zA-Z0-9_]+}` are expanded to avoid expanding unintended characters in inputs.
 
 In these examples using command line arguments `{url}` and `{filename}` are named capture groups.  `{0}` is a numbered capture group.
 '
 
 echo '```'
-echo -e '$ rust-parallel -r \x27(?P<url>.*),(?P<filename>.*)\x27 echo got url={url} filename={filename} ::: URL1,filename1  URL2,filename2'
-$RUST_PARALLEL -r '(?P<url>.*),(?P<filename>.*)' echo got url={url} filename={filename} ::: URL1,filename1  URL2,filename2
+echo -e '$ rust-parallel -r \x27(?P<url>.*),(?P<filename>.*)\x27 echo got url={url} filename={filename} ::: URL1,filename1 URL2,filename2'
+$RUST_PARALLEL -r '(?P<url>.*),(?P<filename>.*)' echo got url={url} filename={filename} ::: URL1,filename1 URL2,filename2
 
 echo
 echo -e '$ rust-parallel -r \x27(?P<url>.*) (?P<filename>.*)\x27 echo got url={url} filename={filename} full input={0} ::: URL1 URL2 ::: filename1 filename2'
