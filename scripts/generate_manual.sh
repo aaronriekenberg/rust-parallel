@@ -16,8 +16,15 @@ echo '
 1. [Specifying command and initial arguments on command line](#specifying-command-and-initial-arguments-on-command-line)
 1. [Reading multiple inputs](#reading-multiple-inputs)
 1. [Regular Expression](#regular-expression)
-1. [Bash Function](#bash-function)
+   1. [Named Capture Groups](#named-capture-groups)
+   1. [Numbered Capture Groups](#numbered-capture-groups)
+   1. [Capture Group Special Characters](#capture-group-special-characters)
 1. [Shell Commands](#shell-commands)
+1. [Bash Function](#bash-function)
+   1. [Function Setup](#function-setup)
+   1. [Demo of command line arguments](#demo-of-command-line-arguments)
+   1. [Demo of function and command line arguments from stdin](#demo-of-function-and-command-line-arguments-from-stdin)
+   1. [Demo of function and initial arguments on command line, additional arguments from stdin](#demo-of-function-and-initial-arguments-on-command-line-additional-arguments-from-stdin)
 '
 
 echo '## Command line'
@@ -247,9 +254,20 @@ echo '```'
 
 rm -f test
 
+echo '## Shell Commands
+
+Shell commands can be written using `-s` shell mode.
+
+Multiline commands can be written using `;`.  Environment variables, `$` characters, nested commands and much more are possible:'
+
+echo '```'
+echo -e '$ rust-parallel -s -r \x27(?P<arg1>.*) (?P<arg2>.*)\x27 \x27FOO={arg1}; BAR={arg2}; echo "FOO = $FOO, BAR = $BAR, shell pid = $$, date = $(date)"\x27 ::: A B ::: C D'
+$RUST_PARALLEL -s -r '(?P<arg1>.*) (?P<arg2>.*)' 'FOO={arg1}; BAR={arg2}; echo "FOO = $FOO, BAR = $BAR, shell pid = $$, date = $(date)"' ::: A B ::: C D
+echo '```'
+
 echo '## Bash Function
 
-Use `-s` shell mode to invoke an arbitrary bash function.
+`-s` shell mode can be used to invoke an arbitrary bash function.
 
 Similar to normal commands bash functions can be called using stdin, input files, or from command line arguments.'
 
@@ -325,15 +343,4 @@ $ cat test | rust-parallel -s logargs hello'
 cat test | $RUST_PARALLEL -s logargs hello
 rm -f test
 
-echo '```
-'
-echo '## Shell Commands
-
-Shell commands can be written using `-s` shell mode.
-
-Multiline commands can be written using `;`.  Environment variables, `$` characters, nested commands and much more are possible:'
-
-echo '```'
-echo -e '$ rust-parallel -s -r \x27(?P<arg1>.*) (?P<arg2>.*)\x27 \x27FOO={arg1}; BAR={arg2}; echo "FOO = $FOO, BAR = $BAR, shell pid = $$, date = $(date)"\x27 ::: A B ::: C D'
-$RUST_PARALLEL -s -r '(?P<arg1>.*) (?P<arg2>.*)' 'FOO={arg1}; BAR={arg2}; echo "FOO = $FOO, BAR = $BAR, shell pid = $$, date = $(date)"' ::: A B ::: C D
 echo '```'
