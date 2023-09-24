@@ -232,7 +232,7 @@ echo '### Capture Group Special Characters
 
 Only capture groups matching `{[a-zA-Z0-9_]+}` are expanded to avoid expanding unintended characters.
 
-This means capture groups can be nested with other `{` or `}` charaacters such as when building json:'
+This means capture groups can be nested with other `{` or `}` characters such as when building json:'
 
 echo '```'
 echo '$ cat >./test <<EOL
