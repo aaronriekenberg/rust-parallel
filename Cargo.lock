@@ -577,7 +577,7 @@ checksum = "dbb5fb1acd8a1a18b3dd5be62d25485eb770e05afb408a9627d14d451bae12da"
 
 [[package]]
 name = "rust-parallel"
-version = "1.10.1"
+version = "1.10.2"
 dependencies = [
  "anyhow",
  "assert_cmd",
