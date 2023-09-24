@@ -181,7 +181,7 @@ Regular expressions can be specified by the `-r` or `--regex` command line argum
 
 [Named or numbered capture groups](https://docs.rs/regex/latest/regex/#grouping-and-flags) are expanded with data values from the current input before the command is executed.
 
-Only capture groups matching `{[a-zA-Z0-9_]+}` are expanded to avoid expanding unintended characters in inputs.
+### Named Capture Groups
 
 In these examples using command line arguments `{url}` and `{filename}` are named capture groups.  `{0}` is a numbered capture group.
 '
@@ -196,7 +196,9 @@ $RUST_PARALLEL -r '(?P<url>.*) (?P<filename>.*)' echo got url={url} filename={fi
 
 echo '```'
 
-echo 'In the next example input file arguments `{0}` `{1}` `{2}` `{3}` are numbered capture groups, and the input is a csv file:'
+echo '### Numbered Capture Groups
+
+In the next example input file arguments `{0}` `{1}` `{2}` `{3}` are numbered capture groups, and the input is a csv file:'
 
 echo '```'
 echo '$ cat >./test <<EOL
@@ -213,6 +215,32 @@ EOL
 echo
 echo -e '$ cat test | rust-parallel -r \x27(.*),(.*),(.*)\x27 echo got arg1={1} arg2={2} arg3={3} full input={0}'
 cat test | $RUST_PARALLEL -r '(.*),(.*),(.*)' echo got arg1={1} arg2={2} arg3={3} full input={0}
+
+echo '```'
+
+rm -f test
+
+echo '### Capture Group Special Characters
+
+Only capture groups matching `{[a-zA-Z0-9_]+}` are expanded to avoid expanding unintended characters.
+
+This means capture groups can be nested with other `{` or `}` charaacters such as when building json:'
+
+echo '```'
+echo '$ cat >./test <<EOL
+1,2,3
+4,5,6
+7,8,9
+EOL'
+cat >./test <<EOL
+1,2,3
+4,5,6
+7,8,9
+EOL
+
+echo
+echo -e '$ cat test | rust-parallel -r \x27(.*),(.*),(.*)\x27 echo \x27{"one":{1},"two":{2},"nested_object":{"three":{3}}}\x27'
+cat test | $RUST_PARALLEL -r '(.*),(.*),(.*)' echo '{"one":{1},"two":{2},"nested_object":{"three":{3}}}'
 
 echo '```'
 
