@@ -6,15 +6,15 @@ Run commands in parallel and aggregate outputs.  Async application using [tokio]
 
 Similar interface to [GNU Parallel](https://www.gnu.org/software/parallel/parallel_examples.html) or [xargs](https://man7.org/linux/man-pages/man1/xargs.1.html) plus useful features:
 * Run commands from stdin, input files, or `:::` arguments
-* Automatic parallelism to all cpus, or configure manually
+* Automatic parallelism to all cpus, or [configure manually](https://github.com/aaronriekenberg/rust-parallel/wiki/Manual#parallelism)
 * Transform inputs with [regular expression capture groups](https://github.com/aaronriekenberg/rust-parallel/wiki/Manual#regular-expression)
 * Prevent [output interleaving](https://github.com/aaronriekenberg/rust-parallel/wiki/Output-Interleaving)
 * [Very fast in benchmarks](https://github.com/aaronriekenberg/rust-parallel/wiki/Benchmarks)
-* Shell mode to run bash functions/commands
-* TUI progress bar using [indicatif](https://github.com/console-rs/indicatif)
+* Shell mode to run [bash functions](https://github.com/aaronriekenberg/rust-parallel/wiki/Manual#bash-function) and [commands](https://github.com/aaronriekenberg/rust-parallel/wiki/Manual#shell-commands)
+* [TUI progress bar](https://github.com/aaronriekenberg/rust-parallel/wiki/Manual#progress-bar) using [indicatif](https://github.com/console-rs/indicatif)
 * Path cache
-* Command timeouts
-* Structured debug logging
+* [Command timeouts](https://github.com/aaronriekenberg/rust-parallel/wiki/Manual#timeout)
+* [Structured debug logging](https://github.com/aaronriekenberg/rust-parallel/wiki/Manual#debug-logging)
 
 Listed in [Awesome Rust - utilities](https://github.com/rust-unofficial/awesome-rust#utilities)
 
