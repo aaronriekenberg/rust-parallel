@@ -19,7 +19,7 @@ impl BufferedInputLineParser {
 
         let command_and_initial_arguments = command_line_args.command_and_initial_arguments.clone();
 
-        let shell_command_and_args = super::build_shell_command_and_args(command_line_args);
+        let shell_command_and_args = ShellCommandAndArgs::new(command_line_args);
 
         Self {
             split_whitespace,
