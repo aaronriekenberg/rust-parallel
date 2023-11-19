@@ -12,8 +12,19 @@ use self::{
 
 struct ShellCommandAndArgs(Option<Vec<String>>);
 
-fn build_shell_command_and_args(command_line_args: &CommandLineArgs) -> ShellCommandAndArgs {
-    fn shell_argument() -> String {
+impl ShellCommandAndArgs {
+    fn new(command_line_args: &CommandLineArgs) -> Self {
+        Self(if command_line_args.shell {
+            Some(vec![
+                command_line_args.shell_path.clone(),
+                Self::shell_argument().to_owned(),
+            ])
+        } else {
+            None
+        })
+    }
+
+    fn shell_argument() -> &'static str {
         if cfg!(unix) {
             "-c"
         } else if cfg!(windows) {
@@ -21,14 +32,7 @@ fn build_shell_command_and_args(command_line_args: &CommandLineArgs) -> ShellCom
         } else {
             unreachable!()
         }
-        .to_owned()
     }
-
-    ShellCommandAndArgs(if command_line_args.shell {
-        Some(vec![command_line_args.shell_path.clone(), shell_argument()])
-    } else {
-        None
-    })
 }
 
 fn build_owned_command_and_args(

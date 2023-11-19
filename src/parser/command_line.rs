@@ -22,7 +22,7 @@ impl CommandLineArgsParser {
     pub fn new(command_line_args: &CommandLineArgs, regex_processor: RegexProcessor) -> Self {
         let argument_groups = Self::build_argument_groups(command_line_args);
 
-        let shell_command_and_args = super::build_shell_command_and_args(command_line_args);
+        let shell_command_and_args = ShellCommandAndArgs::new(command_line_args);
 
         Self {
             argument_groups,
