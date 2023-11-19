@@ -2,9 +2,9 @@ use anyhow::Context;
 
 use regex::Regex;
 
-use crate::command_line_args::CommandLineArgs;
-
 use std::borrow::Cow;
+
+use crate::command_line_args::CommandLineArgs;
 
 #[derive(Clone)]
 struct InternalState {
