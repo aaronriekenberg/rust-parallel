@@ -4,6 +4,8 @@ use regex::Regex;
 
 use std::borrow::Cow;
 
+use tracing::trace;
+
 use crate::command_line_args::CommandLineArgs;
 
 #[derive(Clone)]
@@ -25,7 +27,7 @@ impl RegexProcessor {
                 let command_line_regex = Regex::new(command_line_args_regex)
                     .context("RegexProcessor::new: error creating command_line_regex")?;
 
-                let replace_capture_groups_regex = Regex::new(r"\{[a-zA-Z0-9_]+\}")
+                let replace_capture_groups_regex = Regex::new(r"(^|[^$])(\{[a-zA-Z0-9_]+\})")
                     .context("RegexProcessor::new: error creating replace_capture_groups_regex")?;
 
                 Some(InternalState {
@@ -52,20 +54,28 @@ impl RegexProcessor {
             Some(captures) => captures,
         };
 
+        trace!("before replace argument = {}", argument);
+
         // escape all $ characters in argument so they do not get expanded.
         let argument = argument.replace('$', "$$");
 
+        trace!("after replace argument = {}", argument);
+
         // expand expects capture group references of the form ${ref}.
-        // On the command line we take {ref} so prepend all {[a-zA-Z0-9_]+} with $ before calling expand.
-        // The replace_capture_groups_regex is used so we do not replace other { or } characters
+        // On the command line we take {ref} so prepend all [^$]{[a-zA-Z0-9_]+} with $ before calling expand.
+        // The replace_capture_groups_regex is used so we do not replace other characters
         // in argument that should not be expanded.
         let argument = internal_state
             .replace_capture_groups_regex
-            .replace_all(&argument, r"$$${0}");
+            .replace_all(&argument, r"$1$$$2");
+
+        trace!("after replace_all argument = {}", argument);
 
         let mut dest = String::new();
 
         captures.expand(&argument, &mut dest);
+
+        trace!("after expand dest = {}", dest);
 
         Cow::from(dest)
     }
@@ -160,6 +170,23 @@ mod test {
                 "hello,world",
             ),
             r#"{"id": 123, "$zero": "hello,world", "one": "hello", "two": "world"}"#
+        );
+    }
+
+    #[test]
+    fn test_regex_string_containing_dollar_curly_brace_variable() {
+        let command_line_args = CommandLineArgs {
+            regex: Some("(?P<arg1>.*),(?P<arg2>.*)".to_string()),
+            ..Default::default()
+        };
+
+        let regex_processor = RegexProcessor::new(&command_line_args).unwrap();
+
+        assert_eq!(regex_processor.regex_mode(), true);
+
+        assert_eq!(
+            regex_processor.process_string(r#"{arg2}${FOO}{arg1}$BAR${BAR}{arg2}"#, "hello,world"),
+            r#"world${FOO}hello$BAR${BAR}world"#,
         );
     }
 
