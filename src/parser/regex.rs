@@ -1,8 +1,9 @@
 use anyhow::Context;
 
+use itertools::Itertools;
 use regex::Regex;
 
-use std::borrow::Cow;
+use std::{borrow::Cow, collections::HashMap};
 
 use tracing::trace;
 
@@ -11,7 +12,6 @@ use crate::command_line_args::CommandLineArgs;
 #[derive(Clone)]
 struct InternalState {
     command_line_regex: Regex,
-    replace_capture_groups_regex: Regex,
 }
 
 #[derive(Clone)]
@@ -27,13 +27,7 @@ impl RegexProcessor {
                 let command_line_regex = Regex::new(command_line_args_regex)
                     .context("RegexProcessor::new: error creating command_line_regex")?;
 
-                let replace_capture_groups_regex = Regex::new(r"(^|[^$])(\{[a-zA-Z0-9_]+\})")
-                    .context("RegexProcessor::new: error creating replace_capture_groups_regex")?;
-
-                Some(InternalState {
-                    command_line_regex,
-                    replace_capture_groups_regex,
-                })
+                Some(InternalState { command_line_regex })
             }
         };
         Ok(Self { internal_state })
@@ -49,35 +43,51 @@ impl RegexProcessor {
             Some(internal_state) => internal_state,
         };
 
-        let captures = match internal_state.command_line_regex.captures(input_data) {
-            None => return Cow::from(argument),
-            Some(captures) => captures,
-        };
-
         trace!("before replace argument = {}", argument);
 
-        // escape all $ characters in argument so they do not get expanded.
-        let argument = argument.replace('$', "$$");
+        let group_names = internal_state
+            .command_line_regex
+            .capture_names()
+            .flatten()
+            .collect_vec();
 
-        trace!("after replace argument = {}", argument);
+        trace!("group_names = {:?}", group_names);
 
-        // expand expects capture group references of the form ${ref}.
-        // On the command line we take {ref} so prepend all [^$]{[a-zA-Z0-9_]+} with $ before calling expand.
-        // The replace_capture_groups_regex is used so we do not replace other characters
-        // in argument that should not be expanded.
-        let argument = internal_state
-            .replace_capture_groups_regex
-            .replace_all(&argument, r"$1$$$2");
+        let mut match_to_value: HashMap<String, Cow<'_, str>> = HashMap::new();
 
-        trace!("after replace_all argument = {}", argument);
+        match_to_value.insert("{0}".to_string(), Cow::from(input_data));
 
-        let mut dest = String::new();
+        for captures in internal_state.command_line_regex.captures_iter(input_data) {
+            trace!("captures = {:?}", captures);
+            for (i, match_option) in captures.iter().enumerate().skip(1) {
+                trace!("got match i = {} match_option = {:?}", i, match_option);
+                if let Some(match_object) = match_option {
+                    let key = format!("{{{}}}", i);
+                    match_to_value.insert(key, Cow::from(match_object.as_str()));
+                }
+            }
 
-        captures.expand(&argument, &mut dest);
+            for name in group_names.iter() {
+                if let Some(match_object) = captures.name(name) {
+                    let key = format!("{{{}}}", name);
+                    match_to_value.insert(key, Cow::from(match_object.as_str()));
+                }
+            }
+        }
 
-        trace!("after expand dest = {}", dest);
+        let match_to_value = match_to_value;
 
-        Cow::from(dest)
+        trace!("After loop match_to_value = {:?}", match_to_value);
+
+        let mut argument = argument.to_string();
+
+        for (key, value) in match_to_value {
+            argument = argument.replace(&key, &value);
+        }
+
+        trace!("After second loop argument = {:?}", argument);
+
+        Cow::from(argument)
     }
 }
 
