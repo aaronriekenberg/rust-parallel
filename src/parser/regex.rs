@@ -12,6 +12,7 @@ use crate::command_line_args::CommandLineArgs;
 #[derive(Clone)]
 struct InternalState {
     command_line_regex: Regex,
+    group_names: Vec<String>,
 }
 
 #[derive(Clone)]
@@ -27,7 +28,16 @@ impl RegexProcessor {
                 let command_line_regex = Regex::new(command_line_args_regex)
                     .context("RegexProcessor::new: error creating command_line_regex")?;
 
-                Some(InternalState { command_line_regex })
+                let group_names = command_line_regex
+                    .capture_names()
+                    .flatten()
+                    .map_into()
+                    .collect_vec();
+
+                Some(InternalState {
+                    command_line_regex,
+                    group_names,
+                })
             }
         };
         Ok(Self { internal_state })
@@ -43,35 +53,33 @@ impl RegexProcessor {
             Some(internal_state) => internal_state,
         };
 
-        trace!("before replace argument = {}", argument);
+        let captures = match internal_state.command_line_regex.captures(input_data) {
+            None => return Cow::from(argument),
+            Some(captures) => captures,
+        };
 
-        let group_names = internal_state
-            .command_line_regex
-            .capture_names()
-            .flatten()
-            .collect_vec();
+        trace!(
+            "captures = {:?} group_names = {:?}",
+            captures,
+            internal_state.group_names
+        );
 
-        trace!("group_names = {:?}", group_names);
+        let mut match_to_value = HashMap::new();
 
-        let mut match_to_value: HashMap<String, Cow<'_, str>> = HashMap::new();
+        match_to_value.insert(Cow::from("{0}"), Cow::from(input_data));
 
-        match_to_value.insert("{0}".to_string(), Cow::from(input_data));
-
-        for captures in internal_state.command_line_regex.captures_iter(input_data) {
-            trace!("captures = {:?}", captures);
-            for (i, match_option) in captures.iter().enumerate().skip(1) {
-                trace!("got match i = {} match_option = {:?}", i, match_option);
-                if let Some(match_object) = match_option {
-                    let key = format!("{{{}}}", i);
-                    match_to_value.insert(key, Cow::from(match_object.as_str()));
-                }
+        for (i, match_option) in captures.iter().enumerate().skip(1) {
+            trace!("got match i = {} match_option = {:?}", i, match_option);
+            if let Some(match_object) = match_option {
+                let key = format!("{{{}}}", i);
+                match_to_value.insert(Cow::from(key), Cow::from(match_object.as_str()));
             }
+        }
 
-            for name in group_names.iter() {
-                if let Some(match_object) = captures.name(name) {
-                    let key = format!("{{{}}}", name);
-                    match_to_value.insert(key, Cow::from(match_object.as_str()));
-                }
+        for name in internal_state.group_names.iter() {
+            if let Some(match_object) = captures.name(name) {
+                let key = format!("{{{}}}", name);
+                match_to_value.insert(Cow::from(key), Cow::from(match_object.as_str()));
             }
         }
 
@@ -82,7 +90,7 @@ impl RegexProcessor {
         let mut argument = argument.to_string();
 
         for (key, value) in match_to_value {
-            argument = argument.replace(&key, &value);
+            argument = argument.replace(&*key, &value);
         }
 
         trace!("After second loop argument = {:?}", argument);
