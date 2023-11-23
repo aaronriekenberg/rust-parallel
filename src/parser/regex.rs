@@ -3,7 +3,7 @@ use anyhow::Context;
 use itertools::Itertools;
 use regex::Regex;
 
-use std::{borrow::Cow, collections::HashMap};
+use std::borrow::Cow;
 
 use tracing::trace;
 
@@ -64,38 +64,48 @@ impl RegexProcessor {
             internal_state.group_names
         );
 
-        let mut match_to_value = HashMap::new();
+        let match_and_values = self.build_match_and_values(internal_state, &captures, input_data);
 
-        match_to_value.insert(Cow::from("{0}"), Cow::from(input_data));
-
-        for (i, match_option) in captures.iter().enumerate().skip(1) {
-            trace!("got match i = {} match_option = {:?}", i, match_option);
-            if let Some(match_object) = match_option {
-                let key = format!("{{{}}}", i);
-                match_to_value.insert(Cow::from(key), Cow::from(match_object.as_str()));
-            }
-        }
-
-        for name in internal_state.group_names.iter() {
-            if let Some(match_object) = captures.name(name) {
-                let key = format!("{{{}}}", name);
-                match_to_value.insert(Cow::from(key), Cow::from(match_object.as_str()));
-            }
-        }
-
-        let match_to_value = match_to_value;
-
-        trace!("After loop match_to_value = {:?}", match_to_value);
+        trace!("After loop match_and_values = {:?}", match_and_values);
 
         let mut argument = argument.to_string();
 
-        for (key, value) in match_to_value {
+        for (key, value) in match_and_values {
             argument = argument.replace(&*key, &value);
         }
 
         trace!("After second loop argument = {:?}", argument);
 
         Cow::from(argument)
+    }
+
+    fn build_match_and_values<'a>(
+        &self,
+        internal_state: &InternalState,
+        captures: &regex::Captures<'a>,
+        input_data: &'a str,
+    ) -> Vec<(Cow<'a, str>, Cow<'a, str>)> {
+        let mut match_and_values =
+            Vec::with_capacity(captures.len() + internal_state.group_names.len());
+
+        match_and_values.push((Cow::from("{0}"), Cow::from(input_data)));
+
+        for (i, match_option) in captures.iter().enumerate().skip(1) {
+            trace!("got match i = {} match_option = {:?}", i, match_option);
+            if let Some(match_object) = match_option {
+                let key = format!("{{{}}}", i);
+                match_and_values.push((Cow::from(key), Cow::from(match_object.as_str())));
+            }
+        }
+
+        for name in internal_state.group_names.iter() {
+            if let Some(match_object) = captures.name(name) {
+                let key = format!("{{{}}}", name);
+                match_and_values.push((Cow::from(key), Cow::from(match_object.as_str())));
+            }
+        }
+
+        match_and_values
     }
 }
 
