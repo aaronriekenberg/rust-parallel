@@ -42,6 +42,8 @@ struct CommandLineRegex {
     group_names: Vec<String>,
 }
 
+type MatchAndValuesVec<'a> = Vec<(Cow<'a, str>, Cow<'a, str>)>;
+
 impl CommandLineRegex {
     pub fn new(command_line_args_regex: &str) -> anyhow::Result<Self> {
         let regex = regex::Regex::new(command_line_args_regex)
@@ -56,10 +58,11 @@ impl CommandLineRegex {
         &self,
         captures: regex::Captures<'a>,
         input_data: &'a str,
-    ) -> Vec<(Cow<'a, str>, Cow<'a, str>)> {
-        let mut match_and_values = Vec::with_capacity(captures.len() + self.group_names.len());
+    ) -> MatchAndValuesVec<'a> {
+        let mut match_and_values =
+            MatchAndValuesVec::with_capacity(captures.len() + self.group_names.len());
 
-        match_and_values.push((Cow::from("{0}"), Cow::from(input_data)));
+        match_and_values.push(("{0}".into(), input_data.into()));
 
         for (i, match_option) in captures.iter().enumerate().skip(1) {
             trace!("got match i = {} match_option = {:?}", i, match_option);
