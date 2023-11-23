@@ -2,8 +2,6 @@ use anyhow::Context;
 
 use itertools::Itertools;
 
-use regex::Regex;
-
 use tracing::trace;
 
 use std::borrow::Cow;
@@ -12,53 +10,48 @@ use crate::command_line_args::CommandLineArgs;
 
 #[derive(Clone)]
 pub struct RegexProcessor {
-    internal_state: Option<InternalState>,
+    command_line_regex: Option<CommandLineRegex>,
 }
 
 impl RegexProcessor {
     pub fn new(command_line_args: &CommandLineArgs) -> anyhow::Result<Self> {
-        let internal_state = match &command_line_args.regex {
+        let command_line_regex = match &command_line_args.regex {
             None => None,
-            Some(command_line_args_regex) => {
-                let command_line_regex = Regex::new(command_line_args_regex)
-                    .context("RegexProcessor::new: error creating command_line_regex")?;
-
-                let group_names = command_line_regex
-                    .capture_names()
-                    .flatten()
-                    .map_into()
-                    .collect_vec();
-
-                Some(InternalState {
-                    command_line_regex,
-                    group_names,
-                })
-            }
+            Some(command_line_args_regex) => Some(CommandLineRegex::new(command_line_args_regex)?),
         };
-        Ok(Self { internal_state })
+        Ok(Self { command_line_regex })
     }
 
     pub fn regex_mode(&self) -> bool {
-        self.internal_state.is_some()
+        self.command_line_regex.is_some()
     }
 
     pub fn process_string<'a>(&self, argument: &'a str, input_data: &'a str) -> Cow<'a, str> {
         let argument = Cow::from(argument);
 
-        match &self.internal_state {
+        match &self.command_line_regex {
             None => argument,
-            Some(internal_state) => internal_state.expand(argument, input_data),
+            Some(command_line_regex) => command_line_regex.expand(argument, input_data),
         }
     }
 }
 
 #[derive(Clone)]
-struct InternalState {
-    command_line_regex: Regex,
+struct CommandLineRegex {
+    regex: regex::Regex,
     group_names: Vec<String>,
 }
 
-impl InternalState {
+impl CommandLineRegex {
+    pub fn new(command_line_args_regex: &str) -> anyhow::Result<Self> {
+        let regex = regex::Regex::new(command_line_args_regex)
+            .context("CommandLineRegex::new: error creating regex")?;
+
+        let group_names = regex.capture_names().flatten().map_into().collect_vec();
+
+        Ok(Self { regex, group_names })
+    }
+
     fn build_match_and_values<'a>(
         &self,
         captures: regex::Captures<'a>,
@@ -87,7 +80,7 @@ impl InternalState {
     }
 
     fn expand<'a>(&self, argument: Cow<'a, str>, input_data: &'a str) -> Cow<'a, str> {
-        let captures = match self.command_line_regex.captures(input_data) {
+        let captures = match self.regex.captures(input_data) {
             None => return argument,
             Some(captures) => captures,
         };
