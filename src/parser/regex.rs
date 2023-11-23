@@ -43,12 +43,12 @@ impl RegexProcessor {
     }
 
     pub fn process_string<'a>(&self, argument: &'a str, input_data: &'a str) -> Cow<'a, str> {
-        let internal_state = match &self.internal_state {
-            None => return Cow::from(argument),
-            Some(internal_state) => internal_state,
-        };
+        let argument = Cow::from(argument);
 
-        internal_state.expand(argument, input_data)
+        match &self.internal_state {
+            None => argument,
+            Some(internal_state) => internal_state.expand(argument, input_data),
+        }
     }
 }
 
@@ -86,9 +86,9 @@ impl InternalState {
         match_and_values
     }
 
-    fn expand<'a>(&self, argument: &'a str, input_data: &'a str) -> Cow<'a, str> {
+    fn expand<'a>(&self, argument: Cow<'a, str>, input_data: &'a str) -> Cow<'a, str> {
         let captures = match self.command_line_regex.captures(input_data) {
-            None => return Cow::from(argument),
+            None => return argument,
             Some(captures) => captures,
         };
 
@@ -105,7 +105,7 @@ impl InternalState {
             match_and_values
         );
 
-        let mut argument = Cow::from(argument);
+        let mut argument = argument;
 
         for (match_key, value) in match_and_values {
             let match_key = &*match_key;
