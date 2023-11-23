@@ -1,10 +1,8 @@
 use anyhow::Context;
 
-use itertools::Itertools;
-
 use tracing::trace;
 
-use std::borrow::Cow;
+use std::{borrow::Cow, collections::HashMap};
 
 use crate::command_line_args::CommandLineArgs;
 
@@ -39,7 +37,8 @@ impl RegexProcessor {
 #[derive(Clone)]
 struct CommandLineRegex {
     regex: regex::Regex,
-    group_names: Vec<String>,
+    numbered_group_match_keys: Vec<String>,
+    named_group_to_match_key: HashMap<String, String>,
 }
 
 type MatchAndValuesVec<'a> = Vec<(Cow<'a, str>, Cow<'a, str>)>;
@@ -49,32 +48,52 @@ impl CommandLineRegex {
         let regex = regex::Regex::new(command_line_args_regex)
             .context("CommandLineRegex::new: error creating regex")?;
 
-        let group_names = regex.capture_names().flatten().map_into().collect_vec();
+        let mut numbered_group_match_keys = vec![];
 
-        Ok(Self { regex, group_names })
-    }
+        let mut named_group_to_match_key = HashMap::new();
 
-    fn build_match_and_values<'a>(
-        &self,
-        captures: regex::Captures<'a>,
-        input_data: &'a str,
-    ) -> MatchAndValuesVec<'a> {
-        let mut match_and_values =
-            MatchAndValuesVec::with_capacity(captures.len() + self.group_names.len());
+        for (i, capture_name_option) in regex.capture_names().enumerate() {
+            let match_key = format!("{{{}}}", i);
+            numbered_group_match_keys.push(match_key);
 
-        match_and_values.push(("{0}".into(), input_data.into()));
-
-        for (i, match_option) in captures.iter().enumerate().skip(1) {
-            trace!("got match i = {} match_option = {:?}", i, match_option);
-            if let Some(match_object) = match_option {
-                let match_key = format!("{{{}}}", i);
-                match_and_values.push((match_key.into(), match_object.as_str().into()));
+            if let Some(capture_name) = capture_name_option {
+                let match_key = format!("{{{}}}", capture_name);
+                named_group_to_match_key.insert(capture_name.to_owned(), match_key);
             }
         }
 
-        for name in self.group_names.iter() {
-            if let Some(match_object) = captures.name(name) {
-                let match_key = format!("{{{}}}", name);
+        trace!(
+            "numbered_group_match_keys = {:?} named_group_to_match_key = {:?}",
+            numbered_group_match_keys,
+            named_group_to_match_key,
+        );
+
+        Ok(Self {
+            regex,
+            numbered_group_match_keys,
+            named_group_to_match_key,
+        })
+    }
+
+    fn build_match_and_values<'a>(
+        &'a self,
+        captures: regex::Captures<'a>,
+    ) -> MatchAndValuesVec<'a> {
+        let mut match_and_values = MatchAndValuesVec::with_capacity(
+            self.numbered_group_match_keys.len() + self.named_group_to_match_key.len(),
+        );
+
+        for (i, match_option) in captures.iter().enumerate() {
+            trace!("got match i = {} match_option = {:?}", i, match_option);
+            if let Some(match_object) = match_option {
+                if let Some(match_key) = self.numbered_group_match_keys.get(i) {
+                    match_and_values.push((match_key.into(), match_object.as_str().into()));
+                }
+            }
+        }
+
+        for (group_name, match_key) in self.named_group_to_match_key.iter() {
+            if let Some(match_object) = captures.name(group_name) {
                 match_and_values.push((match_key.into(), match_object.as_str().into()));
             }
         }
@@ -88,13 +107,9 @@ impl CommandLineRegex {
             Some(captures) => captures,
         };
 
-        trace!(
-            "captures = {:?} group_names = {:?}",
-            captures,
-            self.group_names
-        );
+        trace!("captures = {:?}", captures,);
 
-        let match_and_values = self.build_match_and_values(captures, input_data);
+        let match_and_values = self.build_match_and_values(captures);
 
         trace!(
             "After build_match_and_values match_and_values = {:?}",
