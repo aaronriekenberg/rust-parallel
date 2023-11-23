@@ -69,15 +69,18 @@ impl RegexProcessor {
 
         trace!("After loop match_and_values = {:?}", match_and_values);
 
-        let mut argument = argument.to_string();
+        let mut argument = Cow::from(argument);
 
         for (key, value) in match_and_values {
-            argument = argument.replace(&*key, &value);
+            let key = &*key;
+            if argument.contains(key) {
+                argument = Cow::from(argument.replace(key, &value));
+            }
         }
 
         trace!("After second loop argument = {:?}", argument);
 
-        Cow::from(argument)
+        argument
     }
 
     fn build_match_and_values<'a>(
