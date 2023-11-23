@@ -41,7 +41,7 @@ struct CommandLineRegex {
     named_group_to_match_key: HashMap<String, String>,
 }
 
-type MatchAndValuesVec<'a> = Vec<(Cow<'a, str>, Cow<'a, str>)>;
+type MatchKeyAndValuesVec<'a> = Vec<(Cow<'a, str>, Cow<'a, str>)>;
 
 impl CommandLineRegex {
     pub fn new(command_line_args_regex: &str) -> anyhow::Result<Self> {
@@ -75,26 +75,26 @@ impl CommandLineRegex {
         })
     }
 
-    fn build_match_and_values<'a>(
+    fn build_match_key_and_values<'a>(
         &'a self,
         captures: regex::Captures<'a>,
-    ) -> MatchAndValuesVec<'a> {
-        let mut match_and_values = MatchAndValuesVec::with_capacity(
+    ) -> MatchKeyAndValuesVec<'a> {
+        let mut match_and_values = MatchKeyAndValuesVec::with_capacity(
             self.numbered_group_match_keys.len() + self.named_group_to_match_key.len(),
         );
 
         for (i, match_option) in captures.iter().enumerate() {
             trace!("got match i = {} match_option = {:?}", i, match_option);
-            if let Some(match_object) = match_option {
+            if let Some(match_value) = match_option {
                 if let Some(match_key) = self.numbered_group_match_keys.get(i) {
-                    match_and_values.push((match_key.into(), match_object.as_str().into()));
+                    match_and_values.push((match_key.into(), match_value.as_str().into()));
                 }
             }
         }
 
         for (group_name, match_key) in self.named_group_to_match_key.iter() {
-            if let Some(match_object) = captures.name(group_name) {
-                match_and_values.push((match_key.into(), match_object.as_str().into()));
+            if let Some(match_value) = captures.name(group_name) {
+                match_and_values.push((match_key.into(), match_value.as_str().into()));
             }
         }
 
@@ -109,16 +109,16 @@ impl CommandLineRegex {
 
         trace!("captures = {:?}", captures,);
 
-        let match_and_values = self.build_match_and_values(captures);
+        let match_key_and_values = self.build_match_key_and_values(captures);
 
         trace!(
-            "After build_match_and_values match_and_values = {:?}",
-            match_and_values
+            "After build_match_key_and_values match_and_values = {:?}",
+            match_key_and_values
         );
 
         let mut argument = argument;
 
-        for (match_key, value) in match_and_values {
+        for (match_key, value) in match_key_and_values {
             let match_key = &*match_key;
             if argument.contains(match_key) {
                 argument = Cow::from(argument.replace(match_key, &value));
