@@ -2,7 +2,7 @@ use anyhow::Context;
 
 use tracing::trace;
 
-use std::{borrow::Cow, collections::HashMap};
+use std::borrow::Cow;
 
 use crate::command_line_args::CommandLineArgs;
 
@@ -38,7 +38,7 @@ impl RegexProcessor {
 struct CommandLineRegex {
     regex: regex::Regex,
     numbered_group_match_keys: Vec<String>,
-    named_group_to_match_key: HashMap<String, String>,
+    named_group_to_match_key: Vec<(String, String)>,
 }
 
 type MatchKeyAndValuesVec<'a> = Vec<(Cow<'a, str>, Cow<'a, str>)>;
@@ -50,7 +50,7 @@ impl CommandLineRegex {
 
         let mut numbered_group_match_keys = vec![];
 
-        let mut named_group_to_match_key = HashMap::new();
+        let mut named_group_to_match_key = vec![];
 
         for (i, capture_name_option) in regex.capture_names().enumerate() {
             let match_key = format!("{{{}}}", i);
@@ -58,7 +58,7 @@ impl CommandLineRegex {
 
             if let Some(capture_name) = capture_name_option {
                 let match_key = format!("{{{}}}", capture_name);
-                named_group_to_match_key.insert(capture_name.to_owned(), match_key);
+                named_group_to_match_key.push((capture_name.to_owned(), match_key));
             }
         }
 
