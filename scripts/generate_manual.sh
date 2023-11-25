@@ -10,6 +10,7 @@ echo '
 1. [Commands from arguments](#commands-from-arguments)
 1. [Commands from stdin](#commands-from-stdin)
 1. [Parallelism](#parallelism)
+1. [Dry run](#dry run)
 1. [Debug logging](#debug-logging)
 1. [Timeout](#timeout)
 1. [Progress bar](#progress-bar)
@@ -101,6 +102,20 @@ echo '
 $ rust-parallel -j1 echo ::: hi there how are you'
 $RUST_PARALLEL -j1 echo ::: hi there how are you
 
+echo '```'
+
+echo '## Dry run
+
+Use option `--dry-run` for dry run mode.
+
+In this mode the commands that would be run are ouput as info level logs.
+
+No commands are actually run - this is useful for testing before running a job.
+'
+
+echo '```
+$ rust-parallel --dry-run echo ::: hi there how are you'
+$RUST_PARALLEL --dry-run echo ::: hi there how are you | ansi-stripper
 echo '```'
 
 echo '## Debug logging.
