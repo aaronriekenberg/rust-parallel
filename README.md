@@ -57,7 +57,6 @@ $ cargo install rust-parallel
 * [itertools](https://docs.rs/itertools/latest/itertools/) using [`multi_cartesian_product`](https://docs.rs/itertools/latest/itertools/trait.Itertools.html#method.multi_cartesian_product) to process `:::` command line inputs.
 * [indicatif](https://github.com/console-rs/indicatif) optional TUI progress bar.
 * [regex](https://github.com/rust-lang/regex) optional regular expression capture groups processing for `-r`/`--regex` option.
-  * The [expand function](https://docs.rs/regex/latest/regex/struct.Captures.html#method.expand) is used to replace capture groups in command arguments with input data.
 * [tokio](https://tokio.rs/) asynchronous runtime for rust.  From tokio this app uses:
   * `async` / `await` functions (aka coroutines)
   * Singleton `CommandLineArgs` instance using [`tokio::sync::OnceCell`](https://docs.rs/tokio/latest/tokio/sync/struct.OnceCell.html).
