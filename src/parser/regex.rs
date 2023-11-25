@@ -85,10 +85,10 @@ impl CommandLineRegex {
 
         for (i, match_option) in captures.iter().enumerate() {
             trace!("got match i = {} match_option = {:?}", i, match_option);
-            if let Some(match_value) = match_option {
-                if let Some(match_key) = self.numbered_group_match_keys.get(i) {
-                    match_key_and_values.push((match_key.into(), match_value.as_str().into()));
-                }
+            if let (Some(match_value), Some(match_key)) =
+                (match_option, self.numbered_group_match_keys.get(i))
+            {
+                match_key_and_values.push((match_key.into(), match_value.as_str().into()));
             }
         }
 
