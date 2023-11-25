@@ -79,7 +79,7 @@ impl CommandLineRegex {
         &'a self,
         captures: regex::Captures<'a>,
     ) -> MatchKeyAndValuesVec<'a> {
-        let mut match_and_values = MatchKeyAndValuesVec::with_capacity(
+        let mut match_key_and_values = MatchKeyAndValuesVec::with_capacity(
             self.numbered_group_match_keys.len() + self.named_group_to_match_key.len(),
         );
 
@@ -87,18 +87,18 @@ impl CommandLineRegex {
             trace!("got match i = {} match_option = {:?}", i, match_option);
             if let Some(match_value) = match_option {
                 if let Some(match_key) = self.numbered_group_match_keys.get(i) {
-                    match_and_values.push((match_key.into(), match_value.as_str().into()));
+                    match_key_and_values.push((match_key.into(), match_value.as_str().into()));
                 }
             }
         }
 
         for (group_name, match_key) in self.named_group_to_match_key.iter() {
             if let Some(match_value) = captures.name(group_name) {
-                match_and_values.push((match_key.into(), match_value.as_str().into()));
+                match_key_and_values.push((match_key.into(), match_value.as_str().into()));
             }
         }
 
-        match_and_values
+        match_key_and_values
     }
 
     fn expand<'a>(&self, argument: Cow<'a, str>, input_data: &'a str) -> Cow<'a, str> {
@@ -112,7 +112,7 @@ impl CommandLineRegex {
         let match_key_and_values = self.build_match_key_and_values(captures);
 
         trace!(
-            "After build_match_key_and_values match_and_values = {:?}",
+            "after build_match_key_and_values match_key_and_values = {:?}",
             match_key_and_values
         );
 
