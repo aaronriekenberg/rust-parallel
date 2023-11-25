@@ -57,6 +57,12 @@ pub struct CommandLineArgs {
     #[arg(long)]
     pub disable_path_cache: bool,
 
+    /// Dry run mode
+    ///
+    /// Do not actually run commands just log.
+    #[arg(long)]
+    pub dry_run: bool,
+
     /// Path to shell to use for shell mode
     #[arg(long, default_value = Self::default_shell())]
     pub shell_path: String,

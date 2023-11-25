@@ -4,7 +4,7 @@ use anyhow::Context;
 
 use tokio::sync::Semaphore;
 
-use tracing::{debug, instrument, span_enabled, warn, Level, Span};
+use tracing::{debug, info, instrument, span_enabled, warn, Level, Span};
 
 use std::sync::Arc;
 
@@ -106,6 +106,12 @@ impl CommandService {
         command_and_args: OwnedCommandAndArgs,
         input_line_number: InputLineNumber,
     ) -> anyhow::Result<()> {
+        if self.command_line_args.dry_run {
+            info!("{} line={}", command_and_args, input_line_number);
+
+            return Ok(());
+        }
+
         let command = Command {
             command_and_args,
             input_line_number,
