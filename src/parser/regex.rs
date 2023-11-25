@@ -1,7 +1,5 @@
 use anyhow::Context;
 
-use tracing::trace;
-
 use std::borrow::Cow;
 
 use crate::command_line_args::CommandLineArgs;
@@ -62,12 +60,6 @@ impl CommandLineRegex {
             }
         }
 
-        trace!(
-            "numbered_group_match_keys = {:?} named_group_to_match_key = {:?}",
-            numbered_group_match_keys,
-            named_group_to_match_key,
-        );
-
         Ok(Self {
             regex,
             numbered_group_match_keys,
@@ -84,7 +76,6 @@ impl CommandLineRegex {
         );
 
         for (i, match_option) in captures.iter().enumerate() {
-            trace!("got match i = {} match_option = {:?}", i, match_option);
             if let (Some(match_value), Some(match_key)) =
                 (match_option, self.numbered_group_match_keys.get(i))
             {
@@ -107,14 +98,7 @@ impl CommandLineRegex {
             Some(captures) => captures,
         };
 
-        trace!("captures = {:?}", captures,);
-
         let match_key_and_values = self.build_match_key_and_values(captures);
-
-        trace!(
-            "after build_match_key_and_values match_key_and_values = {:?}",
-            match_key_and_values
-        );
 
         let mut argument = argument;
 
@@ -124,8 +108,6 @@ impl CommandLineRegex {
                 argument = Cow::from(argument.replace(match_key, &value));
             }
         }
-
-        trace!("After second loop argument = {:?}", argument);
 
         argument
     }
