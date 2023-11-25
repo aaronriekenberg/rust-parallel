@@ -10,7 +10,7 @@ echo '
 1. [Commands from arguments](#commands-from-arguments)
 1. [Commands from stdin](#commands-from-stdin)
 1. [Parallelism](#parallelism)
-1. [Dry run](#dry run)
+1. [Dry run](#dry-run)
 1. [Debug logging](#debug-logging)
 1. [Timeout](#timeout)
 1. [Progress bar](#progress-bar)
