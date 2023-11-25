@@ -230,7 +230,7 @@ rm -f test
 
 echo '### Capture Group Special Characters
 
-Only capture groups matching `{[a-zA-Z0-9_]+}` are expanded to avoid expanding unintended characters.
+All occurrences of capture groups are replaced as exact strings.  Surrounding characters have no effect on this.
 
 This means capture groups can be nested with other `{` or `}` characters such as when building json:'
 
@@ -261,8 +261,8 @@ Shell commands can be written using `-s` shell mode.
 Multiline commands can be written using `;`.  Environment variables, `$` characters, nested commands and much more are possible:'
 
 echo '```'
-echo -e '$ rust-parallel -s -r \x27(?P<arg1>.*) (?P<arg2>.*)\x27 \x27FOO={arg1}; BAR={arg2}; echo "FOO = $FOO, BAR = $BAR, shell pid = $$, date = $(date)"\x27 ::: A B ::: C D'
-$RUST_PARALLEL -s -r '(?P<arg1>.*) (?P<arg2>.*)' 'FOO={arg1}; BAR={arg2}; echo "FOO = $FOO, BAR = $BAR, shell pid = $$, date = $(date)"' ::: A B ::: C D
+echo -e '$ rust-parallel -s -r \x27(?P<arg1>.*) (?P<arg2>.*)\x27 \x27FOO={arg1}; BAR={arg2}; echo "FOO = ${FOO}, BAR = ${BAR}, shell pid = $$, date = $(date)"\x27 ::: A B ::: CAT DOG'
+$RUST_PARALLEL -s -r '(?P<arg1>.*) (?P<arg2>.*)' 'FOO={arg1}; BAR={arg2}; echo "FOO = ${FOO}, BAR = ${BAR}, shell pid = $$, date = $(date)"' ::: A B ::: CAT DOG
 echo '```'
 
 echo '## Bash Function
