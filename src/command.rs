@@ -106,16 +106,16 @@ impl CommandService {
         command_and_args: OwnedCommandAndArgs,
         input_line_number: InputLineNumber,
     ) -> anyhow::Result<()> {
-        if self.command_line_args.dry_run {
-            info!("{} line={}", command_and_args, input_line_number);
-
-            return Ok(());
-        }
-
         let command = Command {
             command_and_args,
             input_line_number,
         };
+
+        if self.command_line_args.dry_run {
+            info!("{}", command);
+
+            return Ok(());
+        }
 
         let child_process_factory = self.child_process_factory.clone();
 
