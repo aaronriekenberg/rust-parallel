@@ -15,6 +15,7 @@ Similar interface to [GNU Parallel](https://www.gnu.org/software/parallel/parall
 * Path cache
 * [Command timeouts](https://github.com/aaronriekenberg/rust-parallel/wiki/Manual#timeout)
 * [Structured debug logging](https://github.com/aaronriekenberg/rust-parallel/wiki/Manual#debug-logging)
+* [Dry run mode](https://github.com/aaronriekenberg/rust-parallel/wiki/Manual#dry-run)
 
 Listed in [Awesome Rust - utilities](https://github.com/rust-unofficial/awesome-rust#utilities)
 
