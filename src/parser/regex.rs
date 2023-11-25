@@ -39,8 +39,6 @@ struct CommandLineRegex {
     named_group_to_match_key: Vec<(String, String)>,
 }
 
-type MatchKeyAndValuesVec<'a> = Vec<(Cow<'a, str>, Cow<'a, str>)>;
-
 impl CommandLineRegex {
     pub fn new(command_line_args_regex: &str) -> anyhow::Result<Self> {
         let regex = regex::Regex::new(command_line_args_regex)
@@ -67,52 +65,40 @@ impl CommandLineRegex {
         })
     }
 
-    fn build_match_key_and_values<'a>(
-        &'a self,
-        captures: regex::Captures<'a>,
-    ) -> MatchKeyAndValuesVec<'a> {
-        let mut match_key_and_values = MatchKeyAndValuesVec::with_capacity(
-            self.numbered_group_match_keys.len() + self.named_group_to_match_key.len(),
-        );
-
-        for (i, match_option) in captures.iter().enumerate() {
-            if let (Some(match_value), Some(match_key)) =
-                (match_option, self.numbered_group_match_keys.get(i))
-            {
-                match_key_and_values.push((match_key.into(), match_value.as_str().into()));
-            }
-        }
-
-        for (group_name, match_key) in self.named_group_to_match_key.iter() {
-            if let Some(match_value) = captures.name(group_name) {
-                match_key_and_values.push((match_key.into(), match_value.as_str().into()));
-            }
-        }
-
-        match_key_and_values
-    }
-
-    fn expand<'a>(&self, argument: Cow<'a, str>, input_data: &'a str) -> Cow<'a, str> {
+    fn expand<'a>(&self, argument: Cow<'a, str>, input_data: &str) -> Cow<'a, str> {
         let captures = match self.regex.captures(input_data) {
             None => return argument,
             Some(captures) => captures,
         };
 
-        let match_key_and_values = self.build_match_key_and_values(captures);
-
         let mut argument = argument;
 
-        for (match_key, value) in match_key_and_values {
+        let mut update_argument = |match_key: Cow<'_, str>, match_value: Cow<'_, str>| {
             let match_key = &*match_key;
             if argument.contains(match_key) {
-                argument = Cow::from(argument.replace(match_key, &value));
+                argument = Cow::from(argument.replace(match_key, &match_value));
+            }
+        };
+
+        // numbered capture groups
+        for (i, match_option) in captures.iter().enumerate() {
+            if let (Some(match_value), Some(match_key)) =
+                (match_option, self.numbered_group_match_keys.get(i))
+            {
+                update_argument(match_key.into(), match_value.as_str().into());
+            }
+        }
+
+        // named capture groups
+        for (group_name, match_key) in self.named_group_to_match_key.iter() {
+            if let Some(match_value) = captures.name(group_name) {
+                update_argument(match_key.into(), match_value.as_str().into());
             }
         }
 
         argument
     }
 }
-
 #[cfg(test)]
 mod test {
     use super::*;
