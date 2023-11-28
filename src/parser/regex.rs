@@ -22,7 +22,7 @@ impl RegexProcessor {
         self.command_line_regex.is_some()
     }
 
-    pub fn process_string<'a>(&self, argument: &'a str, input_data: &'a str) -> Cow<'a, str> {
+    pub fn process_string<'a>(&self, argument: &'a str, input_data: &str) -> Cow<'a, str> {
         let argument = Cow::from(argument);
 
         match &self.command_line_regex {
