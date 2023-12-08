@@ -1,5 +1,13 @@
 # rust-parallel
 
+[crates-badge]: https://img.shields.io/crates/v/rust-parallel.svg
+[crates-url]: https://crates.io/crates/rust-parallel
+
+[ci-badge]: https://github.com/aaronriekenberg/rust-parallel/actions/workflows/CI.yml/badge.svg
+[ci-url]: https://github.com/aaronriekenberg/rust-parallel/actions/workflows/CI.yml 
+
+[![Crates.io][crates-badge]][crates-url] [![CI workflow][ci-badge]][ci-url]
+
 Run commands in parallel and aggregate outputs.  Async application using [tokio](https://tokio.rs).
 
 [Example commands](https://github.com/aaronriekenberg/rust-parallel/wiki/Examples) and [detailed manual](https://github.com/aaronriekenberg/rust-parallel/wiki/Manual).
@@ -18,14 +26,6 @@ Similar interface to [GNU Parallel](https://www.gnu.org/software/parallel/parall
 * [Dry run mode](https://github.com/aaronriekenberg/rust-parallel/wiki/Manual#dry-run)
 
 Listed in [Awesome Rust - utilities](https://github.com/rust-unofficial/awesome-rust#utilities)
-
-[crates-badge]: https://img.shields.io/crates/v/rust-parallel.svg
-[crates-url]: https://crates.io/crates/rust-parallel
-
-[ci-badge]: https://github.com/aaronriekenberg/rust-parallel/actions/workflows/CI.yml/badge.svg
-[ci-url]: https://github.com/aaronriekenberg/rust-parallel/actions/workflows/CI.yml 
-
-[![Crates.io][crates-badge]][crates-url] [![CI workflow][ci-badge]][ci-url]
 
 ## Contents:
 * [Installation](#installation)
