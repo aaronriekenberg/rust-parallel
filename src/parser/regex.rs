@@ -44,11 +44,13 @@ impl CommandLineRegex {
         let regex = regex::Regex::new(command_line_args_regex)
             .context("CommandLineRegex::new: error creating regex")?;
 
-        let mut numbered_group_match_keys = vec![];
+        let capture_names = regex.capture_names();
 
-        let mut named_group_to_match_key = vec![];
+        let mut numbered_group_match_keys = Vec::with_capacity(capture_names.len());
 
-        for (i, capture_name_option) in regex.capture_names().enumerate() {
+        let mut named_group_to_match_key = Vec::with_capacity(capture_names.len());
+
+        for (i, capture_name_option) in capture_names.enumerate() {
             let match_key = format!("{{{}}}", i);
             numbered_group_match_keys.push(match_key);
 
