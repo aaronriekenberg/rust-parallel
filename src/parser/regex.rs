@@ -76,7 +76,7 @@ impl CommandLineRegex {
         let mut argument = argument;
 
         let mut update_argument = |match_key: Cow<'_, str>, match_value: Cow<'_, str>| {
-            let match_key = &*match_key;
+            let match_key = match_key.as_ref();
             if argument.contains(match_key) {
                 argument = Cow::from(argument.replace(match_key, &match_value));
             }
