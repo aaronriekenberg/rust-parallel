@@ -58,6 +58,41 @@ fn runs_echo_commands_from_args_j1() {
 }
 
 #[test]
+fn runs_echo_commands_from_args_dry_run() {
+    rust_parallel()
+        .arg("--dry-run")
+        .arg("echo")
+        .arg(":::")
+        .arg("A")
+        .arg("B")
+        .arg("C")
+        .assert()
+        .success()
+        .stdout(
+            (predicate::str::contains("\n").count(3))
+                .and(
+                    predicate::str::contains(
+                        r#"cmd="/bin/echo",args=["A"],line=command_line_args:0"#,
+                    )
+                    .count(1),
+                )
+                .and(
+                    predicate::str::contains(
+                        r#"cmd="/bin/echo",args=["B"],line=command_line_args:1"#,
+                    )
+                    .count(1),
+                )
+                .and(
+                    predicate::str::contains(
+                        r#"cmd="/bin/echo",args=["C"],line=command_line_args:2"#,
+                    )
+                    .count(1),
+                ),
+        )
+        .stderr(predicate::str::is_empty());
+}
+
+#[test]
 fn timeout_sleep_commands_from_args() {
     rust_parallel()
         .arg("-t1")
