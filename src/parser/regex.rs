@@ -40,7 +40,7 @@ struct CommandLineRegex {
 }
 
 impl CommandLineRegex {
-    pub fn new(command_line_args_regex: &str) -> anyhow::Result<Self> {
+    fn new(command_line_args_regex: &str) -> anyhow::Result<Self> {
         let regex = regex::Regex::new(command_line_args_regex)
             .context("CommandLineRegex::new: error creating regex")?;
 
