@@ -58,8 +58,9 @@ fn runs_echo_commands_from_args_j1() {
 }
 
 #[test]
-fn runs_echo_commands_from_args_dry_run() {
+fn runs_echo_commands_dry_run() {
     rust_parallel()
+        .arg("-s")
         .arg("--dry-run")
         .arg("echo")
         .arg(":::")
@@ -72,19 +73,19 @@ fn runs_echo_commands_from_args_dry_run() {
             (predicate::str::contains("\n").count(3))
                 .and(
                     predicate::str::contains(
-                        r#"cmd="/bin/echo",args=["A"],line=command_line_args:0"#,
+                        r#"cmd="/bin/bash",args=["-c", "echo A"],line=command_line_args:0"#,
                     )
                     .count(1),
                 )
                 .and(
                     predicate::str::contains(
-                        r#"cmd="/bin/echo",args=["B"],line=command_line_args:1"#,
+                        r#"cmd="/bin/bash",args=["-c", "echo B"],line=command_line_args:1"#,
                     )
                     .count(1),
                 )
                 .and(
                     predicate::str::contains(
-                        r#"cmd="/bin/echo",args=["C"],line=command_line_args:2"#,
+                        r#"cmd="/bin/bash",args=["-c", "echo C"],line=command_line_args:2"#,
                     )
                     .count(1),
                 ),
