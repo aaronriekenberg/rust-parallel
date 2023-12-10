@@ -75,10 +75,8 @@ impl CommandLineRegex {
 
         let mut argument = argument;
 
-        let mut update_argument = |match_key: Cow<'_, str>, match_value: Cow<'_, str>| {
-            let match_key = match_key.as_ref();
+        let mut update_argument = |match_key, match_value| {
             if argument.contains(match_key) {
-                let match_value = match_value.as_ref();
                 argument = Cow::from(argument.replace(match_key, match_value));
             }
         };
@@ -88,14 +86,14 @@ impl CommandLineRegex {
             if let (Some(match_value), Some(match_key)) =
                 (match_option, self.numbered_group_match_keys.get(i))
             {
-                update_argument(match_key.into(), match_value.as_str().into());
+                update_argument(match_key, match_value.as_str());
             }
         }
 
         // named capture groups
         for (group_name, match_key) in self.named_group_to_match_key.iter() {
             if let Some(match_value) = captures.name(group_name) {
-                update_argument(match_key.into(), match_value.as_str().into());
+                update_argument(match_key, match_value.as_str());
             }
         }
 
