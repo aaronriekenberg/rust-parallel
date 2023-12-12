@@ -1,5 +1,7 @@
 use itertools::Itertools;
 
+use std::collections::VecDeque;
+
 use crate::{
     command_line_args::{CommandLineArgs, COMMANDS_FROM_ARGS_SEPARATOR},
     common::OwnedCommandAndArgs,
@@ -13,7 +15,8 @@ struct ArgumentGroups {
 }
 
 pub struct CommandLineArgsParser {
-    argument_groups: ArgumentGroups,
+    first_command_and_args: Vec<String>,
+    all_argument_groups: VecDeque<Vec<String>>,
     shell_command_and_args: ShellCommandAndArgs,
     regex_processor: RegexProcessor,
 }
@@ -22,10 +25,17 @@ impl CommandLineArgsParser {
     pub fn new(command_line_args: &CommandLineArgs, regex_processor: RegexProcessor) -> Self {
         let argument_groups = Self::build_argument_groups(command_line_args);
 
+        let all_argument_groups = argument_groups
+            .remaining_argument_groups
+            .into_iter()
+            .multi_cartesian_product()
+            .collect();
+
         let shell_command_and_args = ShellCommandAndArgs::new(command_line_args);
 
         Self {
-            argument_groups,
+            first_command_and_args: argument_groups.first_command_and_args,
+            all_argument_groups,
             shell_command_and_args,
             regex_processor,
         }
@@ -62,29 +72,28 @@ impl CommandLineArgsParser {
         }
     }
 
-    pub fn parse_command_line_args(&self) -> Vec<OwnedCommandAndArgs> {
-        let ArgumentGroups {
-            first_command_and_args,
-            remaining_argument_groups,
-        } = self.argument_groups.clone();
+    pub fn has_remaining_argument_groups(&self) -> bool {
+        !self.all_argument_groups.is_empty()
+    }
 
-        remaining_argument_groups
-            .into_iter()
-            .multi_cartesian_product()
-            .filter_map(|current_args| {
+    pub fn parse_next_command_line_argument_group(&mut self) -> Option<OwnedCommandAndArgs> {
+        match self.all_argument_groups.pop_front() {
+            None => None,
+            Some(current_args) => {
                 let cmd_and_args = if !self.regex_processor.regex_mode() {
-                    [first_command_and_args.clone(), current_args].concat()
+                    [self.first_command_and_args.clone(), current_args].concat()
                 } else {
                     let input_line = current_args.join(" ");
 
-                    first_command_and_args
+                    self.first_command_and_args
                         .iter()
                         .map(|arg| self.regex_processor.process_string(arg, &input_line).into())
                         .collect_vec()
                 };
+
                 super::build_owned_command_and_args(&self.shell_command_and_args, cmd_and_args)
-            })
-            .collect()
+            }
+        }
     }
 }
 
@@ -93,6 +102,20 @@ mod test {
     use super::*;
 
     use std::{default::Default, path::PathBuf};
+
+    fn collect_into_vec(mut parser: CommandLineArgsParser) -> Vec<OwnedCommandAndArgs> {
+        let mut result = vec![];
+
+        while parser.has_remaining_argument_groups() {
+            let Some(cmd_and_args) = parser.parse_next_command_line_argument_group() else {
+                continue;
+            };
+
+            result.push(cmd_and_args);
+        }
+
+        result
+    }
 
     #[test]
     fn test_parse_command_line_args_with_intial_command() {
@@ -112,7 +135,7 @@ mod test {
             RegexProcessor::new(&command_line_args).unwrap(),
         );
 
-        let result = parser.parse_command_line_args();
+        let result = collect_into_vec(parser);
 
         assert_eq!(
             result,
@@ -163,7 +186,7 @@ mod test {
             RegexProcessor::new(&command_line_args).unwrap(),
         );
 
-        let result = parser.parse_command_line_args();
+        let result = collect_into_vec(parser);
 
         assert_eq!(
             result,
@@ -209,7 +232,7 @@ mod test {
             RegexProcessor::new(&command_line_args).unwrap(),
         );
 
-        let result = parser.parse_command_line_args();
+        let result = collect_into_vec(parser);
 
         assert_eq!(result, vec![]);
     }
@@ -227,7 +250,7 @@ mod test {
             RegexProcessor::new(&command_line_args).unwrap(),
         );
 
-        let result = parser.parse_command_line_args();
+        let result = collect_into_vec(parser);
 
         assert_eq!(result, vec![]);
     }
@@ -251,7 +274,7 @@ mod test {
             RegexProcessor::new(&command_line_args).unwrap(),
         );
 
-        let result = parser.parse_command_line_args();
+        let result = collect_into_vec(parser);
 
         assert_eq!(
             result,
@@ -301,7 +324,7 @@ mod test {
             RegexProcessor::new(&command_line_args).unwrap(),
         );
 
-        let result = parser.parse_command_line_args();
+        let result = collect_into_vec(parser);
 
         assert_eq!(
             result,
@@ -359,7 +382,7 @@ mod test {
             RegexProcessor::new(&command_line_args).unwrap(),
         );
 
-        let result = parser.parse_command_line_args();
+        let result = collect_into_vec(parser);
 
         assert_eq!(
             result,
@@ -407,7 +430,7 @@ mod test {
             RegexProcessor::new(&command_line_args).unwrap(),
         );
 
-        let result = parser.parse_command_line_args();
+        let result = collect_into_vec(parser);
 
         assert_eq!(
             result,

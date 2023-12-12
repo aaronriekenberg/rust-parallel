@@ -54,7 +54,6 @@ fn build_owned_command_and_args(
 
 pub struct Parser {
     buffered_input_line_parser: OnceCell<BufferedInputLineParser>,
-    command_line_args_parser: OnceCell<CommandLineArgsParser>,
     regex_processor: RegexProcessor,
     command_line_args: &'static CommandLineArgs,
 }
@@ -64,7 +63,6 @@ impl Parser {
         let regex_processor = RegexProcessor::new(command_line_args)?;
         Ok(Self {
             buffered_input_line_parser: OnceCell::new(),
-            command_line_args_parser: OnceCell::new(),
             regex_processor,
             command_line_args,
         })
@@ -78,11 +76,7 @@ impl Parser {
             .await
     }
 
-    pub async fn command_line_args_parser(&self) -> &CommandLineArgsParser {
-        self.command_line_args_parser
-            .get_or_init(|| async move {
-                CommandLineArgsParser::new(self.command_line_args, self.regex_processor.clone())
-            })
-            .await
+    pub fn command_line_args_parser(&self) -> CommandLineArgsParser {
+        CommandLineArgsParser::new(self.command_line_args, self.regex_processor.clone())
     }
 }

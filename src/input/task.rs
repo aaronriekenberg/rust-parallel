@@ -1,7 +1,5 @@
 use anyhow::Context;
 
-use itertools::Itertools;
-
 use tokio::sync::mpsc::Sender;
 
 use tracing::{debug, instrument, warn};
@@ -93,22 +91,29 @@ impl InputSenderTask {
     async fn process_command_line_args_input(self) {
         debug!("begin process_command_line_args_input");
 
-        let parser = self.parser.command_line_args_parser().await;
+        let mut parser = self.parser.command_line_args_parser();
 
-        let message_list = parser
-            .parse_command_line_args()
-            .into_iter()
-            .enumerate()
-            .map(|(i, command_and_args)| InputMessage {
-                command_and_args,
-                input_line_number: InputLineNumber {
-                    input: Input::CommandLineArgs,
-                    line_number: i,
-                },
-            })
-            .collect_vec();
+        let mut line_number = 0;
 
-        self.send(message_list.into()).await;
+        while parser.has_remaining_argument_groups() {
+            line_number += 1;
+
+            let Some(command_and_args) = parser.parse_next_command_line_argument_group() else {
+                continue;
+            };
+
+            self.send(
+                InputMessage {
+                    command_and_args,
+                    input_line_number: InputLineNumber {
+                        input: Input::CommandLineArgs,
+                        line_number,
+                    },
+                }
+                .into(),
+            )
+            .await;
+        }
     }
 
     #[instrument(skip_all, name = "InputSenderTask::run", level = "debug")]
