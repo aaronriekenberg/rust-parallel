@@ -94,28 +94,9 @@ pub struct InputMessage {
     pub input_line_number: InputLineNumber,
 }
 
-#[derive(Debug)]
-pub struct InputMessageList {
-    pub message_list: Vec<InputMessage>,
-}
-
-impl From<InputMessage> for InputMessageList {
-    fn from(input_message: InputMessage) -> Self {
-        Self {
-            message_list: vec![input_message],
-        }
-    }
-}
-
-impl From<Vec<InputMessage>> for InputMessageList {
-    fn from(message_list: Vec<InputMessage>) -> Self {
-        Self { message_list }
-    }
-}
-
 pub struct InputProducer {
     sender_task_join_handle: JoinHandle<()>,
-    receiver: Receiver<InputMessageList>,
+    receiver: Receiver<InputMessage>,
 }
 
 impl InputProducer {
@@ -139,7 +120,7 @@ impl InputProducer {
         })
     }
 
-    pub fn receiver(&mut self) -> &mut Receiver<InputMessageList> {
+    pub fn receiver(&mut self) -> &mut Receiver<InputMessage> {
         &mut self.receiver
     }
 

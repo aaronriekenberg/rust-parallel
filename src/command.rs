@@ -11,7 +11,7 @@ use std::sync::Arc;
 use crate::{
     command_line_args::CommandLineArgs,
     common::OwnedCommandAndArgs,
-    input::{InputLineNumber, InputMessage, InputMessageList, InputProducer},
+    input::{InputLineNumber, InputMessage, InputProducer},
     output::{OutputSender, OutputWriter},
     process::ChildProcessFactory,
     progress::Progress,
@@ -139,27 +139,22 @@ impl CommandService {
         Ok(())
     }
 
-    async fn process_input_message_list(
-        &self,
-        input_message_list: InputMessageList,
-    ) -> anyhow::Result<()> {
-        for input_message in input_message_list.message_list {
-            let InputMessage {
-                command_and_args,
-                input_line_number,
-            } = input_message;
+    async fn process_input_message(&self, input_message: InputMessage) -> anyhow::Result<()> {
+        let InputMessage {
+            command_and_args,
+            input_line_number,
+        } = input_message;
 
-            let Some(command_and_args) = self
-                .command_path_cache
-                .resolve_command_path(command_and_args)
-                .await?
-            else {
-                continue;
-            };
+        let Some(command_and_args) = self
+            .command_path_cache
+            .resolve_command_path(command_and_args)
+            .await?
+        else {
+            return Ok(());
+        };
 
-            self.spawn_command(command_and_args, input_line_number)
-                .await?;
-        }
+        self.spawn_command(command_and_args, input_line_number)
+            .await?;
 
         Ok(())
     }
@@ -167,8 +162,8 @@ impl CommandService {
     async fn process_inputs(&self) -> anyhow::Result<()> {
         let mut input_producer = InputProducer::new(self.command_line_args, &self.progress)?;
 
-        while let Some(input_message_list) = input_producer.receiver().recv().await {
-            self.process_input_message_list(input_message_list).await?;
+        while let Some(input_message) = input_producer.receiver().recv().await {
+            self.process_input_message(input_message).await?;
         }
 
         input_producer.wait_for_completion().await?;
