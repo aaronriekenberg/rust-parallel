@@ -10,11 +10,11 @@ use crate::{command_line_args::CommandLineArgs, parser::Parser, progress::Progre
 
 use super::{
     buffered_reader::BufferedInputReader, BufferedInput, Input, InputLineNumber, InputList,
-    InputMessage, InputMessageList,
+    InputMessage,
 };
 
 pub struct InputSenderTask {
-    sender: Sender<InputMessageList>,
+    sender: Sender<InputMessage>,
     command_line_args: &'static CommandLineArgs,
     progress: Arc<Progress>,
     parser: Parser,
@@ -23,7 +23,7 @@ pub struct InputSenderTask {
 impl InputSenderTask {
     pub fn new(
         command_line_args: &'static CommandLineArgs,
-        sender: Sender<InputMessageList>,
+        sender: Sender<InputMessage>,
         progress: &Arc<Progress>,
     ) -> anyhow::Result<Self> {
         let parser = Parser::new(command_line_args)?;
@@ -35,11 +35,10 @@ impl InputSenderTask {
         })
     }
 
-    async fn send(&self, input_message_list: InputMessageList) {
-        self.progress
-            .increment_total_commands(input_message_list.message_list.len());
+    async fn send(&self, input_message: InputMessage) {
+        self.progress.increment_total_commands(1);
 
-        if let Err(e) = self.sender.send(input_message_list).await {
+        if let Err(e) = self.sender.send(input_message).await {
             warn!("input sender send error: {}", e);
         }
     }
@@ -69,13 +68,10 @@ impl InputSenderTask {
                         continue;
                     };
 
-                    self.send(
-                        InputMessage {
-                            command_and_args,
-                            input_line_number,
-                        }
-                        .into(),
-                    )
+                    self.send(InputMessage {
+                        command_and_args,
+                        input_line_number,
+                    })
                     .await;
                 }
                 None => {
@@ -102,16 +98,13 @@ impl InputSenderTask {
                 continue;
             };
 
-            self.send(
-                InputMessage {
-                    command_and_args,
-                    input_line_number: InputLineNumber {
-                        input: Input::CommandLineArgs,
-                        line_number,
-                    },
-                }
-                .into(),
-            )
+            self.send(InputMessage {
+                command_and_args,
+                input_line_number: InputLineNumber {
+                    input: Input::CommandLineArgs,
+                    line_number,
+                },
+            })
             .await;
         }
     }
