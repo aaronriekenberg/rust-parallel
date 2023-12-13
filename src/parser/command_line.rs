@@ -69,6 +69,26 @@ impl CommandLineArgsParser {
         }
     }
 
+    fn parse_argument_group(&self, current_args: Vec<String>) -> Option<OwnedCommandAndArgs> {
+        let cmd_and_args = if !self.regex_processor.regex_mode() {
+            [
+                self.argument_groups.first_command_and_args.clone(),
+                current_args,
+            ]
+            .concat()
+        } else {
+            let input_line = current_args.join(" ");
+
+            self.argument_groups
+                .first_command_and_args
+                .iter()
+                .map(|arg| self.regex_processor.process_string(arg, &input_line).into())
+                .collect_vec()
+        };
+
+        super::build_owned_command_and_args(&self.shell_command_and_args, cmd_and_args)
+    }
+
     pub fn has_remaining_argument_groups(&self) -> bool {
         !self.argument_groups.all_argument_groups.is_empty()
     }
@@ -76,25 +96,7 @@ impl CommandLineArgsParser {
     pub fn parse_next_argument_group(&mut self) -> Option<OwnedCommandAndArgs> {
         match self.argument_groups.all_argument_groups.pop_front() {
             None => None,
-            Some(current_args) => {
-                let cmd_and_args = if !self.regex_processor.regex_mode() {
-                    [
-                        self.argument_groups.first_command_and_args.clone(),
-                        current_args,
-                    ]
-                    .concat()
-                } else {
-                    let input_line = current_args.join(" ");
-
-                    self.argument_groups
-                        .first_command_and_args
-                        .iter()
-                        .map(|arg| self.regex_processor.process_string(arg, &input_line).into())
-                        .collect_vec()
-                };
-
-                super::build_owned_command_and_args(&self.shell_command_and_args, cmd_and_args)
-            }
+            Some(current_args) => self.parse_argument_group(current_args),
         }
     }
 }
