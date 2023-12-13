@@ -73,7 +73,7 @@ impl CommandLineArgsParser {
         !self.argument_groups.all_argument_groups.is_empty()
     }
 
-    pub fn parse_next_command_line_argument_group(&mut self) -> Option<OwnedCommandAndArgs> {
+    pub fn parse_next_argument_group(&mut self) -> Option<OwnedCommandAndArgs> {
         match self.argument_groups.all_argument_groups.pop_front() {
             None => None,
             Some(current_args) => {
@@ -109,7 +109,7 @@ mod test {
         let mut result = vec![];
 
         while parser.has_remaining_argument_groups() {
-            let Some(cmd_and_args) = parser.parse_next_command_line_argument_group() else {
+            let Some(cmd_and_args) = parser.parse_next_argument_group() else {
                 continue;
             };
 

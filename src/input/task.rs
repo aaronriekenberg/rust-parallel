@@ -98,7 +98,7 @@ impl InputSenderTask {
         while parser.has_remaining_argument_groups() {
             line_number += 1;
 
-            let Some(command_and_args) = parser.parse_next_command_line_argument_group() else {
+            let Some(command_and_args) = parser.parse_next_argument_group() else {
                 continue;
             };
 
