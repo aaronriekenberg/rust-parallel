@@ -8,15 +8,14 @@ use crate::{
     parser::{regex::RegexProcessor, ShellCommandAndArgs},
 };
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 struct ArgumentGroups {
     first_command_and_args: Vec<String>,
-    remaining_argument_groups: Vec<Vec<String>>,
+    all_argument_groups: VecDeque<Vec<String>>,
 }
 
 pub struct CommandLineArgsParser {
-    first_command_and_args: Vec<String>,
-    all_argument_groups: VecDeque<Vec<String>>,
+    argument_groups: ArgumentGroups,
     shell_command_and_args: ShellCommandAndArgs,
     regex_processor: RegexProcessor,
 }
@@ -25,17 +24,10 @@ impl CommandLineArgsParser {
     pub fn new(command_line_args: &CommandLineArgs, regex_processor: RegexProcessor) -> Self {
         let argument_groups = Self::build_argument_groups(command_line_args);
 
-        let all_argument_groups = argument_groups
-            .remaining_argument_groups
-            .into_iter()
-            .multi_cartesian_product()
-            .collect();
-
         let shell_command_and_args = ShellCommandAndArgs::new(command_line_args);
 
         Self {
-            first_command_and_args: argument_groups.first_command_and_args,
-            all_argument_groups,
+            argument_groups,
             shell_command_and_args,
             regex_processor,
         }
@@ -66,26 +58,36 @@ impl CommandLineArgsParser {
             }
         }
 
+        let all_argument_groups = remaining_argument_groups
+            .into_iter()
+            .multi_cartesian_product()
+            .collect();
+
         ArgumentGroups {
             first_command_and_args,
-            remaining_argument_groups,
+            all_argument_groups,
         }
     }
 
     pub fn has_remaining_argument_groups(&self) -> bool {
-        !self.all_argument_groups.is_empty()
+        !self.argument_groups.all_argument_groups.is_empty()
     }
 
     pub fn parse_next_command_line_argument_group(&mut self) -> Option<OwnedCommandAndArgs> {
-        match self.all_argument_groups.pop_front() {
+        match self.argument_groups.all_argument_groups.pop_front() {
             None => None,
             Some(current_args) => {
                 let cmd_and_args = if !self.regex_processor.regex_mode() {
-                    [self.first_command_and_args.clone(), current_args].concat()
+                    [
+                        self.argument_groups.first_command_and_args.clone(),
+                        current_args,
+                    ]
+                    .concat()
                 } else {
                     let input_line = current_args.join(" ");
 
-                    self.first_command_and_args
+                    self.argument_groups
+                        .first_command_and_args
                         .iter()
                         .map(|arg| self.regex_processor.process_string(arg, &input_line).into())
                         .collect_vec()
