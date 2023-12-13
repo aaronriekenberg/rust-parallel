@@ -100,6 +100,7 @@ impl CommandLineRegex {
         argument
     }
 }
+
 #[cfg(test)]
 mod test {
     use super::*;
