@@ -69,15 +69,15 @@ impl CommandLineArgsParser {
         }
     }
 
-    fn parse_argument_group(&self, current_args: Vec<String>) -> Option<OwnedCommandAndArgs> {
+    fn parse_argument_group(&self, argument_group: Vec<String>) -> Option<OwnedCommandAndArgs> {
         let cmd_and_args = if !self.regex_processor.regex_mode() {
             [
                 self.argument_groups.first_command_and_args.clone(),
-                current_args,
+                argument_group,
             ]
             .concat()
         } else {
-            let input_line = current_args.join(" ");
+            let input_line = argument_group.join(" ");
 
             self.argument_groups
                 .first_command_and_args
