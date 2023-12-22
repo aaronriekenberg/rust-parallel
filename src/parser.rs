@@ -17,21 +17,11 @@ impl ShellCommandAndArgs {
         Self(if command_line_args.shell {
             Some(vec![
                 command_line_args.shell_path.clone(),
-                Self::shell_argument().to_owned(),
+                command_line_args.shell_argument.clone(),
             ])
         } else {
             None
         })
-    }
-
-    fn shell_argument() -> &'static str {
-        if cfg!(unix) {
-            "-c"
-        } else if cfg!(windows) {
-            "/c"
-        } else {
-            unreachable!()
-        }
     }
 }
 

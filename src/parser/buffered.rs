@@ -151,6 +151,7 @@ mod test {
             shell: true,
             command_and_initial_arguments: vec![],
             shell_path: "/bin/bash".to_owned(),
+            shell_argument: "-c".to_owned(),
             ..Default::default()
         };
 
@@ -177,6 +178,7 @@ mod test {
             shell: true,
             command_and_initial_arguments: vec![],
             shell_path: "/bin/zsh".to_owned(),
+            shell_argument: "-c".to_owned(),
             ..Default::default()
         };
 

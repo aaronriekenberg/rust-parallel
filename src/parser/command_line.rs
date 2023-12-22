@@ -270,6 +270,7 @@ mod test {
             .map_into()
             .collect(),
             shell_path: "/bin/bash".to_owned(),
+            shell_argument: "-c".to_owned(),
             ..Default::default()
         };
 
@@ -320,6 +321,7 @@ mod test {
                 .map_into()
                 .collect(),
             shell_path: "/bin/bash".to_owned(),
+            shell_argument: "-c".to_owned(),
             ..Default::default()
         };
 
