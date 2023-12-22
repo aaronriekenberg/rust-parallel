@@ -41,7 +41,7 @@ pub struct CommandLineArgs {
 
     /// Use shell mode for running commands.
     ///
-    /// Each command line is passed to "<shell-path> -c" as a single argument.
+    /// Each command line is passed to "<shell-path> <shell-argument>" as a single argument.
     #[arg(short, long)]
     pub shell: bool,
 
@@ -66,6 +66,10 @@ pub struct CommandLineArgs {
     /// Path to shell to use for shell mode
     #[arg(long, default_value = Self::default_shell())]
     pub shell_path: String,
+
+    /// Argument to shell for shell mode
+    #[arg(long, default_value = Self::default_shell_argument())]
+    pub shell_argument: String,
 
     /// Optional command and initial arguments.
     ///
@@ -121,6 +125,16 @@ impl CommandLineArgs {
             "/bin/bash"
         } else if cfg!(windows) {
             "cmd"
+        } else {
+            unreachable!()
+        }
+    }
+
+    fn default_shell_argument() -> &'static str {
+        if cfg!(unix) {
+            "-c"
+        } else if cfg!(windows) {
+            "/c"
         } else {
             unreachable!()
         }
