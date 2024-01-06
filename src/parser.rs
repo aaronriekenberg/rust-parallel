@@ -4,6 +4,8 @@ mod regex;
 
 use tokio::sync::OnceCell;
 
+use tracing::warn;
+
 use crate::{command_line_args::CommandLineArgs, common::OwnedCommandAndArgs};
 
 use self::{
@@ -39,6 +41,34 @@ fn build_owned_command_and_args(
 
             OwnedCommandAndArgs::try_from(result).ok()
         }
+    }
+}
+
+fn apply_regex_to_arguments(
+    regex_processor: &RegexProcessor,
+    arguments: &Vec<String>,
+    input_data: &str,
+) -> Option<Vec<String>> {
+    let mut results: Vec<String> = vec![];
+    let mut num_matches = 0usize;
+
+    for argument in arguments {
+        match regex_processor.process_string(argument, input_data) {
+            Some(result) => {
+                results.push(result.to_string());
+                num_matches += 1;
+            }
+            None => {
+                results.push(argument.clone());
+            }
+        };
+    }
+
+    if num_matches == 0 {
+        warn!("regex did not match input data: {}", input_data);
+        None
+    } else {
+        Some(results)
     }
 }
 
