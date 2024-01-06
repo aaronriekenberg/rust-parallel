@@ -98,10 +98,7 @@ impl CommandLineRegex {
     }
 
     fn expand<'a>(&self, argument: Cow<'a, str>, input_data: &str) -> Option<Cow<'a, str>> {
-        let captures = match self.regex.captures(input_data) {
-            None => return None,
-            Some(captures) => captures,
-        };
+        let captures = self.regex.captures(input_data)?;
 
         let mut argument = argument;
 

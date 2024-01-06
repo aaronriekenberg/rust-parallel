@@ -51,13 +51,8 @@ impl BufferedInputLineParser {
 
             cmd_and_args
         } else {
-            match self
-                .regex_processor
-                .apply_regex_to_arguments(&self.command_and_initial_arguments, input_line)
-            {
-                Some(result) => result,
-                None => return None,
-            }
+            self.regex_processor
+                .apply_regex_to_arguments(&self.command_and_initial_arguments, input_line)?
         };
 
         super::build_owned_command_and_args(&self.shell_command_and_args, cmd_and_args)
