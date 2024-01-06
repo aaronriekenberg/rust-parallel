@@ -82,8 +82,7 @@ impl CommandLineArgsParser {
             self.argument_groups
                 .first_command_and_args
                 .iter()
-                .filter_map(|arg| self.regex_processor.process_string(arg, &input_line))
-                .map_into()
+                .map(|arg| self.regex_processor.process_string(arg, &input_line).into())
                 .collect_vec()
         };
 

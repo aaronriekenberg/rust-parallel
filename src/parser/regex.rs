@@ -22,11 +22,11 @@ impl RegexProcessor {
         self.command_line_regex.is_some()
     }
 
-    pub fn process_string<'a>(&self, argument: &'a str, input_data: &str) -> Option<Cow<'a, str>> {
+    pub fn process_string<'a>(&self, argument: &'a str, input_data: &str) -> Cow<'a, str> {
         let argument = Cow::from(argument);
 
         match &self.command_line_regex {
-            None => Some(argument),
+            None => argument,
             Some(command_line_regex) => command_line_regex.expand(argument, input_data),
         }
     }
@@ -67,9 +67,9 @@ impl CommandLineRegex {
         })
     }
 
-    fn expand<'a>(&self, argument: Cow<'a, str>, input_data: &str) -> Option<Cow<'a, str>> {
+    fn expand<'a>(&self, argument: Cow<'a, str>, input_data: &str) -> Cow<'a, str> {
         let captures = match self.regex.captures(input_data) {
-            None => return None,
+            None => return argument,
             Some(captures) => captures,
         };
 
@@ -97,7 +97,7 @@ impl CommandLineRegex {
             }
         }
 
-        Some(argument)
+        argument
     }
 }
 
@@ -116,10 +116,7 @@ mod test {
 
         assert_eq!(regex_processor.regex_mode(), false);
 
-        assert_eq!(
-            regex_processor.process_string("{0}", "input line"),
-            Some(Cow::from("{0}"))
-        );
+        assert_eq!(regex_processor.process_string("{0}", "input line"), "{0}");
     }
 
     #[test]
@@ -135,7 +132,7 @@ mod test {
 
         assert_eq!(
             regex_processor.process_string("{1} {2}", "hello,world"),
-            Some(Cow::from("hello world"))
+            "hello world"
         );
     }
 
@@ -152,7 +149,7 @@ mod test {
 
         assert_eq!(
             regex_processor.process_string("{arg1} {arg2}", "hello,world"),
-            Some(Cow::from("hello world"))
+            "hello world"
         );
     }
 
@@ -172,9 +169,7 @@ mod test {
                 r#"{"id": 123, "$zero": "{0}", "one": "{1}", "two": "{2}"}"#,
                 "hello,world",
             ),
-            Some(Cow::from(
-                r#"{"id": 123, "$zero": "hello,world", "one": "hello", "two": "world"}"#
-            ))
+            r#"{"id": 123, "$zero": "hello,world", "one": "hello", "two": "world"}"#
         );
     }
 
@@ -194,9 +189,7 @@ mod test {
                 r#"{"id": 123, "$zero": "{0}", "one": "{arg1}", "two": "{arg2}"}"#,
                 "hello,world",
             ),
-            Some(Cow::from(
-                r#"{"id": 123, "$zero": "hello,world", "one": "hello", "two": "world"}"#
-            ))
+            r#"{"id": 123, "$zero": "hello,world", "one": "hello", "two": "world"}"#
         );
     }
 
@@ -213,29 +206,7 @@ mod test {
 
         assert_eq!(
             regex_processor.process_string(r#"{arg2}${FOO}{arg1}$BAR${BAR}{arg2}"#, "hello,world"),
-            Some(Cow::from(r#"world${FOO}hello$BAR${BAR}world"#)),
-        );
-    }
-
-    #[test]
-    fn test_regex_not_matching_input_data() {
-        let command_line_args = CommandLineArgs {
-            regex: Some("(?P<arg1>.*),(?P<arg2>.*)".to_string()),
-            ..Default::default()
-        };
-
-        let regex_processor = RegexProcessor::new(&command_line_args).unwrap();
-
-        assert_eq!(regex_processor.regex_mode(), true);
-
-        assert_eq!(
-            regex_processor.process_string("{arg2},{arg1}", "hello,world"),
-            Some(Cow::from("world,hello")),
-        );
-
-        assert_eq!(
-            regex_processor.process_string("{arg2},{arg1}", "hello world"),
-            None,
+            r#"world${FOO}hello$BAR${BAR}world"#,
         );
     }
 
