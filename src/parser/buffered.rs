@@ -51,11 +51,10 @@ impl BufferedInputLineParser {
 
             cmd_and_args
         } else {
-            match super::apply_regex_to_arguments(
-                &self.regex_processor,
-                &self.command_and_initial_arguments,
-                input_line,
-            ) {
+            match self
+                .regex_processor
+                .apply_regex_to_arguments(&self.command_and_initial_arguments, input_line)
+            {
                 Some(result) => result,
                 None => return None,
             }

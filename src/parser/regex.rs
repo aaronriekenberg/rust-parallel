@@ -1,5 +1,7 @@
 use anyhow::Context;
 
+use tracing::warn;
+
 use std::borrow::Cow;
 
 use crate::command_line_args::CommandLineArgs;
@@ -28,6 +30,34 @@ impl RegexProcessor {
         match &self.command_line_regex {
             None => Some(argument),
             Some(command_line_regex) => command_line_regex.expand(argument, input_data),
+        }
+    }
+
+    pub fn apply_regex_to_arguments(
+        &self,
+        arguments: &Vec<String>,
+        input_data: &str,
+    ) -> Option<Vec<String>> {
+        let mut results: Vec<String> = vec![];
+        let mut num_matches = 0usize;
+
+        for argument in arguments {
+            match self.process_string(argument, input_data) {
+                Some(result) => {
+                    results.push(result.to_string());
+                    num_matches += 1;
+                }
+                None => {
+                    results.push(argument.clone());
+                }
+            };
+        }
+
+        if num_matches == 0 {
+            warn!("regex did not match input data: {}", input_data);
+            None
+        } else {
+            Some(results)
         }
     }
 }

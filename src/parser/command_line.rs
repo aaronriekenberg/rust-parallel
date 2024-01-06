@@ -79,11 +79,10 @@ impl CommandLineArgsParser {
         } else {
             let input_line = argument_group.join(" ");
 
-            match super::apply_regex_to_arguments(
-                &self.regex_processor,
-                &self.argument_groups.first_command_and_args,
-                &input_line,
-            ) {
+            match self
+                .regex_processor
+                .apply_regex_to_arguments(&self.argument_groups.first_command_and_args, &input_line)
+            {
                 Some(result) => result,
                 None => return None,
             }
