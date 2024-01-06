@@ -4,16 +4,16 @@ use tracing::{debug, instrument, trace};
 
 use std::process::Output;
 
-pub struct OutputReceiverTask {
+pub struct OutputTask {
     receiver: Receiver<Output>,
 }
 
-impl OutputReceiverTask {
+impl OutputTask {
     pub fn new(receiver: Receiver<Output>) -> Self {
         Self { receiver }
     }
 
-    #[instrument(skip_all, name = "OutputReceiverTask::run", level = "debug")]
+    #[instrument(skip_all, name = "OutputTask::run", level = "debug")]
     pub async fn run(self) {
         debug!("begin run");
 
