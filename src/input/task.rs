@@ -13,14 +13,14 @@ use super::{
     InputMessage,
 };
 
-pub struct InputSenderTask {
+pub struct InputTask {
     sender: Sender<InputMessage>,
     command_line_args: &'static CommandLineArgs,
     progress: Arc<Progress>,
     parser: Parser,
 }
 
-impl InputSenderTask {
+impl InputTask {
     pub fn new(
         command_line_args: &'static CommandLineArgs,
         sender: Sender<InputMessage>,
@@ -109,7 +109,7 @@ impl InputSenderTask {
         }
     }
 
-    #[instrument(skip_all, name = "InputSenderTask::run", level = "debug")]
+    #[instrument(skip_all, name = "InputTask::run", level = "debug")]
     pub async fn run(self) {
         debug!("begin run");
 

@@ -110,7 +110,7 @@ impl InputProducer {
             command_line_args.channel_capacity
         );
 
-        let input_sender_task = task::InputSenderTask::new(command_line_args, sender, progress)?;
+        let input_sender_task = task::InputTask::new(command_line_args, sender, progress)?;
 
         let sender_task_join_handle = tokio::spawn(input_sender_task.run());
 
