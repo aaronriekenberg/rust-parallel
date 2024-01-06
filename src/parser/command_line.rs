@@ -79,12 +79,14 @@ impl CommandLineArgsParser {
         } else {
             let input_line = argument_group.join(" ");
 
-            self.argument_groups
-                .first_command_and_args
-                .iter()
-                .filter_map(|arg| self.regex_processor.process_string(arg, &input_line))
-                .map_into()
-                .collect_vec()
+            match super::apply_regex_to_arguments(
+                &self.regex_processor,
+                &self.argument_groups.first_command_and_args,
+                &input_line,
+            ) {
+                Some(result) => result,
+                None => return None,
+            }
         };
 
         super::build_owned_command_and_args(&self.shell_command_and_args, cmd_and_args)
