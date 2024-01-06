@@ -53,7 +53,8 @@ impl BufferedInputLineParser {
         } else {
             self.command_and_initial_arguments
                 .iter()
-                .map(|arg| self.regex_processor.process_string(arg, input_line).into())
+                .filter_map(|arg| self.regex_processor.process_string(arg, input_line))
+                .map_into()
                 .collect_vec()
         };
 
