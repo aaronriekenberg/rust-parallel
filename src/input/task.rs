@@ -6,7 +6,12 @@ use tracing::{debug, instrument, warn};
 
 use std::sync::Arc;
 
-use crate::{command_line_args::CommandLineArgs, parser::Parser, progress::Progress};
+use crate::{
+    command_line_args::CommandLineArgs,
+    common::OwnedCommandAndArgs,
+    parser::{buffered::BufferedInputLineParser, command_line::CommandLineArgsParser, Parser},
+    progress::Progress,
+};
 
 use super::{
     buffered_reader::BufferedInputReader, BufferedInput, Input, InputLineNumber, InputList,
@@ -43,6 +48,22 @@ impl InputTask {
         }
     }
 
+    #[instrument(
+        skip_all,
+        fields(
+            line=%input_line_number,
+        )
+        name = "process_buffered_input_line",
+    )]
+    fn process_buffered_input_line(
+        &self,
+        parser: &BufferedInputLineParser,
+        input_line_number: &InputLineNumber,
+        segment: Vec<u8>,
+    ) -> Option<OwnedCommandAndArgs> {
+        parser.parse_segment(segment)
+    }
+
     async fn process_one_buffered_input(
         &self,
         buffered_input: BufferedInput,
@@ -64,7 +85,9 @@ impl InputTask {
                 .context("next_segment error")?
             {
                 Some((input_line_number, segment)) => {
-                    let Some(command_and_args) = parser.parse_segment(segment) else {
+                    let Some(command_and_args) =
+                        self.process_buffered_input_line(parser, &input_line_number, segment)
+                    else {
                         continue;
                     };
 
@@ -84,6 +107,21 @@ impl InputTask {
         Ok(())
     }
 
+    #[instrument(
+        skip_all,
+        fields(
+            line=%input_line_number,
+        )
+        name = "process_next_command_line_arg",
+    )]
+    fn process_next_command_line_arg(
+        &self,
+        parser: &mut CommandLineArgsParser,
+        input_line_number: &InputLineNumber,
+    ) -> Option<OwnedCommandAndArgs> {
+        parser.parse_next_argument_group()
+    }
+
     async fn process_command_line_args_input(self) {
         debug!("begin process_command_line_args_input");
 
@@ -94,16 +132,20 @@ impl InputTask {
         while parser.has_remaining_argument_groups() {
             line_number += 1;
 
-            let Some(command_and_args) = parser.parse_next_argument_group() else {
+            let input_line_number = InputLineNumber {
+                input: Input::CommandLineArgs,
+                line_number,
+            };
+
+            let Some(command_and_args) =
+                self.process_next_command_line_arg(&mut parser, &input_line_number)
+            else {
                 continue;
             };
 
             self.send(InputMessage {
                 command_and_args,
-                input_line_number: InputLineNumber {
-                    input: Input::CommandLineArgs,
-                    line_number,
-                },
+                input_line_number,
             })
             .await;
         }
