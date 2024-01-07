@@ -279,6 +279,31 @@ fn runs_regex_from_input_file_j1() {
 }
 
 #[test]
+fn runs_regex_from_input_file_badline_j1() {
+    rust_parallel()
+        .arg("-j1")
+        .arg("-i")
+        .arg("csv_file_badline.txt")
+        .arg("-r")
+        .arg("(?P<arg1>.*),(?P<arg2>.*),(?P<arg3>.*)")
+        .arg("echo")
+        .arg("arg1={arg1}")
+        .arg("arg2={arg2}")
+        .arg("arg3={arg3}")
+        .arg("dollarzero={0}")
+        .assert()
+        .success()
+        .stdout((predicate::str::contains("\n").count(3)).and(predicate::str::contains(
+                "regex did not match input data: badline\n").and(
+                    predicate::str::contains(
+                        "arg1=1 arg2=2 arg3=3 dollarzero=1,2,3\narg1=foo arg2=bar arg3=baz dollarzero=foo,bar,baz\n",
+                    )
+                )
+            ))
+        .stderr(predicate::str::is_empty());
+}
+
+#[test]
 fn runs_regex_from_command_line_args_j1() {
     rust_parallel()
         .arg("-j1")
@@ -296,6 +321,30 @@ fn runs_regex_from_command_line_args_j1() {
         .success()
         .stdout(predicate::eq(
             "arg1=a arg2=b arg3=c dollarzero=a,b,c\narg1=d arg2=e arg3=f dollarzero=d,e,f\n",
+        ))
+        .stderr(predicate::str::is_empty());
+}
+
+#[test]
+fn runs_regex_from_command_line_args_nomatch_1() {
+    rust_parallel()
+        .arg("-j1")
+        .arg("-r")
+        .arg("(.*) (.*) (.*)")
+        .arg("echo")
+        .arg("arg1={1}")
+        .arg("arg2={2}")
+        .arg("arg3={3}")
+        .arg("dollarzero={0}")
+        .arg(":::")
+        .arg("a,b,c")
+        .arg("d,e,f")
+        .assert()
+        .success()
+        .stdout((predicate::str::contains("\n").count(2)).and(
+            predicate::str::contains("regex did not match input data: a,b,c\n").and(
+                predicate::str::contains("regex did not match input data: d,e,f\n"),
+            ),
         ))
         .stderr(predicate::str::is_empty());
 }
