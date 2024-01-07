@@ -24,28 +24,24 @@ impl RegexProcessor {
         self.command_line_regex.is_some()
     }
 
-    pub fn process_string<'a>(&self, argument: &'a str, input_data: &str) -> Option<Cow<'a, str>> {
-        let argument = Cow::from(argument);
-
-        match &self.command_line_regex {
-            None => Some(argument),
-            Some(command_line_regex) => command_line_regex.expand(argument, input_data),
-        }
-    }
-
     pub fn apply_regex_to_arguments(
         &self,
         arguments: &Vec<String>,
         input_data: &str,
     ) -> Option<Vec<String>> {
+        let command_line_regex = match &self.command_line_regex {
+            Some(command_line_regex) => command_line_regex,
+            None => return None,
+        };
+
         let mut results: Vec<String> = vec![];
-        let mut num_matches = 0usize;
+        let mut found_match = false;
 
         for argument in arguments {
-            match self.process_string(argument, input_data) {
+            match command_line_regex.expand(argument.into(), input_data) {
                 Some(result) => {
                     results.push(result.to_string());
-                    num_matches += 1;
+                    found_match = true;
                 }
                 None => {
                     results.push(argument.clone());
@@ -53,7 +49,7 @@ impl RegexProcessor {
             };
         }
 
-        if num_matches == 0 {
+        if !found_match {
             warn!("regex did not match input data: {}", input_data);
             None
         } else {
@@ -143,9 +139,10 @@ mod test {
 
         assert_eq!(regex_processor.regex_mode(), false);
 
+        let arguments = vec!["{0}".to_string()];
         assert_eq!(
-            regex_processor.process_string("{0}", "input line"),
-            Some(Cow::from("{0}"))
+            regex_processor.apply_regex_to_arguments(&arguments, "input line"),
+            None,
         );
     }
 
@@ -160,9 +157,10 @@ mod test {
 
         assert_eq!(regex_processor.regex_mode(), true);
 
+        let arguments = vec!["{1} {2}".to_string()];
         assert_eq!(
-            regex_processor.process_string("{1} {2}", "hello,world"),
-            Some(Cow::from("hello world"))
+            regex_processor.apply_regex_to_arguments(&arguments, "hello,world"),
+            Some(vec!["hello world".to_string()])
         );
     }
 
@@ -177,9 +175,10 @@ mod test {
 
         assert_eq!(regex_processor.regex_mode(), true);
 
+        let arguments = vec!["{arg1} {arg2}".to_string()];
         assert_eq!(
-            regex_processor.process_string("{arg1} {arg2}", "hello,world"),
-            Some(Cow::from("hello world"))
+            regex_processor.apply_regex_to_arguments(&arguments, "hello,world"),
+            Some(vec!["hello world".to_string()])
         );
     }
 
@@ -194,14 +193,14 @@ mod test {
 
         assert_eq!(regex_processor.regex_mode(), true);
 
+        let arguments =
+            vec![r#"{"id": 123, "$zero": "{0}", "one": "{1}", "two": "{2}"}"#.to_string()];
         assert_eq!(
-            regex_processor.process_string(
-                r#"{"id": 123, "$zero": "{0}", "one": "{1}", "two": "{2}"}"#,
-                "hello,world",
-            ),
-            Some(Cow::from(
+            regex_processor.apply_regex_to_arguments(&arguments, "hello,world",),
+            Some(vec![
                 r#"{"id": 123, "$zero": "hello,world", "one": "hello", "two": "world"}"#
-            ))
+                    .to_string(),
+            ])
         );
     }
 
@@ -216,14 +215,14 @@ mod test {
 
         assert_eq!(regex_processor.regex_mode(), true);
 
+        let arguments =
+            vec![r#"{"id": 123, "$zero": "{0}", "one": "{arg1}", "two": "{arg2}"}"#.to_string()];
         assert_eq!(
-            regex_processor.process_string(
-                r#"{"id": 123, "$zero": "{0}", "one": "{arg1}", "two": "{arg2}"}"#,
-                "hello,world",
-            ),
-            Some(Cow::from(
+            regex_processor.apply_regex_to_arguments(&arguments, "hello,world",),
+            Some(vec![
                 r#"{"id": 123, "$zero": "hello,world", "one": "hello", "two": "world"}"#
-            ))
+                    .to_string(),
+            ])
         );
     }
 
@@ -238,9 +237,10 @@ mod test {
 
         assert_eq!(regex_processor.regex_mode(), true);
 
+        let arguments = vec![r#"{arg2}${FOO}{arg1}$BAR${BAR}{arg2}"#.to_string()];
         assert_eq!(
-            regex_processor.process_string(r#"{arg2}${FOO}{arg1}$BAR${BAR}{arg2}"#, "hello,world"),
-            Some(Cow::from(r#"world${FOO}hello$BAR${BAR}world"#)),
+            regex_processor.apply_regex_to_arguments(&arguments, "hello,world"),
+            Some(vec![r#"world${FOO}hello$BAR${BAR}world"#.to_string()]),
         );
     }
 
@@ -255,13 +255,14 @@ mod test {
 
         assert_eq!(regex_processor.regex_mode(), true);
 
+        let arguments = vec!["{arg2},{arg1}".to_string()];
         assert_eq!(
-            regex_processor.process_string("{arg2},{arg1}", "hello,world"),
-            Some(Cow::from("world,hello")),
+            regex_processor.apply_regex_to_arguments(&arguments, "hello,world"),
+            Some(vec!["world,hello".to_string()]),
         );
 
         assert_eq!(
-            regex_processor.process_string("{arg2},{arg1}", "hello world"),
+            regex_processor.apply_regex_to_arguments(&arguments, "hello world"),
             None,
         );
     }
