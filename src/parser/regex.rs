@@ -34,7 +34,7 @@ impl RegexProcessor {
             None => return None,
         };
 
-        let mut results: Vec<String> = vec![];
+        let mut results: Vec<String> = Vec::with_capacity(arguments.len());
         let mut found_match = false;
 
         for argument in arguments {
