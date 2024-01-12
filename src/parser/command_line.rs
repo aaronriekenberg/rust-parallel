@@ -93,10 +93,8 @@ impl CommandLineArgsParser {
     }
 
     pub fn parse_next_argument_group(&mut self) -> Option<OwnedCommandAndArgs> {
-        match self.argument_groups.all_argument_groups.pop_front() {
-            None => None,
-            Some(argument_group) => self.parse_argument_group(argument_group),
-        }
+        let argument_group = self.argument_groups.all_argument_groups.pop_front()?;
+        self.parse_argument_group(argument_group)
     }
 }
 
