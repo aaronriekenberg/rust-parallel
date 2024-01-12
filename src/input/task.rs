@@ -69,12 +69,9 @@ impl InputTask {
         }
     }
 
-    async fn process_one_buffered_input(
-        &self,
-        buffered_input: BufferedInput,
-    ) -> anyhow::Result<()> {
+    async fn process_buffered_input(&self, buffered_input: BufferedInput) -> anyhow::Result<()> {
         debug!(
-            "begin process_one_buffered_input buffered_input {}",
+            "begin process_buffered_input buffered_input {}",
             buffered_input
         );
 
@@ -151,9 +148,9 @@ impl InputTask {
         match super::build_input_list(self.command_line_args) {
             InputList::BufferedInputList(buffered_inputs) => {
                 for buffered_input in buffered_inputs {
-                    if let Err(e) = self.process_one_buffered_input(buffered_input).await {
+                    if let Err(e) = self.process_buffered_input(buffered_input).await {
                         warn!(
-                            "process_one_buffered_input error buffered_input = {}: {}",
+                            "process_buffered_input error buffered_input = {}: {}",
                             buffered_input, e
                         );
                     }
