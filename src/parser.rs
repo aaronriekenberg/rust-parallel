@@ -42,13 +42,13 @@ fn build_owned_command_and_args(
     }
 }
 
-pub struct Parser {
+pub struct Parsers {
     buffered_input_line_parser: OnceCell<BufferedInputLineParser>,
     regex_processor: RegexProcessor,
     command_line_args: &'static CommandLineArgs,
 }
 
-impl Parser {
+impl Parsers {
     pub fn new(command_line_args: &'static CommandLineArgs) -> anyhow::Result<Self> {
         let regex_processor = RegexProcessor::new(command_line_args)?;
         Ok(Self {

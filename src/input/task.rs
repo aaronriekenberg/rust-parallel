@@ -8,7 +8,7 @@ use std::sync::Arc;
 
 use crate::{
     command_line_args::CommandLineArgs,
-    parser::{buffered::BufferedInputLineParser, command_line::CommandLineArgsParser, Parser},
+    parser::{buffered::BufferedInputLineParser, command_line::CommandLineArgsParser, Parsers},
     progress::Progress,
 };
 
@@ -21,7 +21,7 @@ pub struct InputTask {
     sender: Sender<InputMessage>,
     command_line_args: &'static CommandLineArgs,
     progress: Arc<Progress>,
-    parser: Parser,
+    parsers: Parsers,
 }
 
 impl InputTask {
@@ -30,12 +30,12 @@ impl InputTask {
         sender: Sender<InputMessage>,
         progress: &Arc<Progress>,
     ) -> anyhow::Result<Self> {
-        let parser = Parser::new(command_line_args)?;
+        let parsers = Parsers::new(command_line_args)?;
         Ok(Self {
             sender,
             command_line_args,
             progress: Arc::clone(progress),
-            parser,
+            parsers,
         })
     }
 
@@ -78,7 +78,7 @@ impl InputTask {
         let mut input_reader =
             BufferedInputReader::new(buffered_input, self.command_line_args).await?;
 
-        let parser = self.parser.buffered_input_line_parser().await;
+        let parser = self.parsers.buffered_input_line_parser().await;
 
         loop {
             match input_reader
@@ -124,7 +124,7 @@ impl InputTask {
     async fn process_command_line_args_input(self) {
         debug!("begin process_command_line_args_input");
 
-        let mut parser = self.parser.command_line_args_parser();
+        let mut parser = self.parsers.command_line_args_parser();
 
         let mut line_number = 0;
 
