@@ -95,7 +95,7 @@ pub struct InputMessage {
 }
 
 pub struct InputProducer {
-    sender_task_join_handle: JoinHandle<()>,
+    input_task_join_handle: JoinHandle<()>,
     receiver: Receiver<InputMessage>,
 }
 
@@ -112,10 +112,10 @@ impl InputProducer {
 
         let input_sender_task = task::InputTask::new(command_line_args, sender, progress)?;
 
-        let sender_task_join_handle = tokio::spawn(input_sender_task.run());
+        let input_task_join_handle = tokio::spawn(input_sender_task.run());
 
         Ok(Self {
-            sender_task_join_handle,
+            input_task_join_handle,
             receiver,
         })
     }
@@ -125,9 +125,9 @@ impl InputProducer {
     }
 
     pub async fn wait_for_completion(self) -> anyhow::Result<()> {
-        self.sender_task_join_handle
+        self.input_task_join_handle
             .await
-            .context("InputProducer::wait_for_completion: sender_task_join_handle.await error")?;
+            .context("InputProducer::wait_for_completion: input_task_join_handle.await error")?;
 
         Ok(())
     }
