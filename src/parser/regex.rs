@@ -2,22 +2,21 @@ use anyhow::Context;
 
 use tracing::warn;
 
-use std::borrow::Cow;
+use std::{borrow::Cow, sync::Arc};
 
 use crate::command_line_args::CommandLineArgs;
 
-#[derive(Clone)]
 pub struct RegexProcessor {
     command_line_regex: Option<CommandLineRegex>,
 }
 
 impl RegexProcessor {
-    pub fn new(command_line_args: &CommandLineArgs) -> anyhow::Result<Self> {
+    pub fn new(command_line_args: &CommandLineArgs) -> anyhow::Result<Arc<Self>> {
         let command_line_regex = match &command_line_args.regex {
             None => None,
             Some(command_line_args_regex) => Some(CommandLineRegex::new(command_line_args_regex)?),
         };
-        Ok(Self { command_line_regex })
+        Ok(Arc::new(Self { command_line_regex }))
     }
 
     pub fn regex_mode(&self) -> bool {
@@ -58,7 +57,6 @@ impl RegexProcessor {
     }
 }
 
-#[derive(Clone)]
 struct CommandLineRegex {
     regex: regex::Regex,
     numbered_group_match_keys: Vec<String>,
