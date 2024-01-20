@@ -1,6 +1,6 @@
 use itertools::Itertools;
 
-use std::collections::VecDeque;
+use std::{collections::VecDeque, sync::Arc};
 
 use crate::{
     command_line_args::{CommandLineArgs, COMMANDS_FROM_ARGS_SEPARATOR},
@@ -17,11 +17,11 @@ struct ArgumentGroups {
 pub struct CommandLineArgsParser {
     argument_groups: ArgumentGroups,
     shell_command_and_args: ShellCommandAndArgs,
-    regex_processor: RegexProcessor,
+    regex_processor: Arc<RegexProcessor>,
 }
 
 impl CommandLineArgsParser {
-    pub fn new(command_line_args: &CommandLineArgs, regex_processor: RegexProcessor) -> Self {
+    pub fn new(command_line_args: &CommandLineArgs, regex_processor: &Arc<RegexProcessor>) -> Self {
         let argument_groups = Self::build_argument_groups(command_line_args);
 
         let shell_command_and_args = ShellCommandAndArgs::new(command_line_args);
@@ -29,7 +29,7 @@ impl CommandLineArgsParser {
         Self {
             argument_groups,
             shell_command_and_args,
-            regex_processor,
+            regex_processor: Arc::clone(regex_processor),
         }
     }
 
@@ -133,7 +133,7 @@ mod test {
 
         let parser = CommandLineArgsParser::new(
             &command_line_args,
-            RegexProcessor::new(&command_line_args).unwrap(),
+            &RegexProcessor::new(&command_line_args).unwrap(),
         );
 
         let result = collect_into_vec(parser);
@@ -184,7 +184,7 @@ mod test {
 
         let parser = CommandLineArgsParser::new(
             &command_line_args,
-            RegexProcessor::new(&command_line_args).unwrap(),
+            &RegexProcessor::new(&command_line_args).unwrap(),
         );
 
         let result = collect_into_vec(parser);
@@ -230,7 +230,7 @@ mod test {
 
         let parser = CommandLineArgsParser::new(
             &command_line_args,
-            RegexProcessor::new(&command_line_args).unwrap(),
+            &RegexProcessor::new(&command_line_args).unwrap(),
         );
 
         let result = collect_into_vec(parser);
@@ -248,7 +248,7 @@ mod test {
 
         let parser = CommandLineArgsParser::new(
             &command_line_args,
-            RegexProcessor::new(&command_line_args).unwrap(),
+            &RegexProcessor::new(&command_line_args).unwrap(),
         );
 
         let result = collect_into_vec(parser);
@@ -273,7 +273,7 @@ mod test {
 
         let parser = CommandLineArgsParser::new(
             &command_line_args,
-            RegexProcessor::new(&command_line_args).unwrap(),
+            &RegexProcessor::new(&command_line_args).unwrap(),
         );
 
         let result = collect_into_vec(parser);
@@ -324,7 +324,7 @@ mod test {
 
         let parser = CommandLineArgsParser::new(
             &command_line_args,
-            RegexProcessor::new(&command_line_args).unwrap(),
+            &RegexProcessor::new(&command_line_args).unwrap(),
         );
 
         let result = collect_into_vec(parser);
@@ -382,7 +382,7 @@ mod test {
 
         let parser = CommandLineArgsParser::new(
             &command_line_args,
-            RegexProcessor::new(&command_line_args).unwrap(),
+            &RegexProcessor::new(&command_line_args).unwrap(),
         );
 
         let result = collect_into_vec(parser);
@@ -430,7 +430,7 @@ mod test {
 
         let parser = CommandLineArgsParser::new(
             &command_line_args,
-            RegexProcessor::new(&command_line_args).unwrap(),
+            &RegexProcessor::new(&command_line_args).unwrap(),
         );
 
         let result = collect_into_vec(parser);

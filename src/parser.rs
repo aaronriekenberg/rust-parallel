@@ -4,6 +4,8 @@ mod regex;
 
 use tokio::sync::OnceCell;
 
+use std::sync::Arc;
+
 use crate::{command_line_args::CommandLineArgs, common::OwnedCommandAndArgs};
 
 use self::{
@@ -44,7 +46,7 @@ fn build_owned_command_and_args(
 
 pub struct Parsers {
     buffered_input_line_parser: OnceCell<BufferedInputLineParser>,
-    regex_processor: RegexProcessor,
+    regex_processor: Arc<RegexProcessor>,
     command_line_args: &'static CommandLineArgs,
 }
 
@@ -61,12 +63,12 @@ impl Parsers {
     pub async fn buffered_input_line_parser(&self) -> &BufferedInputLineParser {
         self.buffered_input_line_parser
             .get_or_init(|| async move {
-                BufferedInputLineParser::new(self.command_line_args, self.regex_processor.clone())
+                BufferedInputLineParser::new(self.command_line_args, &self.regex_processor)
             })
             .await
     }
 
     pub fn command_line_args_parser(&self) -> CommandLineArgsParser {
-        CommandLineArgsParser::new(self.command_line_args, self.regex_processor.clone())
+        CommandLineArgsParser::new(self.command_line_args, &self.regex_processor)
     }
 }
