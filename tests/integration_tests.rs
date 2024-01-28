@@ -424,3 +424,53 @@ fn runs_regex_command_with_dollar_signs() {
         .stdout(predicate::eq(expected_stdout))
         .stderr(predicate::str::is_empty());
 }
+
+#[test]
+fn runs_no_run_if_empty_echo_j1() {
+    let stdin = r#"
+
+    A
+
+    B
+
+    C
+
+        "#;
+
+    rust_parallel()
+        .write_stdin(stdin)
+        .arg("-j1")
+        .arg("--no-run-if-empty")
+        .arg("echo")
+        .assert()
+        .success()
+        .stdout(predicate::eq("A\nB\nC\n"))
+        .stderr(predicate::str::is_empty());
+}
+
+#[test]
+fn runs_shell_function_from_stdin_no_run_if_empty_j1() {
+    let stdin = r#"
+
+    A
+
+    B
+
+    C
+
+        "#;
+
+    rust_parallel()
+        .write_stdin(stdin)
+        .arg("-j1")
+        .arg("-s")
+        .arg("--no-run-if-empty")
+        .arg("--shell-path=./dummy_shell.sh")
+        .arg("shell_function")
+        .assert()
+        .success()
+        .stdout(predicate::eq(
+            "dummy_shell arg1=-c arg2=shell_function A\ndummy_shell arg1=-c arg2=shell_function B\ndummy_shell arg1=-c arg2=shell_function C\n",
+        ))
+        .stderr(predicate::str::is_empty());
+}

@@ -63,6 +63,10 @@ pub struct CommandLineArgs {
     #[arg(long)]
     pub dry_run: bool,
 
+    /// Do not run commands for empty buffered input lines.
+    #[arg(long)]
+    pub no_run_if_empty: bool,
+
     /// Path to shell to use for shell mode
     #[arg(long, default_value = Self::default_shell())]
     pub shell_path: String,
