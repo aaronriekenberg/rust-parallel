@@ -9,6 +9,7 @@ use crate::{
 };
 
 pub struct BufferedInputLineParser {
+    no_run_if_empty: bool,
     split_whitespace: bool,
     shell_command_and_args: ShellCommandAndArgs,
     command_and_initial_arguments: Vec<String>,
@@ -24,6 +25,7 @@ impl BufferedInputLineParser {
         let shell_command_and_args = ShellCommandAndArgs::new(command_line_args);
 
         Self {
+            no_run_if_empty: command_line_args.no_run_if_empty,
             split_whitespace,
             shell_command_and_args,
             command_and_initial_arguments,
@@ -40,6 +42,10 @@ impl BufferedInputLineParser {
     }
 
     pub fn parse_line(&self, input_line: &str) -> Option<OwnedCommandAndArgs> {
+        if self.no_run_if_empty && input_line.trim().is_empty() {
+            return None;
+        }
+
         let cmd_and_args = if !self.regex_processor.regex_mode() {
             let mut cmd_and_args = if self.split_whitespace {
                 input_line.split_whitespace().map_into().collect()
@@ -199,6 +205,30 @@ mod test {
                     .collect(),
             })
         );
+    }
+
+    #[test]
+    fn test_no_run_if_empty() {
+        let command_line_args = CommandLineArgs {
+            null_separator: false,
+            shell: false,
+            command_and_initial_arguments: vec!["echo".into()],
+            no_run_if_empty: true,
+            ..Default::default()
+        };
+
+        let parser = BufferedInputLineParser::new(
+            &command_line_args,
+            &RegexProcessor::new(&command_line_args).unwrap(),
+        );
+
+        let result = parser.parse_line("");
+
+        assert_eq!(result, None);
+
+        let result = parser.parse_line(" \n\r\t ");
+
+        assert_eq!(result, None);
     }
 
     #[test]
