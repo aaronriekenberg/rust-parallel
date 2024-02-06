@@ -1,6 +1,6 @@
 use tokio::{io::AsyncWrite, sync::mpsc::Receiver};
 
-use tracing::{debug, instrument, trace};
+use tracing::{debug, error, instrument, trace};
 
 use std::process::Output;
 
@@ -14,7 +14,7 @@ impl OutputTask {
     }
 
     #[instrument(skip_all, name = "OutputTask::run", level = "debug")]
-    pub async fn run(self) {
+    pub async fn run(self) -> usize {
         debug!("begin run");
 
         async fn copy(mut buffer: &[u8], output_stream: &mut (impl AsyncWrite + Unpin)) {
@@ -27,6 +27,7 @@ impl OutputTask {
 
         let mut receiver = self.receiver;
 
+        let mut failed = 0;
         while let Some(command_output) = receiver.recv().await {
             if !command_output.stdout.is_empty() {
                 copy(&command_output.stdout, &mut stdout).await;
@@ -34,8 +35,13 @@ impl OutputTask {
             if !command_output.stderr.is_empty() {
                 copy(&command_output.stderr, &mut stderr).await;
             }
+            if !command_output.status.success() {
+                error!("command failed: {:?}", command_output.status);
+                failed += 1;
+            }
         }
 
         debug!("end run");
+        failed
     }
 }

@@ -21,11 +21,15 @@ async fn try_main() -> anyhow::Result<()> {
 
     let command_service = command::CommandService::new(command_line_args, progress);
 
-    command_service.run_commands().await?;
+    let failed = command_service.run_commands().await?;
 
     debug!("end try_main");
 
-    Ok(())
+    if failed == 0 {
+        Ok(())
+    } else {
+        Err(anyhow::anyhow!("{failed} commands failed"))
+    }
 }
 
 #[tokio::main]

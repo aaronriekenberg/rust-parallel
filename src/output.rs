@@ -30,7 +30,7 @@ impl OutputSender {
 
 pub struct OutputWriter {
     sender: Sender<Output>,
-    output_task_join_handle: JoinHandle<()>,
+    output_task_join_handle: JoinHandle<usize>,
 }
 
 impl OutputWriter {
@@ -55,13 +55,14 @@ impl OutputWriter {
         }
     }
 
-    pub async fn wait_for_completion(self) -> anyhow::Result<()> {
+    pub async fn wait_for_completion(self) -> anyhow::Result<usize> {
         drop(self.sender);
 
-        self.output_task_join_handle
+        let failed = self
+            .output_task_join_handle
             .await
             .context("OutputWriter::wait_for_completion: output_task_join_handle.await error")?;
 
-        Ok(())
+        Ok(failed)
     }
 }
