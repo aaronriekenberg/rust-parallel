@@ -172,19 +172,19 @@ impl CommandService {
     }
 
     #[instrument(name = "CommandService::run_commands", skip_all, level = "debug")]
-    pub async fn run_commands(self) -> anyhow::Result<()> {
+    pub async fn run_commands(self) -> anyhow::Result<usize> {
         debug!("begin run_commands");
 
         self.process_inputs().await?;
 
         debug!("before output_writer.wait_for_completion",);
 
-        self.output_writer.wait_for_completion().await?;
+        let failed = self.output_writer.wait_for_completion().await?;
 
         self.progress.finish();
 
         debug!("end run_commands");
 
-        Ok(())
+        Ok(failed)
     }
 }
