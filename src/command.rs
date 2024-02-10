@@ -12,7 +12,7 @@ use crate::{
     command_line_args::CommandLineArgs,
     common::OwnedCommandAndArgs,
     input::{InputLineNumber, InputMessage, InputProducer},
-    output::{OutputSender, OutputWriter},
+    output::{OutputMessage, OutputSender, OutputWriter},
     process::ChildProcessFactory,
     progress::Progress,
 };
@@ -62,7 +62,14 @@ impl Command {
             }
             Ok(output) => {
                 debug!("command exit status = {}", output.status);
-                output_sender.send(output).await;
+                let output_message = OutputMessage {
+                    exit_status: output.status,
+                    stdout: output.stdout,
+                    stderr: output.stderr,
+                    command_and_args: self.command_and_args,
+                    input_line_number: self.input_line_number,
+                };
+                output_sender.send(output_message).await;
             }
         };
 

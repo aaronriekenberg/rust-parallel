@@ -9,27 +9,41 @@ use tokio::{
 
 use tracing::{debug, warn};
 
-use std::process::Output;
+use std::process::ExitStatus;
 
-use crate::command_line_args::CommandLineArgs;
+use crate::{
+    command_line_args::CommandLineArgs, common::OwnedCommandAndArgs, input::InputLineNumber,
+};
+
+#[derive(Debug)]
+pub struct OutputMessage {
+    pub exit_status: ExitStatus,
+    pub stdout: Vec<u8>,
+    pub stderr: Vec<u8>,
+    pub command_and_args: OwnedCommandAndArgs,
+    pub input_line_number: InputLineNumber,
+}
 
 pub struct OutputSender {
-    sender: Sender<Output>,
+    sender: Sender<OutputMessage>,
 }
 
 impl OutputSender {
-    pub async fn send(self, output: Output) {
-        if output.stdout.is_empty() && output.stderr.is_empty() {
+    pub async fn send(self, output_message: OutputMessage) {
+        if output_message.exit_status.success()
+            && output_message.stdout.is_empty()
+            && output_message.stderr.is_empty()
+        {
             return;
         }
-        if let Err(e) = self.sender.send(output).await {
+        if let Err(e) = self.sender.send(output_message).await {
             warn!("sender.send error: {}", e);
         }
     }
 }
 
 pub struct OutputWriter {
-    sender: Sender<Output>,
+    sender: Sender<OutputMessage>,
     output_task_join_handle: JoinHandle<usize>,
 }
 
