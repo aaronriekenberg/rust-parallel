@@ -2,14 +2,14 @@ use tokio::{io::AsyncWrite, sync::mpsc::Receiver};
 
 use tracing::{debug, error, instrument, trace};
 
-use std::process::Output;
+use super::OutputMessage;
 
 pub struct OutputTask {
-    receiver: Receiver<Output>,
+    receiver: Receiver<OutputMessage>,
 }
 
 impl OutputTask {
-    pub fn new(receiver: Receiver<Output>) -> Self {
+    pub fn new(receiver: Receiver<OutputMessage>) -> Self {
         Self { receiver }
     }
 
@@ -28,15 +28,20 @@ impl OutputTask {
         let mut receiver = self.receiver;
 
         let mut failed = 0;
-        while let Some(command_output) = receiver.recv().await {
-            if !command_output.stdout.is_empty() {
-                copy(&command_output.stdout, &mut stdout).await;
+        while let Some(output_message) = receiver.recv().await {
+            if !output_message.stdout.is_empty() {
+                copy(&output_message.stdout, &mut stdout).await;
             }
-            if !command_output.stderr.is_empty() {
-                copy(&command_output.stderr, &mut stderr).await;
+            if !output_message.stderr.is_empty() {
+                copy(&output_message.stderr, &mut stderr).await;
             }
-            if !command_output.status.success() {
-                error!("command failed: {:?}", command_output.status);
+            if !output_message.exit_status.success() {
+                error!(
+                    "command failed: {} line={} exit_status={}",
+                    output_message.command_and_args,
+                    output_message.input_line_number,
+                    output_message.exit_status.code().unwrap_or_default(),
+                );
                 failed += 1;
             }
         }
