@@ -490,9 +490,11 @@ fn test_exit_status_on_failing_commands() {
         .stdout(predicate::str::contains(
             "fatal error in main:\n3 commands failed",
         ))
-        .stderr(predicate::str::contains(
-            "cat: A: No such file or directory\ncat: B: No such file or directory\ncat: C: No such file or directory"
-        ));
+        .stderr(
+            (predicate::str::contains("cat: A: No such file or directory").count(1))
+                .and((predicate::str::contains("cat: B: No such file or directory").count(1)))
+                .and(predicate::str::contains("cat: C: No such file or directory").count(1)),
+        );
 }
 
 #[test]
