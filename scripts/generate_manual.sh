@@ -12,7 +12,7 @@ echo '
 1. [Parallelism](#parallelism)
 1. [Dry run](#dry-run)
 1. [Debug logging](#debug-logging)
-1. [Error handling](#erorr-handling)
+1. [Error handling](#error-handling)
 1. [Timeout](#timeout)
 1. [Progress bar](#progress-bar)
 1. [Specifying command and initial arguments on command line](#specifying-command-and-initial-arguments-on-command-line)
@@ -148,7 +148,7 @@ Here we try to use `cat` to show non-existing files `A`, `B`, and `C`, so each c
 
 echo '```
 $ rust-parallel cat ::: A B C'
-$RUST_PARALLEL cat ::: A B C | ansi-stripper
+$RUST_PARALLEL cat ::: A B C 2>&1 | ansi-stripper
 echo '```'
 
 echo 'The `--exit-on-error` option can be used immediately to exit with status 1 when the first command failure is detected.
@@ -156,7 +156,7 @@ echo 'The `--exit-on-error` option can be used immediately to exit with status 1
 This is a best-effort option as multiple parallel commands may be running when the first failure is noticed:'
 echo '```
 $ rust-parallel --exit-on-error cat ::: A B C'
-$RUST_PARALLEL --exit-on-error cat ::: A B C | ansi-stripper
+$RUST_PARALLEL --exit-on-error cat ::: A B C 2>&1 | ansi-stripper
 echo '```'
 
 echo '
