@@ -179,7 +179,7 @@ impl CommandService {
     }
 
     #[instrument(name = "CommandService::run_commands", skip_all, level = "debug")]
-    pub async fn run_commands(self) -> anyhow::Result<usize> {
+    pub async fn run_commands(self) -> anyhow::Result<()> {
         debug!("begin run_commands");
 
         self.process_inputs().await?;
@@ -192,6 +192,10 @@ impl CommandService {
 
         debug!("end run_commands");
 
-        Ok(failed)
+        if failed > 0 {
+            anyhow::bail!("{failed} commands failed");
+        } else {
+            Ok(())
+        }
     }
 }
