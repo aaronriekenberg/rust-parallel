@@ -487,8 +487,8 @@ fn test_exit_status_on_failing_commands() {
         .assert()
         .failure()
         .code(1)
-        .stdout(predicate::str::contains(
-            "fatal error in main:\n3 commands failed",
+        .stdout((predicate::str::contains("command failed").count(3)).and(
+            predicate::str::contains("fatal error in main:\n3 commands failed"),
         ))
         .stderr(
             (predicate::str::contains("cat: A: No such file or directory").count(1))
