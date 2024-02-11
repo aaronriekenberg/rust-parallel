@@ -474,3 +474,42 @@ fn runs_shell_function_from_stdin_no_run_if_empty_j1() {
         ))
         .stderr(predicate::str::is_empty());
 }
+
+#[test]
+fn test_exit_status_on_failing_commands() {
+    rust_parallel()
+        .arg("-j1")
+        .arg("cat")
+        .arg(":::")
+        .arg("A")
+        .arg("B")
+        .arg("C")
+        .assert()
+        .failure()
+        .code(1)
+        .stdout(predicate::str::contains(
+            "fatal error in main:\n3 commands failed",
+        ))
+        .stderr(predicate::str::contains(
+            "cat: A: No such file or directory\ncat: B: No such file or directory\ncat: C: No such file or directory"
+        ));
+}
+
+#[test]
+fn test_exit_status_on_failing_commands_exit_on_error() {
+    rust_parallel()
+        .arg("-j1")
+        .arg("--exit-on-error")
+        .arg("cat")
+        .arg(":::")
+        .arg("A")
+        .arg("B")
+        .arg("C")
+        .assert()
+        .failure()
+        .code(1)
+        .stdout(predicate::str::contains("command failed").count(1))
+        .stderr(predicate::str::contains(
+            "cat: A: No such file or directory",
+        ));
+}
