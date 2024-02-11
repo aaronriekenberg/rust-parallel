@@ -55,7 +55,8 @@ impl OutputWriter {
             command_line_args.channel_capacity,
         );
 
-        let output_task_join_handle = tokio::spawn(task::OutputTask::new(receiver).run());
+        let output_task_join_handle =
+            tokio::spawn(task::OutputTask::new(receiver, command_line_args).run());
 
         Self {
             sender,

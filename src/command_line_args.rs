@@ -63,6 +63,12 @@ pub struct CommandLineArgs {
     #[arg(long)]
     pub dry_run: bool,
 
+    /// Exit on erorr mode
+    ///
+    /// Exit immediately when a command fails.
+    #[arg(long)]
+    pub exit_on_error: bool,
+
     /// Do not run commands for empty buffered input lines.
     #[arg(long)]
     pub no_run_if_empty: bool,
