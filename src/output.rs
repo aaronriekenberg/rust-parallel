@@ -9,19 +9,19 @@ use tokio::{
 
 use tracing::{debug, warn};
 
-use std::process::ExitStatus;
+use std::process::{ExitStatus, Output};
 
 use crate::{
     command_line_args::CommandLineArgs, common::OwnedCommandAndArgs, input::InputLineNumber,
 };
 
 #[derive(Debug)]
-pub struct OutputMessage {
-    pub exit_status: ExitStatus,
-    pub stdout: Vec<u8>,
-    pub stderr: Vec<u8>,
-    pub command_and_args: OwnedCommandAndArgs,
-    pub input_line_number: InputLineNumber,
+struct OutputMessage {
+    exit_status: ExitStatus,
+    stdout: Vec<u8>,
+    stderr: Vec<u8>,
+    command_and_args: OwnedCommandAndArgs,
+    input_line_number: InputLineNumber,
 }
 
 pub struct OutputSender {
@@ -29,13 +29,24 @@ pub struct OutputSender {
 }
 
 impl OutputSender {
-    pub async fn send(self, output_message: OutputMessage) {
-        if output_message.exit_status.success()
-            && output_message.stdout.is_empty()
-            && output_message.stderr.is_empty()
-        {
+    pub async fn send(
+        self,
+        output: Output,
+        command_and_args: OwnedCommandAndArgs,
+        input_line_number: InputLineNumber,
+    ) {
+        if output.status.success() && output.stdout.is_empty() && output.stderr.is_empty() {
             return;
         }
+
+        let output_message = OutputMessage {
+            exit_status: output.status,
+            stdout: output.stdout,
+            stderr: output.stderr,
+            command_and_args,
+            input_line_number,
+        };
+
         if let Err(e) = self.sender.send(output_message).await {
             warn!("sender.send error: {}", e);
         }
