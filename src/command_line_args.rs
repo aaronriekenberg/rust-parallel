@@ -63,7 +63,7 @@ pub struct CommandLineArgs {
     #[arg(long)]
     pub dry_run: bool,
 
-    /// Exit on erorr mode
+    /// Exit on error mode
     ///
     /// Exit immediately when a command fails.
     #[arg(long)]
