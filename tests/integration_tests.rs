@@ -492,7 +492,7 @@ fn test_exit_status_on_failing_commands() {
         ))
         .stderr(
             (predicate::str::contains("cat: A: No such file or directory").count(1))
-                .and((predicate::str::contains("cat: B: No such file or directory").count(1)))
+                .and(predicate::str::contains("cat: B: No such file or directory").count(1))
                 .and(predicate::str::contains("cat: C: No such file or directory").count(1)),
         );
 }
@@ -511,7 +511,5 @@ fn test_exit_status_on_failing_commands_exit_on_error() {
         .failure()
         .code(1)
         .stdout(predicate::str::contains("command failed").count(1))
-        .stderr(predicate::str::contains(
-            "cat: A: No such file or directory",
-        ));
+        .stderr(predicate::str::contains("cat: A: No such file or directory").count(1));
 }
