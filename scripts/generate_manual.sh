@@ -139,9 +139,9 @@ echo '```'
 
 echo '## Error handling.
 
-If any commands run exit with non-0 status, this is considered a failure and an error is logged.
+If any command exits with non-0 status, this is considered a failure and an error is logged.
 
-When rust-parallel terminates, if any command failed it will log number of failed commands and exit with status 1.
+When rust-parallel terminates, if any command failed it logs number of failures and exits with status 1.
 
 Here we try to use `cat` to show non-existing files `A`, `B`, and `C`, so each command exits with status 1:
 '
@@ -151,9 +151,9 @@ $ rust-parallel cat ::: A B C'
 $RUST_PARALLEL cat ::: A B C 2>&1 | ansi-stripper
 echo '```'
 
-echo 'The `--exit-on-error` option can be used immediately to exit with status 1 when the first command failure is detected.
+echo 'The `--exit-on-error` option can be used to immediately exit with status 1 when the first command fails.
 
-This is a best-effort option as multiple parallel commands may be running when the first failure is noticed:'
+This is a best-effort option as multiple parallel commands may be running when the first failure is detected:'
 echo '```
 $ rust-parallel --exit-on-error cat ::: A B C'
 $RUST_PARALLEL --exit-on-error cat ::: A B C 2>&1 | ansi-stripper
