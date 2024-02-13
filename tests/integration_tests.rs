@@ -513,6 +513,10 @@ fn test_exit_status_on_failing_commands_exit_on_error() {
         .assert()
         .failure()
         .code(1)
-        .stdout(predicate::str::contains("command failed").count(1))
+        .stdout(
+            (predicate::str::contains("command failed"))
+                .and(predicate::str::contains("command failures:"))
+                .and(predicate::str::contains("exit_status_errors=0").not()),
+        )
         .stderr(predicate::str::contains("cat: A: No such file or directory").count(1));
 }

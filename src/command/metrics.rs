@@ -1,5 +1,7 @@
 use std::sync::atomic::{AtomicU64, Ordering};
 
+use crate::process::ChildProcessExecutionError;
+
 #[derive(Debug, Default)]
 pub struct CommandMetrics {
     commands_run: AtomicU64,
@@ -28,6 +30,13 @@ impl CommandMetrics {
 
     pub fn spawn_errors(&self) -> u64 {
         self.spawn_errors.load(Ordering::SeqCst)
+    }
+
+    pub fn handle_child_process_execution_error(&self, error: ChildProcessExecutionError) {
+        match error {
+            ChildProcessExecutionError::IOError(_) => self.increment_io_errors(),
+            ChildProcessExecutionError::Timeout(_) => self.increment_timeouts(),
+        }
     }
 
     pub fn increment_timeouts(&self) {

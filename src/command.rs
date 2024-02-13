@@ -5,7 +5,7 @@ use anyhow::Context;
 
 use tokio::sync::Semaphore;
 
-use tracing::{debug, error, info, instrument, span_enabled, Level, Span};
+use tracing::{debug, error, info, instrument, span_enabled, trace, Level, Span};
 
 use std::sync::Arc;
 
@@ -14,7 +14,7 @@ use crate::{
     common::OwnedCommandAndArgs,
     input::{InputLineNumber, InputMessage, InputProducer},
     output::{OutputSender, OutputWriter},
-    process::{ChildProcessExecutionError, ChildProcessFactory},
+    process::ChildProcessFactory,
     progress::Progress,
 };
 
@@ -51,8 +51,8 @@ impl Command {
 
         let child_process = match child_process_factory.spawn(command_path, args).await {
             Err(e) => {
-                command_metrcs.increment_spawn_errors();
                 error!("spawn error command: {}: {}", self, e);
+                command_metrcs.increment_spawn_errors();
                 return;
             }
             Ok(child_process) => child_process,
@@ -67,17 +67,14 @@ impl Command {
 
         match child_process.await_completion().await {
             Err(e) => {
-                match e {
-                    ChildProcessExecutionError::IOError(_) => command_metrcs.increment_io_errors(),
-                    ChildProcessExecutionError::Timeout(_) => command_metrcs.increment_timeouts(),
-                }
                 error!("child process error command: {} error: {}", self, e);
+                command_metrcs.handle_child_process_execution_error(e);
             }
             Ok(output) => {
+                debug!("command exit status = {}", output.status);
                 if !output.status.success() {
                     command_metrcs.increment_exit_status_errors();
                 }
-                debug!("command exit status = {}", output.status);
 
                 output_sender
                     .send(output, self.command_and_args, self.input_line_number)
@@ -138,13 +135,18 @@ impl CommandService {
             return Ok(());
         }
 
-        let command_metrics = Arc::clone(&self.command_metrics);
+        if self.command_line_args.exit_on_error && self.command_metrics.total_failures() > 0 {
+            trace!("return from spawn_command due to exit_on_error");
+            return Ok(());
+        }
 
         let child_process_factory = self.child_process_factory.clone();
 
         let output_sender = self.output_writer.sender();
 
         let progress_clone = Arc::clone(&self.progress);
+
+        let command_metrics = Arc::clone(&self.command_metrics);
 
         let permit = Arc::clone(&self.command_semaphore)
             .acquire_owned()
