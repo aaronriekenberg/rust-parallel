@@ -135,7 +135,7 @@ impl CommandService {
             return Ok(());
         }
 
-        if self.command_line_args.exit_on_error && self.command_metrics.total_failures() > 0 {
+        if self.command_line_args.exit_on_error && self.command_metrics.error_occurred() {
             trace!("return from spawn_command due to exit_on_error");
             return Ok(());
         }
@@ -210,14 +210,14 @@ impl CommandService {
 
         self.progress.finish();
 
+        if self.command_metrics.error_occurred() {
+            anyhow::bail!("command failures: {}", self.command_metrics);
+        }
+
         debug!(
             "end run_commands command_metrics = {}",
             self.command_metrics
         );
-
-        if self.command_metrics.total_failures() > 0 {
-            anyhow::bail!("command failures: {}", self.command_metrics);
-        }
 
         Ok(())
     }
