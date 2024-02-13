@@ -2,21 +2,15 @@ use tokio::{io::AsyncWrite, sync::mpsc::Receiver};
 
 use tracing::{debug, error, instrument, trace};
 
-use crate::command_line_args::CommandLineArgs;
-
 use super::OutputMessage;
 
 pub struct OutputTask {
     receiver: Receiver<OutputMessage>,
-    exit_on_error: bool,
 }
 
 impl OutputTask {
-    pub fn new(receiver: Receiver<OutputMessage>, command_line_args: &CommandLineArgs) -> Self {
-        Self {
-            receiver,
-            exit_on_error: command_line_args.exit_on_error,
-        }
+    pub fn new(receiver: Receiver<OutputMessage>) -> Self {
+        Self { receiver }
     }
 
     #[instrument(skip_all, name = "OutputTask::run", level = "debug")]
@@ -42,15 +36,11 @@ impl OutputTask {
             }
             if !output_message.exit_status.success() {
                 error!(
-                    "command failed: {} line={} exit_status={}",
+                    "command failed: {},line={} exit_status={}",
                     output_message.command_and_args,
                     output_message.input_line_number,
                     output_message.exit_status.code().unwrap_or_default(),
                 );
-
-                if self.exit_on_error {
-                    std::process::exit(1);
-                }
             }
         }
 
