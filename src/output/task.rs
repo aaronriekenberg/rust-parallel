@@ -20,7 +20,7 @@ impl OutputTask {
     }
 
     #[instrument(skip_all, name = "OutputTask::run", level = "debug")]
-    pub async fn run(self) -> usize {
+    pub async fn run(self) {
         debug!("begin run");
 
         async fn copy(mut buffer: &[u8], output_stream: &mut (impl AsyncWrite + Unpin)) {
@@ -32,8 +32,6 @@ impl OutputTask {
         let mut stderr = tokio::io::stderr();
 
         let mut receiver = self.receiver;
-
-        let mut failed = 0;
 
         while let Some(output_message) = receiver.recv().await {
             if !output_message.stdout.is_empty() {
@@ -53,12 +51,9 @@ impl OutputTask {
                 if self.exit_on_error {
                     std::process::exit(1);
                 }
-
-                failed += 1;
             }
         }
 
         debug!("end run");
-        failed
     }
 }

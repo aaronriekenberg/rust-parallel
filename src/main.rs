@@ -33,7 +33,7 @@ async fn main() {
     tracing_subscriber::fmt::init();
 
     if let Err(err) = try_main().await {
-        error!("fatal error in main:\n{:#}", err);
+        error!("fatal error in main: {:#}", err);
         std::process::exit(1);
     }
 }

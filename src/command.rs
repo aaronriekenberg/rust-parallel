@@ -1,10 +1,11 @@
+mod metrics;
 mod path_cache;
 
 use anyhow::Context;
 
 use tokio::sync::Semaphore;
 
-use tracing::{debug, info, instrument, span_enabled, warn, Level, Span};
+use tracing::{debug, error, info, instrument, span_enabled, Level, Span};
 
 use std::sync::Arc;
 
@@ -13,11 +14,11 @@ use crate::{
     common::OwnedCommandAndArgs,
     input::{InputLineNumber, InputMessage, InputProducer},
     output::{OutputSender, OutputWriter},
-    process::ChildProcessFactory,
+    process::{ChildProcessExecutionError, ChildProcessFactory},
     progress::Progress,
 };
 
-use self::path_cache::CommandPathCache;
+use self::{metrics::CommandMetrics, path_cache::CommandPathCache};
 
 #[derive(Debug)]
 struct Command {
@@ -36,14 +37,22 @@ impl Command {
             child_pid,
         ),
         level = "debug")]
-    async fn run(self, child_process_factory: ChildProcessFactory, output_sender: OutputSender) {
+    async fn run(
+        self,
+        child_process_factory: ChildProcessFactory,
+        output_sender: OutputSender,
+        command_metrcs: Arc<CommandMetrics>,
+    ) {
         debug!("begin run");
 
         let OwnedCommandAndArgs { command_path, args } = &self.command_and_args;
 
+        command_metrcs.increment_commands_run();
+
         let child_process = match child_process_factory.spawn(command_path, args).await {
             Err(e) => {
-                warn!("spawn error command: {}: {}", self, e);
+                command_metrcs.increment_spawn_errors();
+                error!("spawn error command: {}: {}", self, e);
                 return;
             }
             Ok(child_process) => child_process,
@@ -58,9 +67,16 @@ impl Command {
 
         match child_process.await_completion().await {
             Err(e) => {
-                warn!("child process error command: {} error: {}", self, e);
+                match e {
+                    ChildProcessExecutionError::IOError(_) => command_metrcs.increment_io_errors(),
+                    ChildProcessExecutionError::Timeout(_) => command_metrcs.increment_timeouts(),
+                }
+                error!("child process error command: {} error: {}", self, e);
             }
             Ok(output) => {
+                if !output.status.success() {
+                    command_metrcs.increment_exit_status_errors();
+                }
                 debug!("command exit status = {}", output.status);
 
                 output_sender
@@ -85,6 +101,7 @@ impl std::fmt::Display for Command {
 
 pub struct CommandService {
     child_process_factory: ChildProcessFactory,
+    command_metrics: Arc<CommandMetrics>,
     command_line_args: &'static CommandLineArgs,
     command_path_cache: CommandPathCache,
     command_semaphore: Arc<Semaphore>,
@@ -96,6 +113,7 @@ impl CommandService {
     pub fn new(command_line_args: &'static CommandLineArgs, progress: Arc<Progress>) -> Self {
         Self {
             child_process_factory: ChildProcessFactory::new(command_line_args),
+            command_metrics: Arc::new(CommandMetrics::default()),
             command_line_args,
             command_path_cache: CommandPathCache::new(command_line_args),
             command_semaphore: Arc::new(Semaphore::new(command_line_args.jobs)),
@@ -120,6 +138,8 @@ impl CommandService {
             return Ok(());
         }
 
+        let command_metrics = Arc::clone(&self.command_metrics);
+
         let child_process_factory = self.child_process_factory.clone();
 
         let output_sender = self.output_writer.sender();
@@ -132,7 +152,9 @@ impl CommandService {
             .context("command_semaphore.acquire_owned error")?;
 
         tokio::spawn(async move {
-            command.run(child_process_factory, output_sender).await;
+            command
+                .run(child_process_factory, output_sender, command_metrics)
+                .await;
 
             drop(permit);
 
@@ -182,16 +204,19 @@ impl CommandService {
 
         debug!("before output_writer.wait_for_completion",);
 
-        let failed = self.output_writer.wait_for_completion().await?;
+        self.output_writer.wait_for_completion().await?;
 
         self.progress.finish();
 
-        debug!("end run_commands");
+        debug!(
+            "end run_commands command_metrics = {}",
+            self.command_metrics
+        );
 
-        if failed > 0 {
-            anyhow::bail!("{failed} commands failed");
-        } else {
-            Ok(())
+        if self.command_metrics.total_failures() > 0 {
+            anyhow::bail!("command failures: {}", self.command_metrics);
         }
+
+        Ok(())
     }
 }
