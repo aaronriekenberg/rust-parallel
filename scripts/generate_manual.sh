@@ -141,6 +141,8 @@ echo '## Error handling.
 
 If any command exits with non-0 status, this is considered a failure and an error is logged.
 
+By default rust-parallel runs all commands even if failures occur.
+
 When rust-parallel terminates, if any command failed it logs number of failures and exits with status 1.
 
 Here we try to use `cat` to show non-existing files `A`, `B`, and `C`, so each command exits with status 1:
