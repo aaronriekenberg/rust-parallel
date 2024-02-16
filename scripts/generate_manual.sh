@@ -151,12 +151,12 @@ $ rust-parallel cat ::: A B C'
 $RUST_PARALLEL cat ::: A B C 2>&1 | ansi-stripper
 echo '```'
 
-echo 'The `--exit-on-error` option can be used to immediately exit with status 1 when the first command fails.
+echo 'The `--exit-on-error` option can be used to exit after one command fails.
 
-This is a best-effort option as multiple parallel commands may be running when the first failure is detected:'
+rust-parallel waits for in-progress commands to finish before exiting and then exits with status 1.'
 echo '```
-$ rust-parallel --exit-on-error cat ::: A B C'
-$RUST_PARALLEL --exit-on-error cat ::: A B C 2>&1 | ansi-stripper
+$ head -100 /usr/share/dict/words | rust-parallel --exit-on-error cat'
+head -100 /usr/share/dict/words | $RUST_PARALLEL --exit-on-error cat 2>&1 | ansi-stripper
 echo '```'
 
 echo '
