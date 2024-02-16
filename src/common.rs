@@ -8,7 +8,7 @@ pub struct OwnedCommandAndArgs {
 
 impl std::fmt::Display for OwnedCommandAndArgs {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "cmd={:?} args={:?}", self.command_path, self.args)
+        write!(f, "cmd={:?},args={:?}", self.command_path, self.args)
     }
 }
 

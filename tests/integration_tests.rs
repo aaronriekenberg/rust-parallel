@@ -102,10 +102,11 @@ fn timeout_sleep_commands_from_args() {
         .arg("0")
         .arg("5")
         .assert()
-        .success()
+        .failure()
+        .code(1)
         .stdout(
-            (predicate::str::contains("\n").count(1))
-                .and(predicate::str::contains("timeout").count(1)),
+            (predicate::str::contains("timeout: deadline has elapsed").count(1))
+                .and(predicate::str::contains("timeouts=1").count(1)),
         )
         .stderr(predicate::str::is_empty());
 }
@@ -487,9 +488,11 @@ fn test_exit_status_on_failing_commands() {
         .assert()
         .failure()
         .code(1)
-        .stdout((predicate::str::contains("command failed").count(3)).and(
-            predicate::str::contains("fatal error in main:\n3 commands failed"),
-        ))
+        .stdout(
+            (predicate::str::contains("command failed").count(3))
+                .and(predicate::str::contains("command failures:"))
+                .and(predicate::str::contains("exit_status_errors=3")),
+        )
         .stderr(
             (predicate::str::contains("cat: A: No such file or directory").count(1))
                 .and(predicate::str::contains("cat: B: No such file or directory").count(1))
@@ -510,6 +513,10 @@ fn test_exit_status_on_failing_commands_exit_on_error() {
         .assert()
         .failure()
         .code(1)
-        .stdout(predicate::str::contains("command failed").count(1))
+        .stdout(
+            (predicate::str::contains("command failed"))
+                .and(predicate::str::contains("command failures:"))
+                .and(predicate::str::contains("exit_status_errors=0").not()),
+        )
         .stderr(predicate::str::contains("cat: A: No such file or directory").count(1));
 }

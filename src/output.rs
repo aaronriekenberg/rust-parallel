@@ -55,7 +55,7 @@ impl OutputSender {
 
 pub struct OutputWriter {
     sender: Sender<OutputMessage>,
-    output_task_join_handle: JoinHandle<usize>,
+    output_task_join_handle: JoinHandle<()>,
 }
 
 impl OutputWriter {
@@ -66,8 +66,7 @@ impl OutputWriter {
             command_line_args.channel_capacity,
         );
 
-        let output_task_join_handle =
-            tokio::spawn(task::OutputTask::new(receiver, command_line_args).run());
+        let output_task_join_handle = tokio::spawn(task::OutputTask::new(receiver).run());
 
         Self {
             sender,
@@ -81,14 +80,13 @@ impl OutputWriter {
         }
     }
 
-    pub async fn wait_for_completion(self) -> anyhow::Result<usize> {
+    pub async fn wait_for_completion(self) -> anyhow::Result<()> {
         drop(self.sender);
 
-        let failed = self
-            .output_task_join_handle
+        self.output_task_join_handle
             .await
             .context("OutputWriter::wait_for_completion: output_task_join_handle.await error")?;
 
-        Ok(failed)
+        Ok(())
     }
 }
