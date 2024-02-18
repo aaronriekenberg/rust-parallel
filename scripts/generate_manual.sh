@@ -151,7 +151,11 @@ Here we try to use `cat` to show non-existing files `A`, `B`, and `C`, so each c
 echo '```
 $ rust-parallel cat ::: A B C'
 $RUST_PARALLEL cat ::: A B C 2>&1 | ansi-stripper
-echo '```'
+
+echo '
+$ echo $?
+1
+```'
 
 echo 'The `--exit-on-error` option can be used to exit after one command fails.
 
@@ -159,7 +163,11 @@ rust-parallel waits for in-progress commands to finish before exiting and then e
 echo '```
 $ head -100 /usr/share/dict/words | rust-parallel --exit-on-error cat'
 head -100 /usr/share/dict/words | $RUST_PARALLEL --exit-on-error cat 2>&1 | ansi-stripper
-echo '```'
+
+echo '
+$ echo $?
+1
+```'
 
 echo '
 ## Timeout.
