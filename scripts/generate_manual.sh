@@ -36,7 +36,7 @@ $ rust-parallel --help'
 $RUST_PARALLEL --help
 echo '```'
 
-echo '## Commands from arguments.
+echo '## Commands from arguments
 
 The `:::` separator can be used to run the [Cartesian Product](https://en.wikipedia.org/wiki/Cartesian_product) of command line arguments.  This is similar to the `:::` behavior in GNU Parallel.
 '
@@ -54,7 +54,7 @@ echo '
 $ rust-parallel gzip -k ::: *.html
 ```'
 
-echo '## Commands from stdin.
+echo '## Commands from stdin
 
 Run complete commands from stdin.
 
@@ -119,7 +119,7 @@ $ rust-parallel --dry-run echo ::: hi there how are you'
 $RUST_PARALLEL --dry-run echo ::: hi there how are you | ansi-stripper
 echo '```'
 
-echo '## Debug logging.
+echo '## Debug logging
 
 Set environment variable `RUST_LOG=debug` to see debug output.
 
@@ -137,7 +137,7 @@ $ RUST_LOG=debug rust-parallel echo ::: hi there how are you | grep 'command_lin
 RUST_LOG=debug $RUST_PARALLEL echo ::: hi there how are you | grep 'command_line_args:1' | ansi-stripper
 echo '```'
 
-echo '## Error handling.
+echo '## Error handling
 
 The following are considered command failures and error will be logged:
 * Spawn error
@@ -174,7 +174,7 @@ $ echo $?
 ```'
 
 echo '
-## Timeout.
+## Timeout
 
 The `-t`/`--timeout-seconds` option can be used to specify a command timeout in seconds.  If any command times out this is considered a command failure (see [error handling](#error-handling)).
 '
@@ -189,7 +189,7 @@ $ echo $?
 1
 ```'
 
-echo '## Progress bar.
+echo '## Progress bar
 
 The `-p` option can be used to enable a graphical progress bar.
 
@@ -213,7 +213,7 @@ head -100 /usr/share/dict/words | $RUST_PARALLEL md5 -s | head -10
 echo '```
 '
 
-echo '## Reading multiple inputs.
+echo '## Reading multiple inputs
 
 By default `rust-parallel` reads input from stdin only.  The `-i` option can be used 1 or more times to override this behavior.  `-i -` means read from stdin, `-i ./test` means read from the file `./test`:
 '
