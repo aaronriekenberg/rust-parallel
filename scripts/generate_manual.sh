@@ -139,11 +139,15 @@ echo '```'
 
 echo '## Error handling.
 
-If any command exits with non-0 status, this is considered a command failure and an error is logged.  Other errors while running commands (spawn errors, I/O errors, timeouts) are also considered command failures.
+The following are considered command failures and error will be logged:
+* Spawn error
+* Timeout
+* I/O error
+* Command exits with non-0 status
 
 By default rust-parallel runs all commands even if failures occur.
 
-When rust-parallel terminates, if any command failed it logs number and types of failures and exits with status 1.
+When rust-parallel terminates, if any command failed it logs failure metrics and exits with status 1.
 
 Here we try to use `cat` to show non-existing files `A`, `B`, and `C`, so each command exits with status 1:
 '
@@ -172,7 +176,7 @@ $ echo $?
 echo '
 ## Timeout.
 
-The `-t` option can be used to specify a command timeout in seconds.  If any command times out this is considered a command failure (see [error handling](#error-handling)).
+The `-t`/`--timeout-seconds` option can be used to specify a command timeout in seconds.  If any command times out this is considered a command failure (see [error handling](#error-handling)).
 '
 
 echo '```'
