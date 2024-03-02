@@ -8,11 +8,9 @@
 
 [![Crates.io][crates-badge]][crates-url] [![CI workflow][ci-badge]][ci-url]
 
-Run commands in parallel and aggregate outputs.  Async application using [tokio](https://tokio.rs).
+Run commands in parallel and aggregate outputs.  Async application using [tokio](https://tokio.rs).  Listed in [Awesome Rust - utilities](https://github.com/rust-unofficial/awesome-rust#utilities)
 
 [Example commands](https://github.com/aaronriekenberg/rust-parallel/wiki/Examples) and [detailed manual](https://github.com/aaronriekenberg/rust-parallel/wiki/Manual).
-
-Listed in [Awesome Rust - utilities](https://github.com/rust-unofficial/awesome-rust#utilities)
 
 Similar interface to [GNU Parallel](https://www.gnu.org/software/parallel/parallel_examples.html) or [xargs](https://man7.org/linux/man-pages/man1/xargs.1.html) plus useful features:
 * Run commands from [stdin](https://github.com/aaronriekenberg/rust-parallel/wiki/Manual#commands-from-stdin), [input files](https://github.com/aaronriekenberg/rust-parallel/wiki/Manual#reading-multiple-inputs), or [`:::` arguments](https://github.com/aaronriekenberg/rust-parallel/wiki/Manual#commands-from-arguments)
