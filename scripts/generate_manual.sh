@@ -9,6 +9,8 @@ echo '
 1. [Command line](#command-line)
 1. [Commands from arguments](#commands-from-arguments)
 1. [Commands from stdin](#commands-from-stdin)
+1. [Command and initial arguments on command line](#command-and-initial-arguments-on-command-line)
+1. [Reading multiple inputs](#reading-multiple-inputs)
 1. [Parallelism](#parallelism)
 1. [Dry run](#dry-run)
 1. [Debug logging](#debug-logging)
@@ -16,8 +18,6 @@ echo '
 1. [Timeout](#timeout)
 1. [Path cache](#path-cache)
 1. [Progress bar](#progress-bar)
-1. [Specifying command and initial arguments on command line](#specifying-command-and-initial-arguments-on-command-line)
-1. [Reading multiple inputs](#reading-multiple-inputs)
 1. [Regular Expression](#regular-expression)
    1. [Named Capture Groups](#named-capture-groups)
    1. [Numbered Capture Groups](#numbered-capture-groups)
@@ -79,6 +79,42 @@ EOL
 echo '
 $ cat test | rust-parallel'
 cat test | $RUST_PARALLEL
+
+rm -f test
+
+echo '```'
+
+echo '## Command and initial arguments on command line
+
+Here `md5 -s` will be prepended to each input line to form a command like `md5 -s aal`
+'
+
+echo '```
+$ head -100 /usr/share/dict/words | rust-parallel md5 -s | head -10'
+head -100 /usr/share/dict/words | $RUST_PARALLEL md5 -s | head -10
+echo '```
+'
+
+echo '## Reading multiple inputs
+
+By default `rust-parallel` reads input from stdin only.  The `-i` option can be used 1 or more times to override this behavior.  `-i -` means read from stdin, `-i ./test` means read from the file `./test`:
+'
+
+echo '```'
+echo '$ cat >./test <<EOL
+foo
+bar
+baz
+EOL'
+cat >./test <<EOL
+foo
+bar
+baz
+EOL
+
+echo '
+$ head -5 /usr/share/dict/words | rust-parallel -i - -i ./test echo'
+head -5 /usr/share/dict/words | $RUST_PARALLEL -i - -i ./test echo
 
 rm -f test
 
@@ -209,42 +245,6 @@ In the below command `-d all` is used to discard all output from commands run:'
 echo '```
 $ rust-parallel -d all -p sleep ::: 1 2 3'
 echo '⠤ [00:00:01] Commands Done/Total:  1/3  █████████░░░░░░░░░░░░░░░░░░ ETA 00:00:02'
-echo '```'
-
-echo '## Specifying command and initial arguments on command line:
-
-Here `md5 -s` will be prepended to each input line to form a command like `md5 -s aal`
-'
-
-echo '```
-$ head -100 /usr/share/dict/words | rust-parallel md5 -s | head -10'
-head -100 /usr/share/dict/words | $RUST_PARALLEL md5 -s | head -10
-echo '```
-'
-
-echo '## Reading multiple inputs
-
-By default `rust-parallel` reads input from stdin only.  The `-i` option can be used 1 or more times to override this behavior.  `-i -` means read from stdin, `-i ./test` means read from the file `./test`:
-'
-
-echo '```'
-echo '$ cat >./test <<EOL
-foo
-bar
-baz
-EOL'
-cat >./test <<EOL
-foo
-bar
-baz
-EOL
-
-echo '
-$ head -5 /usr/share/dict/words | rust-parallel -i - -i ./test echo'
-head -5 /usr/share/dict/words | $RUST_PARALLEL -i - -i ./test echo
-
-rm -f test
-
 echo '```'
 
 echo '
