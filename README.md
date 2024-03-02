@@ -20,7 +20,7 @@ Similar interface to [GNU Parallel](https://www.gnu.org/software/parallel/parall
 * [Very fast in benchmarks](https://github.com/aaronriekenberg/rust-parallel/wiki/Benchmarks)
 * Shell mode to run [bash functions](https://github.com/aaronriekenberg/rust-parallel/wiki/Manual#bash-function) and [commands](https://github.com/aaronriekenberg/rust-parallel/wiki/Manual#shell-commands)
 * [TUI progress bar](https://github.com/aaronriekenberg/rust-parallel/wiki/Manual#progress-bar) using [indicatif](https://github.com/console-rs/indicatif)
-* Path cache
+* [Path cache](https://github.com/aaronriekenberg/rust-parallel/wiki/Manual#path-cache)
 * [Command timeouts](https://github.com/aaronriekenberg/rust-parallel/wiki/Manual#timeout)
 * [Structured debug logging](https://github.com/aaronriekenberg/rust-parallel/wiki/Manual#debug-logging)
 * [Dry run mode](https://github.com/aaronriekenberg/rust-parallel/wiki/Manual#dry-run)
