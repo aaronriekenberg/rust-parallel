@@ -12,6 +12,8 @@ Run commands in parallel and aggregate outputs.  Async application using [tokio]
 
 [Example commands](https://github.com/aaronriekenberg/rust-parallel/wiki/Examples) and [detailed manual](https://github.com/aaronriekenberg/rust-parallel/wiki/Manual).
 
+Listed in [Awesome Rust - utilities](https://github.com/rust-unofficial/awesome-rust#utilities)
+
 Similar interface to [GNU Parallel](https://www.gnu.org/software/parallel/parallel_examples.html) or [xargs](https://man7.org/linux/man-pages/man1/xargs.1.html) plus useful features:
 * Run commands from [stdin](https://github.com/aaronriekenberg/rust-parallel/wiki/Manual#commands-from-stdin), [input files](https://github.com/aaronriekenberg/rust-parallel/wiki/Manual#reading-multiple-inputs), or [`:::` arguments](https://github.com/aaronriekenberg/rust-parallel/wiki/Manual#commands-from-arguments)
 * Automatic parallelism to all cpus, or [configure manually](https://github.com/aaronriekenberg/rust-parallel/wiki/Manual#parallelism)
@@ -24,8 +26,7 @@ Similar interface to [GNU Parallel](https://www.gnu.org/software/parallel/parall
 * [Command timeouts](https://github.com/aaronriekenberg/rust-parallel/wiki/Manual#timeout)
 * [Structured debug logging](https://github.com/aaronriekenberg/rust-parallel/wiki/Manual#debug-logging)
 * [Dry run mode](https://github.com/aaronriekenberg/rust-parallel/wiki/Manual#dry-run)
-
-Listed in [Awesome Rust - utilities](https://github.com/rust-unofficial/awesome-rust#utilities)
+* [Configurable error handling](https://github.com/aaronriekenberg/rust-parallel/wiki/Manual#error-handling)
 
 ## Contents:
 * [Installation](#installation)
