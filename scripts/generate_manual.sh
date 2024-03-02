@@ -193,7 +193,7 @@ $ echo $?
 echo '
 ## Path Cache
 
-By default as commands are run the full paths are resolved using the [which library](https://github.com/harryfei/which-rs).  Resolved paths are stored in a cache to prevent duplicate resolutions.  This is generally [good for performance](https://github.com/aaronriekenberg/rust-parallel/wiki/Benchmarks).
+By default as commands are run the full paths are resolved using [which](https://github.com/harryfei/which-rs).  Resolved paths are stored in a cache to prevent duplicate resolutions.  This is generally [good for performance](https://github.com/aaronriekenberg/rust-parallel/wiki/Benchmarks).
 
 The path cache can be disabled using the `--disable-path-cache` option.
 '
