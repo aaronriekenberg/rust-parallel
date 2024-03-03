@@ -1,5 +1,8 @@
-#!/bin/bash -e
+#!/bin/bash
 
+set -e
+
+export NO_COLOR=1
 RUST_PARALLEL="./target/debug/rust-parallel"
 VERSION=$($RUST_PARALLEL -V | cut -f2 -d' ')
 
@@ -153,7 +156,7 @@ No commands are actually run - this is useful for testing before running a job.
 
 echo '```
 $ rust-parallel --dry-run echo ::: hi there how are you'
-$RUST_PARALLEL --dry-run echo ::: hi there how are you | ansi-stripper
+$RUST_PARALLEL --dry-run echo ::: hi there how are you
 echo '```'
 
 echo '## Debug logging
@@ -167,11 +170,11 @@ Recommend enabling debug logging for all examples to understand what is happenin
 
 echo '```
 $ RUST_LOG=debug rust-parallel echo ::: hi there how are you | grep command_line_args | head -1'
-RUST_LOG=debug $RUST_PARALLEL echo ::: hi there how are you | grep command_line_args | head -1 | ansi-stripper
+RUST_LOG=debug $RUST_PARALLEL echo ::: hi there how are you | grep command_line_args | head -1
 
 echo '
 $ RUST_LOG=debug rust-parallel echo ::: hi there how are you | grep 'command_line_args:1''
-RUST_LOG=debug $RUST_PARALLEL echo ::: hi there how are you | grep 'command_line_args:1' | ansi-stripper
+RUST_LOG=debug $RUST_PARALLEL echo ::: hi there how are you | grep 'command_line_args:1'
 echo '```'
 
 echo '## Error handling
@@ -191,24 +194,30 @@ Here we try to use `cat` to show non-existing files `A`, `B`, and `C`, so each c
 
 echo '```
 $ rust-parallel cat ::: A B C'
-$RUST_PARALLEL cat ::: A B C 2>&1 | ansi-stripper
+set +e
+$RUST_PARALLEL cat ::: A B C 2>&1
+RET_VAL=$?
+set -e
 
 echo '
-$ echo $?
-1
-```'
+$ echo $?'
+echo $RET_VAL
+echo '```'
 
 echo 'The `--exit-on-error` option can be used to exit after one command fails.
 
 rust-parallel waits for in-progress commands to finish before exiting and then exits with status 1.'
 echo '```
 $ head -100 /usr/share/dict/words | rust-parallel --exit-on-error cat'
-head -100 /usr/share/dict/words | $RUST_PARALLEL --exit-on-error cat 2>&1 | ansi-stripper
+set +e
+head -100 /usr/share/dict/words | $RUST_PARALLEL --exit-on-error cat 2>&1
+RET_VAL=$?
+set -e
 
 echo '
-$ echo $?
-1
-```'
+$ echo $?'
+echo $RET_VAL
+echo '```'
 
 echo '
 ## Timeout
@@ -219,12 +228,15 @@ The `-t`/`--timeout-seconds` option can be used to specify a command timeout in 
 echo '```'
 
 echo '$ rust-parallel -t 0.5 sleep ::: 0 3 5'
-$RUST_PARALLEL -t 0.5 sleep ::: 0 3 5 | ansi-stripper
+set +e
+$RUST_PARALLEL -t 0.5 sleep ::: 0 3 5
+RET_VAL=$?
+set -e
 
 echo '
-$ echo $?
-1
-```'
+$ echo $?'
+echo $RET_VAL
+echo '```'
 
 echo '
 ## Path Cache
