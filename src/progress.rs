@@ -8,14 +8,17 @@ use std::{borrow::Cow, sync::Arc};
 
 use crate::command_line_args::CommandLineArgs;
 
-const PROGRESS_STYLE: &str =
-    "{spinner} [{elapsed_precise}] Commands Done/Total: {pos:>2}/{len:2} {wide_bar} ETA {eta_precise}";
-
-const PROGRESS_STYLE_NO_SPINNER: &str =
+const SIMPLE_PROGRESS_STYLE_TEMPLATE: &str =
     "[{elapsed_precise}] Commands Done/Total: {pos:>2}/{len:2} {wide_bar} ETA {eta_precise}";
 
+const LIGHT_BG_PROGRESS_STYLE_TEMPLATE: & str =
+    "{spinner:.blue.bold} [{elapsed_precise}] Commands Done/Total: {pos:>2}/{len:2} [{wide_bar:.blue.bold/red}] ETA {eta_precise}";
+
+const DARK_BG_PROGRESS_STYLE_TEMPLATE: & str =
+    "{spinner:.cyan.bold} [{elapsed_precise}] Commands Done/Total: {pos:>2}/{len:2} [{wide_bar:.cyan.bold/blue}] ETA {eta_precise}";
+
 struct ProgressStyleInfo {
-    style_string: &'static str,
+    progress_style: ProgressStyle,
     enable_spinner: bool,
 }
 
@@ -24,11 +27,19 @@ fn choose_progress_style() -> ProgressStyleInfo {
 
     match setting.as_ref() {
         "simple" => ProgressStyleInfo {
-            style_string: PROGRESS_STYLE_NO_SPINNER,
+            progress_style: ProgressStyle::with_template(SIMPLE_PROGRESS_STYLE_TEMPLATE).unwrap(),
             enable_spinner: false,
         },
+        "light_bg" => ProgressStyleInfo {
+            progress_style: ProgressStyle::with_template(LIGHT_BG_PROGRESS_STYLE_TEMPLATE)
+                .unwrap()
+                .progress_chars("#>-"),
+            enable_spinner: true,
+        },
         _ => ProgressStyleInfo {
-            style_string: PROGRESS_STYLE,
+            progress_style: ProgressStyle::with_template(DARK_BG_PROGRESS_STYLE_TEMPLATE)
+                .unwrap()
+                .progress_chars("#>-"),
             enable_spinner: true,
         },
     }
@@ -50,11 +61,7 @@ impl Progress {
                 progress_bar.enable_steady_tick(Duration::from_millis(100));
             }
 
-            let style = ProgressStyle::with_template(style_info.style_string)
-                .context("ProgressStyle::with_template error")?;
-            // .progress_chars("#>-");
-
-            progress_bar.set_style(style);
+            progress_bar.set_style(style_info.progress_style);
 
             Some(progress_bar)
         };
