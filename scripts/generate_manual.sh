@@ -248,18 +248,22 @@ The path cache can be disabled using the `--disable-path-cache` option.
 
 echo '## Progress bar
 
-The `-p` option can be used to enable a graphical progress bar.
+The `-p`/`--progress-bar` option can be used to enable a graphical progress bar.
 
-This is best used for commands which are running for at least a few seconds, and which do not produce output to stdout or stderr.
+This is best used for commands which are running for at least a few seconds, and which do not produce output to stdout or stderr.  In the below commands `-d all` is used to discard all output from commands run.
 
-In the below command `-d all` is used to discard all output from commands run:'
+Progress styles can be chosen with the `PROGRESS_STYLE` environment variable.  If `PROGRESS_STYLE` is not set it defaults to `light_bg`.
 
-echo '```
-$ rust-parallel -d all -p sleep ::: 1 2 3'
-echo '⠤ [00:00:01] Commands Done/Total:  1/3  █████████░░░░░░░░░░░░░░░░░░ ETA 00:00:02'
-echo '```'
+The following progress styles are available:
+* `PROGRESS_STYLE=light_bg` good for light terminal background with colors, spinner, and steady tick enabled:
+![light_bg](https://github.com/aaronriekenberg/rust-parallel/blob/main/screenshots/light_background_progress_bar.png)
 
-echo '
+* `PROGRESS_STYLE=dark_bg` good for dark terminal background with colors, spinner, and steady tick enabled:
+![dark_bg](https://github.com/aaronriekenberg/rust-parallel/blob/main/screenshots/dark_background_progress_bar.png)
+
+* `PROGRESS_STYLE=simple` good for simple or non-ansi terminals/jobs, colors, spinner, and steady tick disabled:
+![simple](https://github.com/aaronriekenberg/rust-parallel/blob/main/screenshots/simple_progress_bar.png)
+
 ## Regular Expression
 
 Regular expressions can be specified by the `-r` or `--regex` command line argument.
