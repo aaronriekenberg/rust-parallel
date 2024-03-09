@@ -261,7 +261,7 @@ The following progress styles are available:
 * `PROGRESS_STYLE=dark_bg` good for dark terminal background with colors, spinner, and steady tick enabled:
 ![dark_bg](https://github.com/aaronriekenberg/rust-parallel/blob/main/screenshots/dark_background_progress_bar.png)
 
-* `PROGRESS_STYLE=simple` good for simple or non-ansi terminals/jobs, colors, spinner, and steady tick disabled:
+* `PROGRESS_STYLE=simple` good for simple or non-ansi terminals/jobs with colors, spinner, and steady tick disabled:
 ![simple](https://github.com/aaronriekenberg/rust-parallel/blob/main/screenshots/simple_progress_bar.png)
 
 ## Regular Expression
