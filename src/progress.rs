@@ -11,10 +11,10 @@ use crate::command_line_args::CommandLineArgs;
 const SIMPLE_PROGRESS_STYLE_TEMPLATE: &str =
     "[{elapsed_precise}] Commands Done/Total: {pos:>2}/{len:2} {wide_bar} ETA {eta_precise}";
 
-const LIGHT_BG_PROGRESS_STYLE_TEMPLATE: & str =
+const LIGHT_BG_PROGRESS_STYLE_TEMPLATE: &str =
     "{spinner:.blue.bold} [{elapsed_precise}] Commands Done/Total: {pos:>2}/{len:2} [{wide_bar:.blue.bold/red}] ETA {eta_precise}";
 
-const DARK_BG_PROGRESS_STYLE_TEMPLATE: & str =
+const DARK_BG_PROGRESS_STYLE_TEMPLATE: &str =
     "{spinner:.cyan.bold} [{elapsed_precise}] Commands Done/Total: {pos:>2}/{len:2} [{wide_bar:.cyan.bold/blue}] ETA {eta_precise}";
 
 struct ProgressStyleInfo {
@@ -27,18 +27,19 @@ fn choose_progress_style() -> anyhow::Result<ProgressStyleInfo> {
 
     match setting.as_ref() {
         "simple" => Ok(ProgressStyleInfo {
-            progress_style: ProgressStyle::with_template(SIMPLE_PROGRESS_STYLE_TEMPLATE).unwrap(),
+            progress_style: ProgressStyle::with_template(SIMPLE_PROGRESS_STYLE_TEMPLATE)
+                .context("ProgressStyle::with_template error")?,
             enable_spinner: false,
         }),
         "light_bg" | "default" => Ok(ProgressStyleInfo {
             progress_style: ProgressStyle::with_template(LIGHT_BG_PROGRESS_STYLE_TEMPLATE)
-                .unwrap()
+                .context("ProgressStyle::with_template error")?
                 .progress_chars("#>-"),
             enable_spinner: true,
         }),
         "dark_bg" => Ok(ProgressStyleInfo {
             progress_style: ProgressStyle::with_template(DARK_BG_PROGRESS_STYLE_TEMPLATE)
-                .unwrap()
+                .context("ProgressStyle::with_template error")?
                 .progress_chars("#>-"),
             enable_spinner: true,
         }),
