@@ -4,7 +4,7 @@ use indicatif::{ProgressBar, ProgressStyle};
 
 use tokio::time::Duration;
 
-use std::sync::Arc;
+use std::{borrow::Cow, sync::Arc};
 
 use crate::command_line_args::CommandLineArgs;
 
@@ -13,6 +13,26 @@ const PROGRESS_STYLE: &str =
 
 const PROGRESS_STYLE_NO_SPINNER: &str =
     "[{elapsed_precise}] Commands Done/Total: {pos:>2}/{len:2} {wide_bar} ETA {eta_precise}";
+
+struct ProgressStyleInfo {
+    style_string: &'static str,
+    enable_spinner: bool,
+}
+
+fn choose_progress_style() -> ProgressStyleInfo {
+    let setting = std::env::var("PROGRESS_STYLE").map_or(Cow::from("default"), Cow::from);
+
+    match setting.as_ref() {
+        "simple" => ProgressStyleInfo {
+            style_string: PROGRESS_STYLE_NO_SPINNER,
+            enable_spinner: false,
+        },
+        _ => ProgressStyleInfo {
+            style_string: PROGRESS_STYLE,
+            enable_spinner: true,
+        },
+    }
+}
 
 pub struct Progress {
     progress_bar: Option<ProgressBar>,
@@ -23,24 +43,16 @@ impl Progress {
         let progress_bar = if !command_line_args.progress_bar {
             None
         } else {
-            // Terminal supports ANSI formatting if NO_COLOR is unset or empty.
-            // Idea from https://github.com/tokio-rs/tracing/pull/2647
-
-            let terminal_supports_ansi = std::env::var("NO_COLOR").map_or(true, |v| v.is_empty());
+            let style_info = choose_progress_style();
 
             let progress_bar = ProgressBar::new(0);
-            if terminal_supports_ansi {
+            if style_info.enable_spinner {
                 progress_bar.enable_steady_tick(Duration::from_millis(100));
             }
 
-            let style = if terminal_supports_ansi {
-                PROGRESS_STYLE
-            } else {
-                PROGRESS_STYLE_NO_SPINNER
-            };
-
-            let style = ProgressStyle::with_template(style)
+            let style = ProgressStyle::with_template(style_info.style_string)
                 .context("ProgressStyle::with_template error")?;
+            // .progress_chars("#>-");
 
             progress_bar.set_style(style);
 
