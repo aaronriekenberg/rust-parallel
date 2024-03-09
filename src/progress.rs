@@ -1,51 +1,12 @@
-use anyhow::Context;
+mod style;
 
-use indicatif::{ProgressBar, ProgressStyle};
+use indicatif::ProgressBar;
 
 use tokio::time::Duration;
 
-use std::{borrow::Cow, sync::Arc};
+use std::sync::Arc;
 
 use crate::command_line_args::CommandLineArgs;
-
-const SIMPLE_PROGRESS_STYLE_TEMPLATE: &str =
-    "[{elapsed_precise}] Commands Done/Total: {pos:>2}/{len:2} {wide_bar} ETA {eta_precise}";
-
-const LIGHT_BG_PROGRESS_STYLE_TEMPLATE: &str =
-    "{spinner:.blue.bold} [{elapsed_precise}] Commands Done/Total: {pos:>2}/{len:2} [{wide_bar:.blue.bold/red}] ETA {eta_precise}";
-
-const DARK_BG_PROGRESS_STYLE_TEMPLATE: &str =
-    "{spinner:.cyan.bold} [{elapsed_precise}] Commands Done/Total: {pos:>2}/{len:2} [{wide_bar:.cyan.bold/blue}] ETA {eta_precise}";
-
-struct ProgressStyleInfo {
-    progress_style: ProgressStyle,
-    enable_spinner: bool,
-}
-
-fn choose_progress_style() -> anyhow::Result<ProgressStyleInfo> {
-    let setting = std::env::var("PROGRESS_STYLE").map_or(Cow::from("default"), Cow::from);
-
-    match setting.as_ref() {
-        "simple" => Ok(ProgressStyleInfo {
-            progress_style: ProgressStyle::with_template(SIMPLE_PROGRESS_STYLE_TEMPLATE)
-                .context("ProgressStyle::with_template error")?,
-            enable_spinner: false,
-        }),
-        "light_bg" | "default" => Ok(ProgressStyleInfo {
-            progress_style: ProgressStyle::with_template(LIGHT_BG_PROGRESS_STYLE_TEMPLATE)
-                .context("ProgressStyle::with_template error")?
-                .progress_chars("#>-"),
-            enable_spinner: true,
-        }),
-        "dark_bg" => Ok(ProgressStyleInfo {
-            progress_style: ProgressStyle::with_template(DARK_BG_PROGRESS_STYLE_TEMPLATE)
-                .context("ProgressStyle::with_template error")?
-                .progress_chars("#>-"),
-            enable_spinner: true,
-        }),
-        _ => anyhow::bail!("unknown PROGRESS_STYLE: {}", setting),
-    }
-}
 
 pub struct Progress {
     progress_bar: Option<ProgressBar>,
@@ -56,7 +17,7 @@ impl Progress {
         let progress_bar = if !command_line_args.progress_bar {
             None
         } else {
-            let style_info = choose_progress_style()?;
+            let style_info = style::choose_progress_style()?;
 
             let progress_bar = ProgressBar::new(0);
             if style_info.enable_spinner {
