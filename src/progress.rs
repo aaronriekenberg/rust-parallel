@@ -22,26 +22,27 @@ struct ProgressStyleInfo {
     enable_spinner: bool,
 }
 
-fn choose_progress_style() -> ProgressStyleInfo {
+fn choose_progress_style() -> anyhow::Result<ProgressStyleInfo> {
     let setting = std::env::var("PROGRESS_STYLE").map_or(Cow::from("default"), Cow::from);
 
     match setting.as_ref() {
-        "simple" => ProgressStyleInfo {
+        "simple" => Ok(ProgressStyleInfo {
             progress_style: ProgressStyle::with_template(SIMPLE_PROGRESS_STYLE_TEMPLATE).unwrap(),
             enable_spinner: false,
-        },
-        "light_bg" => ProgressStyleInfo {
+        }),
+        "light_bg" | "default" => Ok(ProgressStyleInfo {
             progress_style: ProgressStyle::with_template(LIGHT_BG_PROGRESS_STYLE_TEMPLATE)
                 .unwrap()
                 .progress_chars("#>-"),
             enable_spinner: true,
-        },
-        _ => ProgressStyleInfo {
+        }),
+        "dark_bg" => Ok(ProgressStyleInfo {
             progress_style: ProgressStyle::with_template(DARK_BG_PROGRESS_STYLE_TEMPLATE)
                 .unwrap()
                 .progress_chars("#>-"),
             enable_spinner: true,
-        },
+        }),
+        _ => anyhow::bail!("unknown PROGRESS_STYLE: {}", setting),
     }
 }
 
@@ -54,7 +55,7 @@ impl Progress {
         let progress_bar = if !command_line_args.progress_bar {
             None
         } else {
-            let style_info = choose_progress_style();
+            let style_info = choose_progress_style()?;
 
             let progress_bar = ProgressBar::new(0);
             if style_info.enable_spinner {
