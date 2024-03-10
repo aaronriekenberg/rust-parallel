@@ -20,7 +20,7 @@ impl Progress {
             let style_info = style::choose_progress_style()?;
 
             let progress_bar = ProgressBar::new(0);
-            if style_info.enable_spinner {
+            if style_info.enable_steady_tick {
                 progress_bar.enable_steady_tick(Duration::from_millis(100));
             }
 

@@ -18,7 +18,7 @@ const PROGRESS_STYLE: &str = "PROGRESS_STYLE";
 pub struct ProgressStyleInfo {
     pub style_name: &'static str,
     pub progress_style: ProgressStyle,
-    pub enable_spinner: bool,
+    pub enable_steady_tick: bool,
 }
 
 pub fn choose_progress_style() -> anyhow::Result<ProgressStyleInfo> {
@@ -29,21 +29,21 @@ pub fn choose_progress_style() -> anyhow::Result<ProgressStyleInfo> {
             style_name: "simple",
             progress_style: ProgressStyle::with_template(SIMPLE_PROGRESS_STYLE_TEMPLATE)
                 .context("ProgressStyle::with_template error")?,
-            enable_spinner: false,
+            enable_steady_tick: false,
         }),
         "light_bg" | "default" => Ok(ProgressStyleInfo {
             style_name: "light_bg",
             progress_style: ProgressStyle::with_template(LIGHT_BG_PROGRESS_STYLE_TEMPLATE)
                 .context("ProgressStyle::with_template error")?
                 .progress_chars("#>-"),
-            enable_spinner: true,
+            enable_steady_tick: true,
         }),
         "dark_bg" => Ok(ProgressStyleInfo {
             style_name: "dark_bg",
             progress_style: ProgressStyle::with_template(DARK_BG_PROGRESS_STYLE_TEMPLATE)
                 .context("ProgressStyle::with_template error")?
                 .progress_chars("#>-"),
-            enable_spinner: true,
+            enable_steady_tick: true,
         }),
         _ => anyhow::bail!("unknown PROGRESS_STYLE: {}", setting),
     }
@@ -79,35 +79,35 @@ mod test {
         assert_eq!(result.is_err(), false);
         let result = result.unwrap();
         assert_eq!(result.style_name, "light_bg");
-        assert_eq!(result.enable_spinner, true);
+        assert_eq!(result.enable_steady_tick, true);
 
         env::set_var(PROGRESS_STYLE, "default");
         let result = choose_progress_style();
         assert_eq!(result.is_err(), false);
         let result = result.unwrap();
         assert_eq!(result.style_name, "light_bg");
-        assert_eq!(result.enable_spinner, true);
+        assert_eq!(result.enable_steady_tick, true);
 
         env::set_var(PROGRESS_STYLE, "light_bg");
         let result = choose_progress_style();
         assert_eq!(result.is_err(), false);
         let result = result.unwrap();
         assert_eq!(result.style_name, "light_bg");
-        assert_eq!(result.enable_spinner, true);
+        assert_eq!(result.enable_steady_tick, true);
 
         env::set_var(PROGRESS_STYLE, "dark_bg");
         let result = choose_progress_style();
         assert_eq!(result.is_err(), false);
         let result = result.unwrap();
         assert_eq!(result.style_name, "dark_bg");
-        assert_eq!(result.enable_spinner, true);
+        assert_eq!(result.enable_steady_tick, true);
 
         env::set_var(PROGRESS_STYLE, "simple");
         let result = choose_progress_style();
         assert_eq!(result.is_err(), false);
         let result = result.unwrap();
         assert_eq!(result.style_name, "simple");
-        assert_eq!(result.enable_spinner, false);
+        assert_eq!(result.enable_steady_tick, false);
 
         env::set_var(PROGRESS_STYLE, "unknown");
         let result = choose_progress_style();
