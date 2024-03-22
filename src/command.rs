@@ -218,6 +218,7 @@ impl CommandService {
         Ok(())
     }
 }
+
 struct CommandRunContext {
     child_process_factory: ChildProcessFactory,
     command_metrics: CommandMetrics,
