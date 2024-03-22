@@ -59,7 +59,7 @@ impl ChildProcess {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct ChildProcessFactory {
     discard_stdout: bool,
     discard_stderr: bool,
@@ -103,7 +103,7 @@ impl ChildProcessFactory {
         self.discard_stdout && self.discard_stderr
     }
 
-    pub async fn spawn<C, AI, A>(self, command: C, args: AI) -> std::io::Result<ChildProcess>
+    pub async fn spawn<C, AI, A>(&self, command: C, args: AI) -> std::io::Result<ChildProcess>
     where
         C: AsRef<OsStr>,
         AI: IntoIterator<Item = A>,

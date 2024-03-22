@@ -37,22 +37,23 @@ impl Command {
             child_pid,
         ),
         level = "debug")]
-    async fn run(
-        self,
-        child_process_factory: ChildProcessFactory,
-        output_sender: OutputSender,
-        command_metrcs: Arc<CommandMetrics>,
-    ) {
+    async fn run(self, context: &CommandRunContext, output_sender: OutputSender) {
         debug!("begin run");
+
+        let command_metrics = &context.command_metrics;
 
         let OwnedCommandAndArgs { command_path, args } = &self.command_and_args;
 
-        command_metrcs.increment_commands_run();
+        command_metrics.increment_commands_run();
 
-        let child_process = match child_process_factory.spawn(command_path, args).await {
+        let child_process = match context
+            .child_process_factory
+            .spawn(command_path, args)
+            .await
+        {
             Err(e) => {
                 error!("spawn error command: {}: {}", self, e);
-                command_metrcs.increment_spawn_errors();
+                command_metrics.increment_spawn_errors();
                 return;
             }
             Ok(child_process) => child_process,
@@ -68,12 +69,12 @@ impl Command {
         match child_process.await_completion().await {
             Err(e) => {
                 error!("child process error command: {} error: {}", self, e);
-                command_metrcs.handle_child_process_execution_error(e);
+                command_metrics.handle_child_process_execution_error(e);
             }
             Ok(output) => {
                 debug!("command exit status = {}", output.status);
                 if !output.status.success() {
-                    command_metrcs.increment_exit_status_errors();
+                    command_metrics.increment_exit_status_errors();
                 }
 
                 output_sender
@@ -97,25 +98,26 @@ impl std::fmt::Display for Command {
 }
 
 pub struct CommandService {
-    child_process_factory: ChildProcessFactory,
-    command_metrics: Arc<CommandMetrics>,
     command_line_args: &'static CommandLineArgs,
     command_path_cache: CommandPathCache,
     command_semaphore: Arc<Semaphore>,
+    context: Arc<CommandRunContext>,
     output_writer: OutputWriter,
-    progress: Arc<Progress>,
 }
 
 impl CommandService {
     pub fn new(command_line_args: &'static CommandLineArgs, progress: Arc<Progress>) -> Self {
-        Self {
+        let context = Arc::new(CommandRunContext {
             child_process_factory: ChildProcessFactory::new(command_line_args),
-            command_metrics: Arc::new(CommandMetrics::default()),
+            command_metrics: CommandMetrics::default(),
+            progress,
+        });
+        Self {
             command_line_args,
             command_path_cache: CommandPathCache::new(command_line_args),
             command_semaphore: Arc::new(Semaphore::new(command_line_args.jobs)),
+            context,
             output_writer: OutputWriter::new(command_line_args),
-            progress,
         }
     }
 
@@ -131,22 +133,17 @@ impl CommandService {
 
         if self.command_line_args.dry_run {
             info!("{}", command);
-
             return Ok(());
         }
 
-        if self.command_line_args.exit_on_error && self.command_metrics.error_occurred() {
+        if self.command_line_args.exit_on_error && self.context.command_metrics.error_occurred() {
             trace!("return from spawn_command due to exit_on_error");
             return Ok(());
         }
 
-        let child_process_factory = self.child_process_factory.clone();
+        let context_clone = Arc::clone(&self.context);
 
         let output_sender = self.output_writer.sender();
-
-        let progress_clone = Arc::clone(&self.progress);
-
-        let command_metrics = Arc::clone(&self.command_metrics);
 
         let permit = Arc::clone(&self.command_semaphore)
             .acquire_owned()
@@ -154,13 +151,11 @@ impl CommandService {
             .context("command_semaphore.acquire_owned error")?;
 
         tokio::spawn(async move {
-            command
-                .run(child_process_factory, output_sender, command_metrics)
-                .await;
+            command.run(&context_clone, output_sender).await;
 
             drop(permit);
 
-            progress_clone.command_finished();
+            context_clone.progress.command_finished();
         });
 
         Ok(())
@@ -187,7 +182,8 @@ impl CommandService {
     }
 
     async fn process_inputs(&self) -> anyhow::Result<()> {
-        let mut input_producer = InputProducer::new(self.command_line_args, &self.progress)?;
+        let mut input_producer =
+            InputProducer::new(self.command_line_args, &self.context.progress)?;
 
         while let Some(input_message) = input_producer.receiver().recv().await {
             self.process_input_message(input_message).await?;
@@ -208,17 +204,22 @@ impl CommandService {
 
         self.output_writer.wait_for_completion().await?;
 
-        self.progress.finish();
+        self.context.progress.finish();
 
-        if self.command_metrics.error_occurred() {
-            anyhow::bail!("command failures: {}", self.command_metrics);
+        if self.context.command_metrics.error_occurred() {
+            anyhow::bail!("command failures: {}", self.context.command_metrics);
         }
 
         debug!(
             "end run_commands command_metrics = {}",
-            self.command_metrics
+            self.context.command_metrics
         );
 
         Ok(())
     }
+}
+struct CommandRunContext {
+    child_process_factory: ChildProcessFactory,
+    command_metrics: CommandMetrics,
+    progress: Arc<Progress>,
 }
