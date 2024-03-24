@@ -53,6 +53,7 @@ pub struct Parsers {
 impl Parsers {
     pub fn new(command_line_args: &'static CommandLineArgs) -> anyhow::Result<Self> {
         let regex_processor = RegexProcessor::new(command_line_args)?;
+
         Ok(Self {
             buffered_input_line_parser: OnceCell::new(),
             regex_processor,
