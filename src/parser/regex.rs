@@ -1,10 +1,46 @@
 use anyhow::Context;
 
-use tracing::warn;
+use tracing::{debug, warn};
 
 use std::{borrow::Cow, sync::Arc};
 
-use crate::command_line_args::CommandLineArgs;
+use crate::command_line_args::{CommandLineArgs, COMMANDS_FROM_ARGS_SEPARATOR};
+
+#[derive(Debug)]
+struct AutoCommandLineArgsRegex {
+    generated_regex: String,
+    modified_command_and_initial_arguments: Vec<String>,
+}
+
+impl AutoCommandLineArgsRegex {
+    fn new(command_line_args: &CommandLineArgs) -> Option<Self> {
+        if command_line_args.commands_from_args_mode() && command_line_args.auto_regex {
+            let argument_group_count = command_line_args
+                .command_and_initial_arguments
+                .iter()
+                .filter(|s| *s == COMMANDS_FROM_ARGS_SEPARATOR)
+                .count();
+            debug!("argument_group_count = {}", argument_group_count);
+
+            let mut generated_regex = String::new();
+
+            for i in 0..argument_group_count {
+                if i == 0 {
+                    generated_regex += "(.*)";
+                } else {
+                    generated_regex += " (.*)";
+                }
+            }
+
+            Some(Self {
+                generated_regex,
+                modified_command_and_initial_arguments: vec![],
+            })
+        } else {
+            None
+        }
+    }
+}
 
 pub struct RegexProcessor {
     command_line_regex: Option<CommandLineRegex>,
@@ -12,9 +48,17 @@ pub struct RegexProcessor {
 
 impl RegexProcessor {
     pub fn new(command_line_args: &CommandLineArgs) -> anyhow::Result<Arc<Self>> {
-        let command_line_regex = match &command_line_args.regex {
-            None => None,
-            Some(command_line_args_regex) => Some(CommandLineRegex::new(command_line_args_regex)?),
+        let auto_regex = AutoCommandLineArgsRegex::new(command_line_args);
+        debug!("auto_regex = {:?}", auto_regex);
+
+        let command_line_regex = match auto_regex {
+            Some(auto_regex) => Some(CommandLineRegex::new(&auto_regex.generated_regex)?),
+            None => match &command_line_args.regex {
+                None => None,
+                Some(command_line_args_regex) => {
+                    Some(CommandLineRegex::new(command_line_args_regex)?)
+                }
+            },
         };
         Ok(Arc::new(Self { command_line_regex }))
     }
