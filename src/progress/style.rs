@@ -4,11 +4,19 @@ use indicatif::ProgressStyle;
 
 use std::{borrow::Cow, env};
 
+const DEFAULT_PROGRESS_STYLE: &str = "default";
+
+const SIMPLE_PROGRESS_STYLE: &str = "simple";
+
 const SIMPLE_PROGRESS_STYLE_TEMPLATE: &str =
     "[{elapsed_precise}] Commands Done/Total: {pos:>2}/{len:2} {wide_bar} ETA {eta_precise}";
 
+const LIGHT_BG_PROGRESS_STYLE: &str = "light_bg";
+
 const LIGHT_BG_PROGRESS_STYLE_TEMPLATE: &str =
     "{spinner:.blue.bold} [{elapsed_precise}] Commands Done/Total: {pos:>2}/{len:2} [{wide_bar:.blue.bold/red}] ETA {eta_precise}";
+
+const DARK_BG_PROGRESS_STYLE: &str = "dark_bg";
 
 const DARK_BG_PROGRESS_STYLE_TEMPLATE: &str =
     "{spinner:.cyan.bold} [{elapsed_precise}] Commands Done/Total: {pos:>2}/{len:2} [{wide_bar:.cyan.bold/blue}] ETA {eta_precise}";
@@ -22,24 +30,24 @@ pub struct ProgressStyleInfo {
 }
 
 pub fn choose_progress_style() -> anyhow::Result<ProgressStyleInfo> {
-    let setting = env::var(PROGRESS_STYLE).map_or(Cow::from("default"), Cow::from);
+    let setting = env::var(PROGRESS_STYLE).map_or(Cow::from(DEFAULT_PROGRESS_STYLE), Cow::from);
 
-    match setting.as_ref() {
-        "simple" => Ok(ProgressStyleInfo {
-            style_name: "simple",
+    match &*setting {
+        SIMPLE_PROGRESS_STYLE => Ok(ProgressStyleInfo {
+            style_name: SIMPLE_PROGRESS_STYLE,
             progress_style: ProgressStyle::with_template(SIMPLE_PROGRESS_STYLE_TEMPLATE)
                 .context("ProgressStyle::with_template error")?,
             enable_steady_tick: false,
         }),
-        "light_bg" | "default" => Ok(ProgressStyleInfo {
-            style_name: "light_bg",
+        LIGHT_BG_PROGRESS_STYLE | DEFAULT_PROGRESS_STYLE => Ok(ProgressStyleInfo {
+            style_name: LIGHT_BG_PROGRESS_STYLE,
             progress_style: ProgressStyle::with_template(LIGHT_BG_PROGRESS_STYLE_TEMPLATE)
                 .context("ProgressStyle::with_template error")?
                 .progress_chars("#>-"),
             enable_steady_tick: true,
         }),
-        "dark_bg" => Ok(ProgressStyleInfo {
-            style_name: "dark_bg",
+        DARK_BG_PROGRESS_STYLE => Ok(ProgressStyleInfo {
+            style_name: DARK_BG_PROGRESS_STYLE,
             progress_style: ProgressStyle::with_template(DARK_BG_PROGRESS_STYLE_TEMPLATE)
                 .context("ProgressStyle::with_template error")?
                 .progress_chars("#>-"),
@@ -78,35 +86,35 @@ mod test {
         let result = choose_progress_style();
         assert_eq!(result.is_err(), false);
         let result = result.unwrap();
-        assert_eq!(result.style_name, "light_bg");
+        assert_eq!(result.style_name, LIGHT_BG_PROGRESS_STYLE);
         assert_eq!(result.enable_steady_tick, true);
 
-        env::set_var(PROGRESS_STYLE, "default");
+        env::set_var(PROGRESS_STYLE, DEFAULT_PROGRESS_STYLE);
         let result = choose_progress_style();
         assert_eq!(result.is_err(), false);
         let result = result.unwrap();
-        assert_eq!(result.style_name, "light_bg");
+        assert_eq!(result.style_name, LIGHT_BG_PROGRESS_STYLE);
         assert_eq!(result.enable_steady_tick, true);
 
-        env::set_var(PROGRESS_STYLE, "light_bg");
+        env::set_var(PROGRESS_STYLE, LIGHT_BG_PROGRESS_STYLE);
         let result = choose_progress_style();
         assert_eq!(result.is_err(), false);
         let result = result.unwrap();
-        assert_eq!(result.style_name, "light_bg");
+        assert_eq!(result.style_name, LIGHT_BG_PROGRESS_STYLE);
         assert_eq!(result.enable_steady_tick, true);
 
-        env::set_var(PROGRESS_STYLE, "dark_bg");
+        env::set_var(PROGRESS_STYLE, DARK_BG_PROGRESS_STYLE);
         let result = choose_progress_style();
         assert_eq!(result.is_err(), false);
         let result = result.unwrap();
-        assert_eq!(result.style_name, "dark_bg");
+        assert_eq!(result.style_name, DARK_BG_PROGRESS_STYLE);
         assert_eq!(result.enable_steady_tick, true);
 
-        env::set_var(PROGRESS_STYLE, "simple");
+        env::set_var(PROGRESS_STYLE, SIMPLE_PROGRESS_STYLE);
         let result = choose_progress_style();
         assert_eq!(result.is_err(), false);
         let result = result.unwrap();
-        assert_eq!(result.style_name, "simple");
+        assert_eq!(result.style_name, SIMPLE_PROGRESS_STYLE);
         assert_eq!(result.enable_steady_tick, false);
 
         env::set_var(PROGRESS_STYLE, "unknown");
