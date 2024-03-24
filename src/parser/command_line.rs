@@ -22,7 +22,7 @@ pub struct CommandLineArgsParser {
 
 impl CommandLineArgsParser {
     pub fn new(command_line_args: &CommandLineArgs, regex_processor: &Arc<RegexProcessor>) -> Self {
-        let argument_groups = Self::build_argument_groups(command_line_args);
+        let argument_groups = Self::build_argument_groups(command_line_args, regex_processor);
 
         let shell_command_and_args = ShellCommandAndArgs::new(command_line_args);
 
@@ -33,8 +33,18 @@ impl CommandLineArgsParser {
         }
     }
 
-    fn build_argument_groups(command_line_args: &CommandLineArgs) -> ArgumentGroups {
-        let command_and_initial_arguments = &command_line_args.command_and_initial_arguments;
+    fn build_argument_groups(
+        command_line_args: &CommandLineArgs,
+        regex_processor: &Arc<RegexProcessor>,
+    ) -> ArgumentGroups {
+        let command_and_initial_arguments = match regex_processor.auto_regex() {
+            Some(auto_regex) => auto_regex.modified_command_and_initial_arguments.clone(),
+            None => command_line_args
+                .command_and_initial_arguments
+                .iter()
+                .cloned()
+                .collect_vec(),
+        };
 
         let mut remaining_argument_groups = Vec::with_capacity(command_and_initial_arguments.len());
 
