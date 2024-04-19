@@ -47,9 +47,9 @@ impl AutoCommandLineArgsRegex {
 
         for i in 0..argument_group_count {
             if i == 0 {
-                generated_regex += "(.*)";
+                generated_regex.push_str("(.*)");
             } else {
-                generated_regex += " (.*)";
+                generated_regex.push_str(" (.*)");
             }
         }
 
