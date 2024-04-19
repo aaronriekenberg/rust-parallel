@@ -49,12 +49,6 @@ pub struct CommandLineArgs {
     #[arg(short, long, value_parser = Self::parse_timeout_seconds)]
     pub timeout_seconds: Option<f64>,
 
-    #[arg(long)]
-    pub auto_interpolate_args: bool,
-
-    #[arg(long)]
-    pub auto_interpolate_named_args: bool,
-
     /// Input and output channel capacity, defaults to num cpus * 2
     #[arg(long, default_value_t = num_cpus::get() * 2, value_parser = Self::parse_semaphore_permits)]
     pub channel_capacity: usize,

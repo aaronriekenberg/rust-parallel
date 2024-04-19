@@ -22,7 +22,7 @@ pub struct CommandLineArgsParser {
 
 impl CommandLineArgsParser {
     pub fn new(command_line_args: &CommandLineArgs, regex_processor: &Arc<RegexProcessor>) -> Self {
-        let argument_groups = Self::build_argument_groups(command_line_args, regex_processor);
+        let argument_groups = Self::build_argument_groups(command_line_args);
 
         let shell_command_and_args = ShellCommandAndArgs::new(command_line_args);
 
@@ -33,18 +33,8 @@ impl CommandLineArgsParser {
         }
     }
 
-    fn build_argument_groups(
-        command_line_args: &CommandLineArgs,
-        regex_processor: &Arc<RegexProcessor>,
-    ) -> ArgumentGroups {
-        let command_and_initial_arguments = match regex_processor.auto_regex() {
-            Some(auto_regex) => auto_regex.modified_command_and_initial_arguments.clone(),
-            None => command_line_args
-                .command_and_initial_arguments
-                .iter()
-                .cloned()
-                .collect_vec(),
-        };
+    fn build_argument_groups(command_line_args: &CommandLineArgs) -> ArgumentGroups {
+        let command_and_initial_arguments = &command_line_args.command_and_initial_arguments;
 
         let mut remaining_argument_groups = Vec::with_capacity(command_and_initial_arguments.len());
 
@@ -80,7 +70,9 @@ impl CommandLineArgsParser {
     }
 
     fn parse_argument_group(&self, argument_group: Vec<String>) -> Option<OwnedCommandAndArgs> {
-        let cmd_and_args = if !self.regex_processor.regex_mode() {
+        let cmd_and_args = if !self.regex_processor.regex_mode()
+            || self.argument_groups.first_command_and_args.is_empty()
+        {
             [
                 self.argument_groups.first_command_and_args.clone(),
                 argument_group,
@@ -89,10 +81,20 @@ impl CommandLineArgsParser {
         } else {
             let input_line = argument_group.join(" ");
 
-            self.regex_processor.apply_regex_to_arguments(
+            let result = self.regex_processor.apply_regex_to_arguments(
                 &self.argument_groups.first_command_and_args,
                 &input_line,
-            )?
+            )?;
+
+            if result == self.argument_groups.first_command_and_args {
+                [
+                    self.argument_groups.first_command_and_args.clone(),
+                    argument_group,
+                ]
+                .concat()
+            } else {
+                result
+            }
         };
 
         super::build_owned_command_and_args(&self.shell_command_and_args, cmd_and_args)

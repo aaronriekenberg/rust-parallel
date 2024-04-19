@@ -1,6 +1,7 @@
 use anyhow::Context;
 
 use itertools::Itertools;
+
 use tracing::{debug, warn};
 
 use std::{borrow::Cow, sync::Arc};
@@ -10,28 +11,36 @@ use crate::command_line_args::{CommandLineArgs, COMMANDS_FROM_ARGS_SEPARATOR};
 #[derive(Debug)]
 pub struct AutoCommandLineArgsRegex {
     generated_regex: String,
-    pub modified_command_and_initial_arguments: Vec<String>,
 }
 
 impl AutoCommandLineArgsRegex {
     pub fn new(command_line_args: &CommandLineArgs) -> Option<Self> {
-        if command_line_args.auto_interpolate_args && command_line_args.commands_from_args_mode() {
+        if command_line_args.regex.is_none() && command_line_args.commands_from_args_mode() {
             Some(Self::new_auto_interpolate_args(command_line_args))
-        } else if command_line_args.auto_interpolate_named_args
-            && command_line_args.commands_from_args_mode()
-        {
-            Some(Self::new_auto_interpolate_named_args(command_line_args))
         } else {
             None
         }
     }
 
     fn new_auto_interpolate_args(command_line_args: &CommandLineArgs) -> Self {
-        let argument_group_count = command_line_args
+        let mut first = true;
+        let mut argument_group_count = 0;
+
+        for (separator, _group) in &command_line_args
             .command_and_initial_arguments
             .iter()
-            .filter(|s| *s == COMMANDS_FROM_ARGS_SEPARATOR)
-            .count();
+            .group_by(|arg| *arg == COMMANDS_FROM_ARGS_SEPARATOR)
+        {
+            if first {
+                if separator {
+                    argument_group_count -= 1;
+                }
+                first = false;
+            } else if !separator {
+                argument_group_count += 1;
+            }
+        }
+
         debug!("argument_group_count = {}", argument_group_count);
 
         let mut generated_regex = String::new();
@@ -44,48 +53,11 @@ impl AutoCommandLineArgsRegex {
             }
         }
 
-        Self {
-            generated_regex,
-            modified_command_and_initial_arguments: command_line_args
-                .command_and_initial_arguments
-                .iter()
-                .cloned()
-                .collect_vec(),
-        }
-    }
-
-    fn new_auto_interpolate_named_args(command_line_args: &CommandLineArgs) -> Self {
-        let mut generated_regex = String::new();
-        let mut prev_arg_was_separator = false;
-        let mut filtered_command_and_initial_arguments =
-            Vec::with_capacity(command_line_args.command_and_initial_arguments.len());
-
-        for arg in &command_line_args.command_and_initial_arguments {
-            if !prev_arg_was_separator && arg == COMMANDS_FROM_ARGS_SEPARATOR {
-                prev_arg_was_separator = true;
-                filtered_command_and_initial_arguments.push(arg.clone());
-            } else if prev_arg_was_separator && arg != COMMANDS_FROM_ARGS_SEPARATOR {
-                if !generated_regex.is_empty() {
-                    generated_regex += " ";
-                }
-                generated_regex += "(?P<";
-                generated_regex += arg;
-                generated_regex += ">.*)";
-                prev_arg_was_separator = false;
-            } else {
-                filtered_command_and_initial_arguments.push(arg.clone());
-            }
-        }
-
-        Self {
-            generated_regex,
-            modified_command_and_initial_arguments: filtered_command_and_initial_arguments,
-        }
+        Self { generated_regex }
     }
 }
 
 pub struct RegexProcessor {
-    auto_regex: Option<AutoCommandLineArgsRegex>,
     command_line_regex: Option<CommandLineRegex>,
 }
 
@@ -103,18 +75,11 @@ impl RegexProcessor {
                 None => None,
             },
         };
-        Ok(Arc::new(Self {
-            command_line_regex,
-            auto_regex,
-        }))
+        Ok(Arc::new(Self { command_line_regex }))
     }
 
     pub fn regex_mode(&self) -> bool {
         self.command_line_regex.is_some()
-    }
-
-    pub fn auto_regex(&self) -> &Option<AutoCommandLineArgsRegex> {
-        &self.auto_regex
     }
 
     pub fn apply_regex_to_arguments(
@@ -141,6 +106,11 @@ impl RegexProcessor {
                 }
             };
         }
+
+        debug!(
+            "in apply_regex_to_arguments arguments = {:?} input_data = {:?} found_match = {} results = {:?}",
+            arguments, input_data, found_match,results
+        );
 
         if !found_match {
             warn!("regex did not match input data: {}", input_data);
@@ -188,6 +158,11 @@ impl CommandLineRegex {
     fn expand<'a>(&self, argument: Cow<'a, str>, input_data: &str) -> Option<Cow<'a, str>> {
         let captures = self.regex.captures(input_data)?;
 
+        debug!(
+            "in expand argument = {:?} input_data = {:?} captures = {:?}",
+            argument, input_data, captures
+        );
+
         let mut argument = argument;
 
         let mut update_argument = |match_key, match_value| {
@@ -211,6 +186,8 @@ impl CommandLineRegex {
                 update_argument(match_key, match_value.as_str());
             }
         }
+
+        debug!("expand returning argument = {:?}", argument);
 
         Some(argument)
     }
