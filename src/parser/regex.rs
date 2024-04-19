@@ -16,13 +16,13 @@ pub struct AutoCommandLineArgsRegex {
 impl AutoCommandLineArgsRegex {
     pub fn new(command_line_args: &CommandLineArgs) -> Option<Self> {
         if command_line_args.regex.is_none() && command_line_args.commands_from_args_mode() {
-            Some(Self::new_auto_interpolate_args(command_line_args))
+            Self::new_auto_interpolate_args(command_line_args)
         } else {
             None
         }
     }
 
-    fn new_auto_interpolate_args(command_line_args: &CommandLineArgs) -> Self {
+    fn new_auto_interpolate_args(command_line_args: &CommandLineArgs) -> Option<Self> {
         let mut first = true;
         let mut argument_group_count = 0;
 
@@ -33,7 +33,7 @@ impl AutoCommandLineArgsRegex {
         {
             if first {
                 if separator {
-                    argument_group_count -= 1;
+                    return None;
                 }
                 first = false;
             } else if !separator {
@@ -53,7 +53,7 @@ impl AutoCommandLineArgsRegex {
             }
         }
 
-        Self { generated_regex }
+        Some(Self { generated_regex })
     }
 }
 
