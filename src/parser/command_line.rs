@@ -70,9 +70,7 @@ impl CommandLineArgsParser {
     }
 
     fn parse_argument_group(&self, argument_group: Vec<String>) -> Option<OwnedCommandAndArgs> {
-        let cmd_and_args = if !self.regex_processor.regex_mode()
-            || self.argument_groups.first_command_and_args.is_empty()
-        {
+        let cmd_and_args = if !self.regex_processor.regex_mode() {
             [
                 self.argument_groups.first_command_and_args.clone(),
                 argument_group,
