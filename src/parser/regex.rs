@@ -41,6 +41,8 @@ impl AutoCommandLineArgsRegex {
             }
         }
 
+        let argument_group_count = argument_group_count;
+
         debug!("argument_group_count = {}", argument_group_count);
 
         let mut generated_regex = String::with_capacity(argument_group_count * 5);
