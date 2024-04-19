@@ -84,14 +84,14 @@ impl CommandLineArgsParser {
                 &input_line,
             )?;
 
-            if result == self.argument_groups.first_command_and_args {
+            if result != self.argument_groups.first_command_and_args {
+                result
+            } else {
                 [
                     self.argument_groups.first_command_and_args.clone(),
                     argument_group,
                 ]
                 .concat()
-            } else {
-                result
             }
         };
 
