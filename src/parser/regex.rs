@@ -43,7 +43,7 @@ impl AutoCommandLineArgsRegex {
 
         debug!("argument_group_count = {}", argument_group_count);
 
-        let mut generated_regex = String::new();
+        let mut generated_regex = String::with_capacity(argument_group_count * 5);
 
         for i in 0..argument_group_count {
             if i == 0 {
