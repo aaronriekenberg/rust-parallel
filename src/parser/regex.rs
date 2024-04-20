@@ -390,4 +390,16 @@ mod test {
 
         assert!(result.is_err());
     }
+
+    #[test]
+    fn test_auto_regex_command_line_regex() {
+        let command_line_args = CommandLineArgs {
+            regex: Some("(?Parg1>.*),(?P<arg2>.*)".to_string()),
+            ..Default::default()
+        };
+
+        let auto_regex = AutoCommandLineArgsRegex::new(&command_line_args);
+
+        assert!(auto_regex.is_none());
+    }
 }
