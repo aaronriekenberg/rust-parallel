@@ -21,7 +21,6 @@ pub struct RegexProcessor {
 impl RegexProcessor {
     pub fn new(command_line_args: &CommandLineArgs) -> anyhow::Result<Arc<Self>> {
         let auto_regex = AutoCommandLineArgsRegex::new(command_line_args);
-        debug!("auto_regex = {:?}", auto_regex);
 
         let command_line_regex = match (auto_regex, &command_line_args.regex) {
             (Some(auto_regex), _) => Some(CommandLineRegex::new(&auto_regex.0)?),
@@ -47,14 +46,14 @@ impl RegexProcessor {
         };
 
         let mut results: Vec<String> = Vec::with_capacity(arguments.len());
-        let mut found_match = false;
+        let mut found_input_data_match = false;
         let mut modified_arguments = false;
 
         for argument in arguments {
             match command_line_regex.expand(argument.into(), input_data) {
                 Some(result) => {
                     results.push(result.argument.to_string());
-                    found_match = true;
+                    found_input_data_match = true;
                     modified_arguments = modified_arguments || result.modified_argument;
                 }
                 None => {
@@ -63,12 +62,7 @@ impl RegexProcessor {
             };
         }
 
-        debug!(
-            "in apply_regex_to_arguments arguments = {:?} input_data = {:?} found_match = {} results = {:?}",
-            arguments, input_data, found_match,results
-        );
-
-        if !found_match {
+        if !found_input_data_match {
             warn!("regex did not match input data: {}", input_data);
             None
         } else {
@@ -123,11 +117,6 @@ impl CommandLineRegex {
     fn expand<'a>(&self, argument: Cow<'a, str>, input_data: &str) -> Option<ExpandResult<'a>> {
         let captures = self.regex.captures(input_data)?;
 
-        debug!(
-            "in expand argument = {:?} input_data = {:?} captures = {:?}",
-            argument, input_data, captures
-        );
-
         let mut argument = argument;
         let mut modified_argument = false;
 
@@ -154,14 +143,10 @@ impl CommandLineRegex {
             }
         }
 
-        let result = ExpandResult {
+        Some(ExpandResult {
             argument,
             modified_argument,
-        };
-
-        debug!("expand returning result = {:?}", result);
-
-        Some(result)
+        })
     }
 }
 
