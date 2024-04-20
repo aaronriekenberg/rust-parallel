@@ -9,7 +9,7 @@ use std::{borrow::Cow, sync::Arc};
 use crate::command_line_args::{CommandLineArgs, COMMANDS_FROM_ARGS_SEPARATOR};
 
 #[derive(Debug)]
-pub struct AutoCommandLineArgsRegex {
+struct AutoCommandLineArgsRegex {
     generated_regex: String,
 }
 
