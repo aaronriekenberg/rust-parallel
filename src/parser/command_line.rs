@@ -70,19 +70,22 @@ impl CommandLineArgsParser {
     }
 
     fn parse_argument_group(&self, argument_group: Vec<String>) -> Option<OwnedCommandAndArgs> {
+        let first_command_and_args = &self.argument_groups.first_command_and_args;
+
         let cmd_and_args = if !self.regex_processor.regex_mode() {
-            [
-                self.argument_groups.first_command_and_args.clone(),
-                argument_group,
-            ]
-            .concat()
+            [first_command_and_args.clone(), argument_group].concat()
         } else {
             let input_line = argument_group.join(" ");
 
-            self.regex_processor.apply_regex_to_arguments(
-                &self.argument_groups.first_command_and_args,
-                &input_line,
-            )?
+            let apply_regex_result = self
+                .regex_processor
+                .apply_regex_to_arguments(first_command_and_args, &input_line)?;
+
+            if apply_regex_result.modified_arguments {
+                apply_regex_result.arguments
+            } else {
+                [first_command_and_args.clone(), argument_group].concat()
+            }
         };
 
         super::build_owned_command_and_args(&self.shell_command_and_args, cmd_and_args)
@@ -448,6 +451,60 @@ mod test {
                 OwnedCommandAndArgs {
                     command_path: PathBuf::from("echo"),
                     args: vec!["got", "arg1=foo2,bar2,baz2", "arg2=foo2", "arg3=bar2"]
+                        .into_iter()
+                        .map_into()
+                        .collect(),
+                },
+            ]
+        );
+    }
+
+    #[test]
+    fn test_auto_regex() {
+        let command_line_args = CommandLineArgs {
+            command_and_initial_arguments: [
+                "echo", "got", "arg1={1}", "arg2={2}", ":::", "foo", "bar", ":::", "baz", "qux",
+            ]
+            .into_iter()
+            .map_into()
+            .collect(),
+            ..Default::default()
+        };
+
+        let parser = CommandLineArgsParser::new(
+            &command_line_args,
+            &RegexProcessor::new(&command_line_args).unwrap(),
+        );
+
+        let result = collect_into_vec(parser);
+
+        assert_eq!(
+            result,
+            vec![
+                OwnedCommandAndArgs {
+                    command_path: PathBuf::from("echo"),
+                    args: ["got", "arg1=foo", "arg2=baz"]
+                        .into_iter()
+                        .map_into()
+                        .collect(),
+                },
+                OwnedCommandAndArgs {
+                    command_path: PathBuf::from("echo"),
+                    args: ["got", "arg1=foo", "arg2=qux"]
+                        .into_iter()
+                        .map_into()
+                        .collect(),
+                },
+                OwnedCommandAndArgs {
+                    command_path: PathBuf::from("echo"),
+                    args: ["got", "arg1=bar", "arg2=baz"]
+                        .into_iter()
+                        .map_into()
+                        .collect(),
+                },
+                OwnedCommandAndArgs {
+                    command_path: PathBuf::from("echo"),
+                    args: ["got", "arg1=bar", "arg2=qux"]
                         .into_iter()
                         .map_into()
                         .collect(),
