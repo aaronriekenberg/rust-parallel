@@ -70,28 +70,21 @@ impl CommandLineArgsParser {
     }
 
     fn parse_argument_group(&self, argument_group: Vec<String>) -> Option<OwnedCommandAndArgs> {
+        let first_command_and_args = &self.argument_groups.first_command_and_args;
+
         let cmd_and_args = if !self.regex_processor.regex_mode() {
-            [
-                self.argument_groups.first_command_and_args.clone(),
-                argument_group,
-            ]
-            .concat()
+            [first_command_and_args.clone(), argument_group].concat()
         } else {
             let input_line = argument_group.join(" ");
 
-            let result = self.regex_processor.apply_regex_to_arguments(
-                &self.argument_groups.first_command_and_args,
-                &input_line,
-            )?;
+            let result = self
+                .regex_processor
+                .apply_regex_to_arguments(first_command_and_args, &input_line)?;
 
-            if result != self.argument_groups.first_command_and_args {
+            if result != *first_command_and_args {
                 result
             } else {
-                [
-                    self.argument_groups.first_command_and_args.clone(),
-                    argument_group,
-                ]
-                .concat()
+                [first_command_and_args.clone(), argument_group].concat()
             }
         };
 
