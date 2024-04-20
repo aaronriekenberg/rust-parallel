@@ -368,6 +368,28 @@ fn fails_invalid_regex() {
 }
 
 #[test]
+fn runs_auto_regex_from_command_line_args_j1() {
+    rust_parallel()
+        .arg("-j1")
+        .arg("echo")
+        .arg("arg1={1}")
+        .arg("arg2={2}")
+        .arg("dollarzero={0}")
+        .arg(":::")
+        .arg("a")
+        .arg("b")
+        .arg(":::")
+        .arg("c")
+        .arg("d")
+        .assert()
+        .success()
+        .stdout(predicate::eq(
+            "arg1=a arg2=c dollarzero=a c\narg1=a arg2=d dollarzero=a d\narg1=b arg2=c dollarzero=b c\narg1=b arg2=d dollarzero=b d\n",
+        ))
+        .stderr(predicate::str::is_empty());
+}
+
+#[test]
 fn runs_regex_from_input_file_produce_json_named_groups_j1() {
     let expected_stdout = r#"{"id": 123, "zero": "1,2,3", "one": "1", "two": "2", "three": "3"}
 {"id": 123, "zero": "foo,bar,baz", "one": "foo", "two": "bar", "three": "baz"}

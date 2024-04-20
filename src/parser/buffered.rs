@@ -59,8 +59,10 @@ impl BufferedInputLineParser {
 
             cmd_and_args
         } else {
-            self.regex_processor
-                .apply_regex_to_arguments(&self.command_and_initial_arguments, input_line)?
+            let apply_regex_result = self
+                .regex_processor
+                .apply_regex_to_arguments(&self.command_and_initial_arguments, input_line)?;
+            apply_regex_result.arguments
         };
 
         super::build_owned_command_and_args(&self.shell_command_and_args, cmd_and_args)
