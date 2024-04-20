@@ -8,56 +8,6 @@ use std::{borrow::Cow, sync::Arc};
 
 use crate::command_line_args::{CommandLineArgs, COMMANDS_FROM_ARGS_SEPARATOR};
 
-#[derive(Debug)]
-struct AutoCommandLineArgsRegex {
-    generated_regex: String,
-}
-
-impl AutoCommandLineArgsRegex {
-    pub fn new(command_line_args: &CommandLineArgs) -> Option<Self> {
-        if command_line_args.regex.is_none() && command_line_args.commands_from_args_mode() {
-            Self::new_auto_interpolate_args(command_line_args)
-        } else {
-            None
-        }
-    }
-
-    fn new_auto_interpolate_args(command_line_args: &CommandLineArgs) -> Option<Self> {
-        let mut first = true;
-        let mut argument_group_count = 0;
-
-        for (separator, _group) in &command_line_args
-            .command_and_initial_arguments
-            .iter()
-            .group_by(|arg| *arg == COMMANDS_FROM_ARGS_SEPARATOR)
-        {
-            if first {
-                if separator {
-                    return None;
-                }
-                first = false;
-            } else if !separator {
-                argument_group_count += 1;
-            }
-        }
-
-        let argument_group_count = argument_group_count;
-
-        debug!("argument_group_count = {}", argument_group_count);
-
-        let mut generated_regex = String::with_capacity(argument_group_count * 5);
-
-        for i in 0..argument_group_count {
-            if i != 0 {
-                generated_regex.push(' ');
-            }
-            generated_regex.push_str("(.*)");
-        }
-
-        Some(Self { generated_regex })
-    }
-}
-
 #[derive(Debug, Eq, PartialEq)]
 pub struct ApplyRegexToArgumentsResult {
     pub arguments: Vec<String>,
@@ -215,6 +165,56 @@ impl CommandLineRegex {
         debug!("expand returning result = {:?}", result);
 
         Some(result)
+    }
+}
+
+#[derive(Debug)]
+struct AutoCommandLineArgsRegex {
+    generated_regex: String,
+}
+
+impl AutoCommandLineArgsRegex {
+    fn new(command_line_args: &CommandLineArgs) -> Option<Self> {
+        if command_line_args.regex.is_none() && command_line_args.commands_from_args_mode() {
+            Self::new_auto_interpolate_args(command_line_args)
+        } else {
+            None
+        }
+    }
+
+    fn new_auto_interpolate_args(command_line_args: &CommandLineArgs) -> Option<Self> {
+        let mut first = true;
+        let mut argument_group_count = 0;
+
+        for (separator, _group) in &command_line_args
+            .command_and_initial_arguments
+            .iter()
+            .group_by(|arg| *arg == COMMANDS_FROM_ARGS_SEPARATOR)
+        {
+            if first {
+                if separator {
+                    return None;
+                }
+                first = false;
+            } else if !separator {
+                argument_group_count += 1;
+            }
+        }
+
+        let argument_group_count = argument_group_count;
+
+        debug!("argument_group_count = {}", argument_group_count);
+
+        let mut generated_regex = String::with_capacity(argument_group_count * 5);
+
+        for i in 0..argument_group_count {
+            if i != 0 {
+                generated_regex.push(' ');
+            }
+            generated_regex.push_str("(.*)");
+        }
+
+        Some(Self { generated_regex })
     }
 }
 
