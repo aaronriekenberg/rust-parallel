@@ -175,7 +175,6 @@ impl CommandLineRegex {
 
     fn expand<'a>(&self, argument: Cow<'a, str>, input_data: &str) -> Option<ExpandResult<'a>> {
         let captures = self.regex.captures(input_data)?;
-        let mut modified_argument = false;
 
         debug!(
             "in expand argument = {:?} input_data = {:?} captures = {:?}",
@@ -183,6 +182,7 @@ impl CommandLineRegex {
         );
 
         let mut argument = argument;
+        let mut modified_argument = false;
 
         let mut update_argument = |match_key, match_value| {
             if argument.contains(match_key) {
