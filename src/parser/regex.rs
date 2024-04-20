@@ -397,4 +397,34 @@ mod test {
 
         assert!(auto_regex.is_none());
     }
+
+    #[test]
+    fn test_auto_regex_not_command_line_args_mode() {
+        let command_line_args = CommandLineArgs {
+            regex: None,
+            command_and_initial_arguments: ["echo"].into_iter().map_into().collect(),
+            ..Default::default()
+        };
+
+        let auto_regex = AutoCommandLineArgsRegex::new(&command_line_args);
+
+        assert!(auto_regex.is_none());
+    }
+
+    #[test]
+    fn test_auto_regex() {
+        let command_line_args = CommandLineArgs {
+            regex: None,
+            command_and_initial_arguments: ["echo", ":::", "A", "B", ":::", "C", "D"]
+                .into_iter()
+                .map_into()
+                .collect(),
+            ..Default::default()
+        };
+
+        let auto_regex = AutoCommandLineArgsRegex::new(&command_line_args);
+
+        assert!(auto_regex.is_some());
+        assert_eq!(auto_regex.unwrap().0, "(.*) (.*)");
+    }
 }
