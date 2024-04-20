@@ -48,11 +48,10 @@ impl AutoCommandLineArgsRegex {
         let mut generated_regex = String::with_capacity(argument_group_count * 5);
 
         for i in 0..argument_group_count {
-            if i == 0 {
-                generated_regex.push_str("(.*)");
-            } else {
-                generated_regex.push_str(" (.*)");
+            if i != 0 {
+                generated_regex.push(' ');
             }
+            generated_regex.push_str("(.*)");
         }
 
         Some(Self { generated_regex })
