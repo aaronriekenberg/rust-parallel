@@ -23,15 +23,12 @@ impl RegexProcessor {
         let auto_regex = AutoCommandLineArgsRegex::new(command_line_args);
         debug!("auto_regex = {:?}", auto_regex);
 
-        let command_line_regex = match auto_regex {
-            Some(ref auto_regex) => Some(CommandLineRegex::new(&auto_regex.generated_regex)?),
-            None => match &command_line_args.regex {
-                Some(command_line_args_regex) => {
-                    Some(CommandLineRegex::new(command_line_args_regex)?)
-                }
-                None => None,
-            },
+        let command_line_regex = match (auto_regex, &command_line_args.regex) {
+            (Some(auto_regex), _) => Some(CommandLineRegex::new(&auto_regex.0)?),
+            (_, Some(cla_regex)) => Some(CommandLineRegex::new(cla_regex)?),
+            _ => None,
         };
+
         Ok(Arc::new(Self { command_line_regex }))
     }
 
@@ -169,9 +166,7 @@ impl CommandLineRegex {
 }
 
 #[derive(Debug)]
-struct AutoCommandLineArgsRegex {
-    generated_regex: String,
-}
+struct AutoCommandLineArgsRegex(String);
 
 impl AutoCommandLineArgsRegex {
     fn new(command_line_args: &CommandLineArgs) -> Option<Self> {
@@ -214,7 +209,7 @@ impl AutoCommandLineArgsRegex {
             generated_regex.push_str("(.*)");
         }
 
-        Some(Self { generated_regex })
+        Some(Self(generated_regex))
     }
 }
 
