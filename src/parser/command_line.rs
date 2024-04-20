@@ -77,12 +77,12 @@ impl CommandLineArgsParser {
         } else {
             let input_line = argument_group.join(" ");
 
-            let result = self
+            let apply_regex_result = self
                 .regex_processor
                 .apply_regex_to_arguments(first_command_and_args, &input_line)?;
 
-            if result != *first_command_and_args {
-                result
+            if apply_regex_result.modified_arguments {
+                apply_regex_result.arguments
             } else {
                 [first_command_and_args.clone(), argument_group].concat()
             }
