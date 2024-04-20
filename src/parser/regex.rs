@@ -58,6 +58,12 @@ impl AutoCommandLineArgsRegex {
     }
 }
 
+#[derive(Debug, Eq, PartialEq)]
+pub struct ApplyRegexToArgumentsResult {
+    pub arguments: Vec<String>,
+    pub modified_arguments: bool,
+}
+
 pub struct RegexProcessor {
     command_line_regex: Option<CommandLineRegex>,
 }
@@ -87,7 +93,7 @@ impl RegexProcessor {
         &self,
         arguments: &Vec<String>,
         input_data: &str,
-    ) -> Option<Vec<String>> {
+    ) -> Option<ApplyRegexToArgumentsResult> {
         let command_line_regex = match &self.command_line_regex {
             Some(command_line_regex) => command_line_regex,
             None => return None,
@@ -95,12 +101,14 @@ impl RegexProcessor {
 
         let mut results: Vec<String> = Vec::with_capacity(arguments.len());
         let mut found_match = false;
+        let mut modified_arguments = false;
 
         for argument in arguments {
             match command_line_regex.expand(argument.into(), input_data) {
                 Some(result) => {
-                    results.push(result.to_string());
+                    results.push(result.argument.to_string());
                     found_match = true;
+                    modified_arguments = modified_arguments || result.modified_argument;
                 }
                 None => {
                     results.push(argument.clone());
@@ -117,9 +125,18 @@ impl RegexProcessor {
             warn!("regex did not match input data: {}", input_data);
             None
         } else {
-            Some(results)
+            Some(ApplyRegexToArgumentsResult {
+                arguments: results,
+                modified_arguments,
+            })
         }
     }
+}
+
+#[derive(Debug)]
+struct ExpandResult<'a> {
+    argument: Cow<'a, str>,
+    modified_argument: bool,
 }
 
 struct CommandLineRegex {
@@ -156,8 +173,9 @@ impl CommandLineRegex {
         })
     }
 
-    fn expand<'a>(&self, argument: Cow<'a, str>, input_data: &str) -> Option<Cow<'a, str>> {
+    fn expand<'a>(&self, argument: Cow<'a, str>, input_data: &str) -> Option<ExpandResult<'a>> {
         let captures = self.regex.captures(input_data)?;
+        let mut modified_argument = false;
 
         debug!(
             "in expand argument = {:?} input_data = {:?} captures = {:?}",
@@ -169,6 +187,7 @@ impl CommandLineRegex {
         let mut update_argument = |match_key, match_value| {
             if argument.contains(match_key) {
                 argument = Cow::from(argument.replace(match_key, match_value));
+                modified_argument = true;
             }
         };
 
@@ -188,9 +207,14 @@ impl CommandLineRegex {
             }
         }
 
-        debug!("expand returning argument = {:?}", argument);
+        let result = ExpandResult {
+            argument,
+            modified_argument,
+        };
 
-        Some(argument)
+        debug!("expand returning result = {:?}", result);
+
+        Some(result)
     }
 }
 
@@ -230,7 +254,10 @@ mod test {
         let arguments = vec!["{1} {2}".to_string()];
         assert_eq!(
             regex_processor.apply_regex_to_arguments(&arguments, "hello,world"),
-            Some(vec!["hello world".to_string()])
+            Some(ApplyRegexToArgumentsResult {
+                arguments: vec!["hello world".to_string()],
+                modified_arguments: true,
+            })
         );
     }
 
@@ -248,7 +275,10 @@ mod test {
         let arguments = vec!["{arg1} {arg2}".to_string()];
         assert_eq!(
             regex_processor.apply_regex_to_arguments(&arguments, "hello,world"),
-            Some(vec!["hello world".to_string()])
+            Some(ApplyRegexToArgumentsResult {
+                arguments: vec!["hello world".to_string()],
+                modified_arguments: true,
+            })
         );
     }
 
@@ -267,10 +297,13 @@ mod test {
             vec![r#"{"id": 123, "$zero": "{0}", "one": "{1}", "two": "{2}"}"#.to_string()];
         assert_eq!(
             regex_processor.apply_regex_to_arguments(&arguments, "hello,world",),
-            Some(vec![
-                r#"{"id": 123, "$zero": "hello,world", "one": "hello", "two": "world"}"#
-                    .to_string(),
-            ])
+            Some(ApplyRegexToArgumentsResult {
+                arguments: vec![
+                    r#"{"id": 123, "$zero": "hello,world", "one": "hello", "two": "world"}"#
+                        .to_string(),
+                ],
+                modified_arguments: true,
+            })
         );
     }
 
@@ -289,10 +322,13 @@ mod test {
             vec![r#"{"id": 123, "$zero": "{0}", "one": "{arg1}", "two": "{arg2}"}"#.to_string()];
         assert_eq!(
             regex_processor.apply_regex_to_arguments(&arguments, "hello,world",),
-            Some(vec![
-                r#"{"id": 123, "$zero": "hello,world", "one": "hello", "two": "world"}"#
-                    .to_string(),
-            ])
+            Some(ApplyRegexToArgumentsResult {
+                arguments: vec![
+                    r#"{"id": 123, "$zero": "hello,world", "one": "hello", "two": "world"}"#
+                        .to_string()
+                ],
+                modified_arguments: true,
+            })
         );
     }
 
@@ -310,7 +346,10 @@ mod test {
         let arguments = vec![r#"{arg2}${FOO}{arg1}$BAR${BAR}{arg2}"#.to_string()];
         assert_eq!(
             regex_processor.apply_regex_to_arguments(&arguments, "hello,world"),
-            Some(vec![r#"world${FOO}hello$BAR${BAR}world"#.to_string()]),
+            Some(ApplyRegexToArgumentsResult {
+                arguments: vec![r#"world${FOO}hello$BAR${BAR}world"#.to_string()],
+                modified_arguments: true,
+            })
         );
     }
 
@@ -328,7 +367,10 @@ mod test {
         let arguments = vec!["{arg2},{arg1}".to_string()];
         assert_eq!(
             regex_processor.apply_regex_to_arguments(&arguments, "hello,world"),
-            Some(vec!["world,hello".to_string()]),
+            Some(ApplyRegexToArgumentsResult {
+                arguments: vec!["world,hello".to_string()],
+                modified_arguments: true,
+            }),
         );
 
         assert_eq!(
