@@ -458,4 +458,58 @@ mod test {
             ]
         );
     }
+
+    #[test]
+    fn test_auto_regex() {
+        let command_line_args = CommandLineArgs {
+            command_and_initial_arguments: [
+                "echo", "got", "arg1={1}", "arg2={2}", ":::", "foo", "bar", ":::", "baz", "qux",
+            ]
+            .into_iter()
+            .map_into()
+            .collect(),
+            ..Default::default()
+        };
+
+        let parser = CommandLineArgsParser::new(
+            &command_line_args,
+            &RegexProcessor::new(&command_line_args).unwrap(),
+        );
+
+        let result = collect_into_vec(parser);
+
+        assert_eq!(
+            result,
+            vec![
+                OwnedCommandAndArgs {
+                    command_path: PathBuf::from("echo"),
+                    args: ["got", "arg1=foo", "arg2=baz"]
+                        .into_iter()
+                        .map_into()
+                        .collect(),
+                },
+                OwnedCommandAndArgs {
+                    command_path: PathBuf::from("echo"),
+                    args: ["got", "arg1=foo", "arg2=qux"]
+                        .into_iter()
+                        .map_into()
+                        .collect(),
+                },
+                OwnedCommandAndArgs {
+                    command_path: PathBuf::from("echo"),
+                    args: ["got", "arg1=bar", "arg2=baz"]
+                        .into_iter()
+                        .map_into()
+                        .collect(),
+                },
+                OwnedCommandAndArgs {
+                    command_path: PathBuf::from("echo"),
+                    args: ["got", "arg1=bar", "arg2=qux"]
+                        .into_iter()
+                        .map_into()
+                        .collect(),
+                },
+            ]
+        );
+    }
 }
