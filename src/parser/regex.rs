@@ -2,7 +2,7 @@ use anyhow::Context;
 
 use itertools::Itertools;
 
-use tracing::{debug, warn};
+use tracing::warn;
 
 use std::{borrow::Cow, sync::Arc};
 
@@ -156,13 +156,15 @@ struct AutoCommandLineArgsRegex(String);
 impl AutoCommandLineArgsRegex {
     fn new(command_line_args: &CommandLineArgs) -> Option<Self> {
         if command_line_args.regex.is_none() && command_line_args.commands_from_args_mode() {
-            Self::new_auto_interpolate_args(command_line_args)
+            Self::new_auto_interpolate_commands_from_args(command_line_args)
         } else {
             None
         }
     }
 
-    fn new_auto_interpolate_args(command_line_args: &CommandLineArgs) -> Option<Self> {
+    fn new_auto_interpolate_commands_from_args(
+        command_line_args: &CommandLineArgs,
+    ) -> Option<Self> {
         let mut first = true;
         let mut argument_group_count = 0;
 
@@ -182,8 +184,6 @@ impl AutoCommandLineArgsRegex {
         }
 
         let argument_group_count = argument_group_count;
-
-        debug!("argument_group_count = {}", argument_group_count);
 
         let mut generated_regex = String::with_capacity(argument_group_count * 5);
 
