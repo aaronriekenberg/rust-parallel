@@ -9,7 +9,7 @@ VERSION=$($RUST_PARALLEL -V | cut -f2 -d' ')
 echo "## Manual for rust-parallel $VERSION"
 
 echo '
-1. [Command line](#command-line)
+1. [Command line options](#command-line-options)
 1. [Commands from arguments](#commands-from-arguments)
 1. [Commands from stdin](#commands-from-stdin)
 1. [Command and initial arguments on command line](#command-and-initial-arguments-on-command-line)
@@ -33,7 +33,7 @@ echo '
    1. [Demo of function and initial arguments on command line, additional arguments from stdin](#demo-of-function-and-initial-arguments-on-command-line-additional-arguments-from-stdin)
 '
 
-echo '## Command line'
+echo '## Command line options'
 
 echo '```
 $ rust-parallel --help'
@@ -57,6 +57,14 @@ echo '
 # run gzip -k on all *.html files in current directory
 $ rust-parallel gzip -k ::: *.html
 ```'
+
+echo 'Variables `{0}`, `{1}`, etc are automatically available based on the number of arguments.  `{0}` will be replaced by the entire input line, and other groups match individual argument groups  This is useful for building more complex command lines.  For example:
+'
+
+echo '````
+$ rust-parallel echo group0={0} group1={1} group2={2} group3={3} group2again={2} ::: A B ::: C D ::: E F G'
+$RUST_PARALLEL echo group0={0} group1={1} group2={2} group3={3} group2again={2} ::: A B ::: C D ::: E F G
+echo '```'
 
 echo '## Commands from stdin
 
