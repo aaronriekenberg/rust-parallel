@@ -61,7 +61,7 @@ $ rust-parallel gzip -k ::: *.html
 echo 'Variables `{0}`, `{1}`, etc are automatically available based on the number of arguments.  `{0}` will be replaced by the entire input line, and other groups match individual argument groups  This is useful for building more complex command lines.  For example:
 '
 
-echo '````
+echo '```
 $ rust-parallel echo group0={0} group1={1} group2={2} group3={3} group2again={2} ::: A B ::: C D ::: E F G'
 $RUST_PARALLEL echo group0={0} group1={1} group2={2} group3={3} group2again={2} ::: A B ::: C D ::: E F G
 echo '```'
