@@ -45,7 +45,7 @@ impl CommandPathCache {
             return Ok(match cached_value {
                 CacheValue::NotResolvable => None,
                 CacheValue::Resolved(cached_path) => {
-                    command_and_args.command_path = cached_path.clone();
+                    command_and_args.command_path.clone_from(cached_path);
                     Some(command_and_args)
                 }
             });
