@@ -61,7 +61,7 @@ $ rust-parallel gzip -k ::: *.html
 
 echo '### Automatic Variables'
 
-echo 'When using commands from arguments, numbered variables `{0}`, `{1}`, etc are automatically available based on the number of arguments.  `{0}` will be replaced by the entire input line, and other groups match individual argument groups  This is useful for building more complex command lines.  For example:
+echo 'When using commands from arguments, numbered variables `{0}`, `{1}`, etc are automatically available based on the number of arguments.  `{0}` will be replaced by the entire input line, and other groups match individual argument groups.  This is useful for building more complex command lines.  For example:
 '
 
 echo '```
