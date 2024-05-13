@@ -17,9 +17,9 @@ Listed in [Awesome Rust - utilities](https://github.com/rust-unofficial/awesome-
 Similar interface to [GNU Parallel](https://www.gnu.org/software/parallel/parallel_examples.html) or [xargs](https://man7.org/linux/man-pages/man1/xargs.1.html) plus useful features:
 * Run commands from [stdin](https://github.com/aaronriekenberg/rust-parallel/wiki/Manual#commands-from-stdin), [input files](https://github.com/aaronriekenberg/rust-parallel/wiki/Manual#reading-multiple-inputs), or [`:::` arguments](https://github.com/aaronriekenberg/rust-parallel/wiki/Manual#commands-from-arguments)
 * Automatic parallelism to all cpus, or [configure manually](https://github.com/aaronriekenberg/rust-parallel/wiki/Manual#parallelism)
+* More than 10x faster than GNU Parallel [in benchmarks](https://github.com/aaronriekenberg/rust-parallel/wiki/Benchmarks)
 * Transform inputs with [variables](https://github.com/aaronriekenberg/rust-parallel/wiki/Manual#automatic-variables) or [regular expressions](https://github.com/aaronriekenberg/rust-parallel/wiki/Manual#regular-expression)
 * Prevent [output interleaving](https://github.com/aaronriekenberg/rust-parallel/wiki/Output-Interleaving)
-* [Very fast in benchmarks](https://github.com/aaronriekenberg/rust-parallel/wiki/Benchmarks)
 * Shell mode to run [bash functions](https://github.com/aaronriekenberg/rust-parallel/wiki/Manual#bash-function) and [commands](https://github.com/aaronriekenberg/rust-parallel/wiki/Manual#shell-commands)
 * [TUI progress bar](https://github.com/aaronriekenberg/rust-parallel/wiki/Manual#progress-bar) using [indicatif](https://github.com/console-rs/indicatif)
 * [Path cache](https://github.com/aaronriekenberg/rust-parallel/wiki/Manual#path-cache)
