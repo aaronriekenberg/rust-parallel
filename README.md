@@ -2,11 +2,13 @@
 
 [crates-badge]: https://img.shields.io/crates/v/rust-parallel.svg
 [crates-url]: https://crates.io/crates/rust-parallel
+[homebrew-badge]: https://img.shields.io/homebrew/v/rust-parallel.svg
+[homebrew-url]: https://formulae.brew.sh/formula/rust-parallel
 
 [ci-badge]: https://github.com/aaronriekenberg/rust-parallel/actions/workflows/CI.yml/badge.svg
 [ci-url]: https://github.com/aaronriekenberg/rust-parallel/actions/workflows/CI.yml 
 
-[![Crates.io][crates-badge]][crates-url] [![CI workflow][ci-badge]][ci-url]
+[![Crates.io][crates-badge]][crates-url] [![Homebrew][homebrew-badge]][homebrew-url] [![CI workflow][ci-badge]][ci-url]
 
 Run commands in parallel and aggregate outputs.  Async application using [tokio](https://tokio.rs).
 
@@ -33,19 +35,31 @@ Similar interface to [GNU Parallel](https://www.gnu.org/software/parallel/parall
 * [Documents](#documents)
 * [Tech Stack](#tech-stack)
 
-## Installation:
-Recommended:
+## Installation
+
+### Homebrew
+
+With [Homebrew](https://brew.sh) installed, run
+
+```sh
+brew install rust-parallel
+```
+
+### Pre-built release
 
 1. Download a pre-built release from [Github Releases](https://github.com/aaronriekenberg/rust-parallel/releases) for Linux, MacOS, or Windows.
-2. Extract the executable and put somewhere in your $PATH.
+2. Extract the executable and put it somewhere in your $PATH.
 
-For manual installation/update:
+### From Crates.io via Cargo
+
 1. [Install Rust](https://www.rust-lang.org/learn/get-started)
 2. Install the latest version of this app from [crates.io](https://crates.io/crates/rust-parallel):
-```
-$ cargo install rust-parallel   
-```
-3. The same `cargo install rust-parallel` command will also update to the latest version after initial installation.
+   
+    ```
+    $ cargo install rust-parallel   
+    ```
+
+The same `cargo install rust-parallel` command will also update to the latest version after initial installation.
 
 ## Documents:
 1. [Examples](https://github.com/aaronriekenberg/rust-parallel/wiki/Examples) - complete runnable commands to give an idea of overall features.
