@@ -40,10 +40,7 @@ impl RegexProcessor {
         arguments: &Vec<String>,
         input_data: &str,
     ) -> Option<ApplyRegexToArgumentsResult> {
-        let command_line_regex = match &self.command_line_regex {
-            Some(command_line_regex) => command_line_regex,
-            None => return None,
-        };
+        let command_line_regex = self.command_line_regex.as_ref()?;
 
         let mut results: Vec<String> = Vec::with_capacity(arguments.len());
         let mut found_input_data_match = false;
