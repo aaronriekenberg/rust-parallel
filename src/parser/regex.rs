@@ -51,12 +51,12 @@ impl RegexProcessor {
 
         for argument in arguments {
             match command_line_regex.expand(argument.into(), input_data) {
-                Some(result) => {
+                Ok(result) => {
                     results.push(result.argument.to_string());
                     found_input_data_match = true;
                     modified_arguments = modified_arguments || result.modified_argument;
                 }
-                None => {
+                Err(ExpandError::RegexDoesNotMatchInputData) => {
                     results.push(argument.clone());
                 }
             };
@@ -78,6 +78,12 @@ impl RegexProcessor {
 struct ExpandResult<'a> {
     argument: Cow<'a, str>,
     modified_argument: bool,
+}
+
+#[derive(thiserror::Error, Debug)]
+enum ExpandError {
+    #[error("regex does not match input data")]
+    RegexDoesNotMatchInputData,
 }
 
 struct CommandLineRegex {
@@ -114,8 +120,15 @@ impl CommandLineRegex {
         })
     }
 
-    fn expand<'a>(&self, argument: Cow<'a, str>, input_data: &str) -> Option<ExpandResult<'a>> {
-        let captures = self.regex.captures(input_data)?;
+    fn expand<'a>(
+        &self,
+        argument: Cow<'a, str>,
+        input_data: &str,
+    ) -> Result<ExpandResult<'a>, ExpandError> {
+        let captures = self
+            .regex
+            .captures(input_data)
+            .ok_or(ExpandError::RegexDoesNotMatchInputData)?;
 
         let mut argument = argument;
         let mut modified_argument = false;
@@ -143,7 +156,7 @@ impl CommandLineRegex {
             }
         }
 
-        Some(ExpandResult {
+        Ok(ExpandResult {
             argument,
             modified_argument,
         })
