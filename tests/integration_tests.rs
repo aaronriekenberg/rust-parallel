@@ -271,10 +271,11 @@ fn runs_regex_from_input_file_j1() {
         .arg("arg2={arg2}")
         .arg("arg3={arg3}")
         .arg("dollarzero={0}")
+        .arg("emptygroup={}")
         .assert()
         .success()
         .stdout(predicate::eq(
-            "arg1=1 arg2=2 arg3=3 dollarzero=1,2,3\narg1=foo arg2=bar arg3=baz dollarzero=foo,bar,baz\n",
+            "arg1=1 arg2=2 arg3=3 dollarzero=1,2,3 emptygroup=1,2,3\narg1=foo arg2=bar arg3=baz dollarzero=foo,bar,baz emptygroup=foo,bar,baz\n",
         ))
         .stderr(predicate::str::is_empty());
 }
@@ -315,13 +316,14 @@ fn runs_regex_from_command_line_args_j1() {
         .arg("arg2={2}")
         .arg("arg3={3}")
         .arg("dollarzero={0}")
+        .arg("emptygroup={}")
         .arg(":::")
         .arg("a,b,c")
         .arg("d,e,f")
         .assert()
         .success()
         .stdout(predicate::eq(
-            "arg1=a arg2=b arg3=c dollarzero=a,b,c\narg1=d arg2=e arg3=f dollarzero=d,e,f\n",
+            "arg1=a arg2=b arg3=c dollarzero=a,b,c emptygroup=a,b,c\narg1=d arg2=e arg3=f dollarzero=d,e,f emptygroup=d,e,f\n",
         ))
         .stderr(predicate::str::is_empty());
 }
@@ -375,6 +377,7 @@ fn runs_auto_regex_from_command_line_args_j1() {
         .arg("arg1={1}")
         .arg("arg2={2}")
         .arg("dollarzero={0}")
+        .arg("emptygroup={}")
         .arg(":::")
         .arg("a")
         .arg("b")
@@ -384,15 +387,15 @@ fn runs_auto_regex_from_command_line_args_j1() {
         .assert()
         .success()
         .stdout(predicate::eq(
-            "arg1=a arg2=c dollarzero=a c\narg1=a arg2=d dollarzero=a d\narg1=b arg2=c dollarzero=b c\narg1=b arg2=d dollarzero=b d\n",
+            "arg1=a arg2=c dollarzero=a c emptygroup=a c\narg1=a arg2=d dollarzero=a d emptygroup=a d\narg1=b arg2=c dollarzero=b c emptygroup=b c\narg1=b arg2=d dollarzero=b d emptygroup=b d\n",
         ))
         .stderr(predicate::str::is_empty());
 }
 
 #[test]
 fn runs_regex_from_input_file_produce_json_named_groups_j1() {
-    let expected_stdout = r#"{"id": 123, "zero": "1,2,3", "one": "1", "two": "2", "three": "3"}
-{"id": 123, "zero": "foo,bar,baz", "one": "foo", "two": "bar", "three": "baz"}
+    let expected_stdout = r#"{"id": 123, "zero": "1,2,3", "empty": "1,2,3", "one": "1", "two": "2", "three": "3"}
+{"id": 123, "zero": "foo,bar,baz", "empty": "foo,bar,baz", "one": "foo", "two": "bar", "three": "baz"}
 "#;
 
     rust_parallel()
@@ -402,7 +405,7 @@ fn runs_regex_from_input_file_produce_json_named_groups_j1() {
         .arg("-r")
         .arg("(?P<arg1>.*),(?P<arg2>.*),(?P<arg3>.*)")
         .arg("echo")
-        .arg(r#"{"id": 123, "zero": "{0}", "one": "{arg1}", "two": "{arg2}", "three": "{arg3}"}"#)
+        .arg(r#"{"id": 123, "zero": "{0}", "empty": "{}", "one": "{arg1}", "two": "{arg2}", "three": "{arg3}"}"#)
         .assert()
         .success()
         .stdout(predicate::eq(expected_stdout))
@@ -411,8 +414,8 @@ fn runs_regex_from_input_file_produce_json_named_groups_j1() {
 
 #[test]
 fn runs_regex_from_input_file_produce_json_numbered_groups_j1() {
-    let expected_stdout = r#"{"id": 123, "zero": "1,2,3", "three": "3", "two": "2", "one": "1"}
-{"id": 123, "zero": "foo,bar,baz", "three": "baz", "two": "bar", "one": "foo"}
+    let expected_stdout = r#"{"id": 123, "zero": "1,2,3", "empty": "1,2,3", "three": "3", "two": "2", "one": "1"}
+{"id": 123, "zero": "foo,bar,baz", "empty": "foo,bar,baz", "three": "baz", "two": "bar", "one": "foo"}
 "#;
 
     rust_parallel()
@@ -422,7 +425,7 @@ fn runs_regex_from_input_file_produce_json_numbered_groups_j1() {
         .arg("-r")
         .arg("(.*),(.*),(.*)")
         .arg("echo")
-        .arg(r#"{"id": 123, "zero": "{0}", "three": "{3}", "two": "{2}", "one": "{1}"}"#)
+        .arg(r#"{"id": 123, "zero": "{0}", "empty": "{}", "three": "{3}", "two": "{2}", "one": "{1}"}"#)
         .assert()
         .success()
         .stdout(predicate::eq(expected_stdout))

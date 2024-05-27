@@ -142,6 +142,10 @@ impl CommandLineRegex {
             if let (Some(match_value), Some(match_key)) =
                 (match_option, self.numbered_group_match_keys.get(i))
             {
+                // make {} have the same behavior as {0}
+                if i == 0 {
+                    update_argument("{}", match_value.as_str());
+                }
                 update_argument(match_key, match_value.as_str());
             }
         }
@@ -298,6 +302,31 @@ mod test {
     }
 
     #[test]
+    fn test_regex_numbered_groups_json_empty_group() {
+        let command_line_args = CommandLineArgs {
+            regex: Some("(.*),(.*)".to_string()),
+            ..Default::default()
+        };
+
+        let regex_processor = RegexProcessor::new(&command_line_args).unwrap();
+
+        assert_eq!(regex_processor.regex_mode(), true);
+
+        let arguments =
+            vec![r#"{"id": 123, "$zero": "{}", "one": "{1}", "two": "{2}"}"#.to_string()];
+        assert_eq!(
+            regex_processor.apply_regex_to_arguments(&arguments, "hello,world",),
+            Some(ApplyRegexToArgumentsResult {
+                arguments: vec![
+                    r#"{"id": 123, "$zero": "hello,world", "one": "hello", "two": "world"}"#
+                        .to_string(),
+                ],
+                modified_arguments: true,
+            })
+        );
+    }
+
+    #[test]
     fn test_regex_named_groups_json() {
         let command_line_args = CommandLineArgs {
             regex: Some("(?P<arg1>.*),(?P<arg2>.*)".to_string()),
@@ -310,6 +339,31 @@ mod test {
 
         let arguments =
             vec![r#"{"id": 123, "$zero": "{0}", "one": "{arg1}", "two": "{arg2}"}"#.to_string()];
+        assert_eq!(
+            regex_processor.apply_regex_to_arguments(&arguments, "hello,world",),
+            Some(ApplyRegexToArgumentsResult {
+                arguments: vec![
+                    r#"{"id": 123, "$zero": "hello,world", "one": "hello", "two": "world"}"#
+                        .to_string()
+                ],
+                modified_arguments: true,
+            })
+        );
+    }
+
+    #[test]
+    fn test_regex_named_groups_json_empty_group() {
+        let command_line_args = CommandLineArgs {
+            regex: Some("(?P<arg1>.*),(?P<arg2>.*)".to_string()),
+            ..Default::default()
+        };
+
+        let regex_processor = RegexProcessor::new(&command_line_args).unwrap();
+
+        assert_eq!(regex_processor.regex_mode(), true);
+
+        let arguments =
+            vec![r#"{"id": 123, "$zero": "{}", "one": "{arg1}", "two": "{arg2}"}"#.to_string()];
         assert_eq!(
             regex_processor.apply_regex_to_arguments(&arguments, "hello,world",),
             Some(ApplyRegexToArgumentsResult {
