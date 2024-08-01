@@ -44,7 +44,7 @@ impl CommandLineArgsParser {
 
         for (separator, group) in &command_and_initial_arguments
             .iter()
-            .group_by(|arg| *arg == COMMANDS_FROM_ARGS_SEPARATOR)
+            .chunk_by(|arg| *arg == COMMANDS_FROM_ARGS_SEPARATOR)
         {
             let group_vec = group.cloned().collect();
 

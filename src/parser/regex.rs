@@ -185,7 +185,7 @@ impl AutoCommandLineArgsRegex {
         for (separator, _group) in &command_line_args
             .command_and_initial_arguments
             .iter()
-            .group_by(|arg| *arg == COMMANDS_FROM_ARGS_SEPARATOR)
+            .chunk_by(|arg| *arg == COMMANDS_FROM_ARGS_SEPARATOR)
         {
             if first {
                 if separator {
