@@ -3,9 +3,9 @@ use itertools::Itertools;
 use std::{collections::VecDeque, sync::Arc};
 
 use crate::{
-    command_line_args::{CommandLineArgs, COMMANDS_FROM_ARGS_SEPARATOR},
+    command_line_args::{COMMANDS_FROM_ARGS_SEPARATOR, CommandLineArgs},
     common::OwnedCommandAndArgs,
-    parser::{regex::RegexProcessor, ShellCommandAndArgs},
+    parser::{ShellCommandAndArgs, regex::RegexProcessor},
 };
 
 #[derive(Debug)]

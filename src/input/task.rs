@@ -8,13 +8,13 @@ use std::sync::Arc;
 
 use crate::{
     command_line_args::CommandLineArgs,
-    parser::{buffered::BufferedInputLineParser, command_line::CommandLineArgsParser, Parsers},
+    parser::{Parsers, buffered::BufferedInputLineParser, command_line::CommandLineArgsParser},
     progress::Progress,
 };
 
 use super::{
-    buffered_reader::BufferedInputReader, BufferedInput, Input, InputLineNumber, InputList,
-    InputMessage,
+    BufferedInput, Input, InputLineNumber, InputList, InputMessage,
+    buffered_reader::BufferedInputReader,
 };
 
 pub struct InputTask {

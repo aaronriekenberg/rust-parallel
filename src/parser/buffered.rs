@@ -5,7 +5,7 @@ use std::sync::Arc;
 use crate::{
     command_line_args::CommandLineArgs,
     common::OwnedCommandAndArgs,
-    parser::{regex::RegexProcessor, ShellCommandAndArgs},
+    parser::{ShellCommandAndArgs, regex::RegexProcessor},
 };
 
 pub struct BufferedInputLineParser {

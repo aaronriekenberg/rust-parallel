@@ -4,7 +4,7 @@ mod task;
 use anyhow::Context;
 
 use tokio::{
-    sync::mpsc::{channel, Receiver},
+    sync::mpsc::{Receiver, channel},
     task::JoinHandle,
 };
 
