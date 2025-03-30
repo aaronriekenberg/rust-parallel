@@ -17,7 +17,7 @@ impl Progress {
         let progress_bar = if !command_line_args.progress_bar {
             None
         } else {
-            let style_info = style::choose_progress_style()?;
+            let style_info = style::choose_progress_style(command_line_args)?;
 
             let progress_bar = ProgressBar::new(0);
             if style_info.enable_steady_tick {
