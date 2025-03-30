@@ -6,7 +6,7 @@ use tracing::warn;
 
 use std::{borrow::Cow, sync::Arc};
 
-use crate::command_line_args::{CommandLineArgs, COMMANDS_FROM_ARGS_SEPARATOR};
+use crate::command_line_args::{COMMANDS_FROM_ARGS_SEPARATOR, CommandLineArgs};
 
 #[derive(Debug, Eq, PartialEq)]
 pub struct ApplyRegexToArgumentsResult {

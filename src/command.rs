@@ -5,7 +5,7 @@ use anyhow::Context;
 
 use tokio::sync::Semaphore;
 
-use tracing::{debug, error, info, instrument, span_enabled, trace, Level, Span};
+use tracing::{Level, Span, debug, error, info, instrument, span_enabled, trace};
 
 use std::sync::Arc;
 

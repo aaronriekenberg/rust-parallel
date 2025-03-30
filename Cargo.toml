@@ -2,7 +2,7 @@
 name = "rust-parallel"
 version = "1.18.1"
 authors = ["Aaron Riekenberg <aaron.riekenberg@gmail.com>"]
-edition = "2021"
+edition = "2024"
 categories = ["asynchronous", "command-line-interface", "concurrency"]
 description = "Fast command line app in rust/tokio to run commands in parallel. Similar interface to GNU parallel or xargs."
 keywords = ["cli", "parallel", "tokio"]

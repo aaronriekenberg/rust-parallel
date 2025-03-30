@@ -13,13 +13,11 @@ const SIMPLE_PROGRESS_STYLE_TEMPLATE: &str =
 
 const LIGHT_BG_PROGRESS_STYLE: &str = "light_bg";
 
-const LIGHT_BG_PROGRESS_STYLE_TEMPLATE: &str =
-    "{spinner:.blue.bold} [{elapsed_precise}] Commands Done/Total: {pos:>2}/{len:2} [{wide_bar:.blue.bold/red}] ETA {eta_precise}";
+const LIGHT_BG_PROGRESS_STYLE_TEMPLATE: &str = "{spinner:.blue.bold} [{elapsed_precise}] Commands Done/Total: {pos:>2}/{len:2} [{wide_bar:.blue.bold/red}] ETA {eta_precise}";
 
 const DARK_BG_PROGRESS_STYLE: &str = "dark_bg";
 
-const DARK_BG_PROGRESS_STYLE_TEMPLATE: &str =
-    "{spinner:.cyan.bold} [{elapsed_precise}] Commands Done/Total: {pos:>2}/{len:2} [{wide_bar:.cyan.bold/blue}] ETA {eta_precise}";
+const DARK_BG_PROGRESS_STYLE_TEMPLATE: &str = "{spinner:.cyan.bold} [{elapsed_precise}] Commands Done/Total: {pos:>2}/{len:2} [{wide_bar:.cyan.bold/blue}] ETA {eta_precise}";
 
 pub struct ProgressStyleInfo {
     _style_name: &'static str,
