@@ -2,7 +2,7 @@ use anyhow::Context;
 
 use indicatif::ProgressStyle;
 
-use std::{borrow::Cow, env};
+use crate::command_line_args::CommandLineArgs;
 
 const DEFAULT_PROGRESS_STYLE: &str = "default";
 
@@ -21,18 +21,21 @@ const DARK_BG_PROGRESS_STYLE: &str = "dark_bg";
 const DARK_BG_PROGRESS_STYLE_TEMPLATE: &str =
     "{spinner:.cyan.bold} [{elapsed_precise}] Commands Done/Total: {pos:>2}/{len:2} [{wide_bar:.cyan.bold/blue}] ETA {eta_precise}";
 
-const PROGRESS_STYLE: &str = "PROGRESS_STYLE";
-
 pub struct ProgressStyleInfo {
     _style_name: &'static str,
     pub progress_style: ProgressStyle,
     pub enable_steady_tick: bool,
 }
 
-pub fn choose_progress_style() -> anyhow::Result<ProgressStyleInfo> {
-    let setting = env::var(PROGRESS_STYLE).map_or(Cow::from(DEFAULT_PROGRESS_STYLE), Cow::from);
+pub fn choose_progress_style(
+    command_line_args: &CommandLineArgs,
+) -> anyhow::Result<ProgressStyleInfo> {
+    let setting = match command_line_args.progress_bar_style {
+        None => DEFAULT_PROGRESS_STYLE,
+        Some(ref style) => style,
+    };
 
-    match &*setting {
+    match setting {
         SIMPLE_PROGRESS_STYLE => Ok(ProgressStyleInfo {
             _style_name: SIMPLE_PROGRESS_STYLE,
             progress_style: ProgressStyle::with_template(SIMPLE_PROGRESS_STYLE_TEMPLATE)
@@ -61,64 +64,83 @@ pub fn choose_progress_style() -> anyhow::Result<ProgressStyleInfo> {
 mod test {
     use super::*;
 
-    // Ideas from: https://github.com/tokio-rs/tracing/pull/2647/files
     #[test]
-    fn test_choose_progress_style() {
-        // Restores the previous value of the `PROGRESS_STYLE` env variable when
-        // dropped.
-        //
-        // This is done in a `Drop` implementation, rather than just resetting
-        // the value at the end of the test, so that the previous value is
-        // restored even if the test panics.
-        struct RestoreEnvVar(Result<String, env::VarError>);
-        impl Drop for RestoreEnvVar {
-            fn drop(&mut self) {
-                match self.0 {
-                    Ok(ref var) => env::set_var(PROGRESS_STYLE, var),
-                    Err(_) => env::remove_var(PROGRESS_STYLE),
-                }
-            }
-        }
+    fn test_choose_progress_style_no_style_specified() {
+        let command_line_args = CommandLineArgs {
+            ..Default::default()
+        };
 
-        let _saved_progress_style = RestoreEnvVar(env::var(PROGRESS_STYLE));
-
-        env::remove_var(PROGRESS_STYLE);
-        let result = choose_progress_style();
+        let result = choose_progress_style(&command_line_args);
         assert_eq!(result.is_err(), false);
         let result = result.unwrap();
         assert_eq!(result._style_name, LIGHT_BG_PROGRESS_STYLE);
         assert_eq!(result.enable_steady_tick, true);
+    }
 
-        env::set_var(PROGRESS_STYLE, DEFAULT_PROGRESS_STYLE);
-        let result = choose_progress_style();
+    #[test]
+    fn test_choose_progress_style_default_style_specified() {
+        let command_line_args = CommandLineArgs {
+            progress_bar_style: Some(DEFAULT_PROGRESS_STYLE.to_string()),
+            ..Default::default()
+        };
+
+        let result = choose_progress_style(&command_line_args);
         assert_eq!(result.is_err(), false);
         let result = result.unwrap();
         assert_eq!(result._style_name, LIGHT_BG_PROGRESS_STYLE);
         assert_eq!(result.enable_steady_tick, true);
+    }
 
-        env::set_var(PROGRESS_STYLE, LIGHT_BG_PROGRESS_STYLE);
-        let result = choose_progress_style();
+    #[test]
+    fn test_choose_progress_style_light_bg_style_specified() {
+        let command_line_args = CommandLineArgs {
+            progress_bar_style: Some(LIGHT_BG_PROGRESS_STYLE.to_string()),
+            ..Default::default()
+        };
+
+        let result = choose_progress_style(&command_line_args);
         assert_eq!(result.is_err(), false);
         let result = result.unwrap();
         assert_eq!(result._style_name, LIGHT_BG_PROGRESS_STYLE);
         assert_eq!(result.enable_steady_tick, true);
+    }
 
-        env::set_var(PROGRESS_STYLE, DARK_BG_PROGRESS_STYLE);
-        let result = choose_progress_style();
+    #[test]
+    fn test_choose_progress_style_dark_bg_style_specified() {
+        let command_line_args = CommandLineArgs {
+            progress_bar_style: Some(DARK_BG_PROGRESS_STYLE.to_string()),
+            ..Default::default()
+        };
+
+        let result = choose_progress_style(&command_line_args);
         assert_eq!(result.is_err(), false);
         let result = result.unwrap();
         assert_eq!(result._style_name, DARK_BG_PROGRESS_STYLE);
         assert_eq!(result.enable_steady_tick, true);
+    }
 
-        env::set_var(PROGRESS_STYLE, SIMPLE_PROGRESS_STYLE);
-        let result = choose_progress_style();
+    #[test]
+    fn test_choose_progress_style_simple_style_specified() {
+        let command_line_args = CommandLineArgs {
+            progress_bar_style: Some(SIMPLE_PROGRESS_STYLE.to_string()),
+            ..Default::default()
+        };
+
+        let result = choose_progress_style(&command_line_args);
         assert_eq!(result.is_err(), false);
         let result = result.unwrap();
         assert_eq!(result._style_name, SIMPLE_PROGRESS_STYLE);
         assert_eq!(result.enable_steady_tick, false);
+    }
 
-        env::set_var(PROGRESS_STYLE, "unknown");
-        let result = choose_progress_style();
+    #[test]
+    fn test_choose_progress_style_unknown_style_specified() {
+        let command_line_args = CommandLineArgs {
+            progress_bar_style: Some("unknown".to_string()),
+            ..Default::default()
+        };
+
+        let result = choose_progress_style(&command_line_args);
         assert_eq!(result.is_err(), true);
     }
 }
