@@ -16,6 +16,7 @@ echo '
 1. [Command and initial arguments on command line](#command-and-initial-arguments-on-command-line)
 1. [Reading multiple inputs](#reading-multiple-inputs)
 1. [Parallelism](#parallelism)
+1. [Keep Output Order](#keep-output-order)
 1. [Dry run](#dry-run)
 1. [Debug logging](#debug-logging)
 1. [Error handling](#error-handling)
@@ -155,6 +156,25 @@ $RUST_PARALLEL -j5 echo ::: hi there how are you
 echo '
 $ rust-parallel -j1 echo ::: hi there how are you'
 $RUST_PARALLEL -j1 echo ::: hi there how are you
+
+echo '```'
+
+echo '## Keep Output Order
+
+By default, command outputs are displayed as soon as each command completes, which may not be in the same order as the input.
+
+Use option `-k`/`--keep-order` to ensure outputs are displayed in the same order as the input.
+
+With `-k` all outputs will be displayed in the same order as the input, regardless of when commands complete.
+'
+
+echo '```
+$ rust-parallel -k echo ::: hi there how are you'
+$RUST_PARALLEL -k echo ::: hi there how are you
+
+echo '
+$ rust-parallel -j1 -k echo ::: hi there how are you'
+$RUST_PARALLEL -j1 -k echo ::: hi there how are you
 
 echo '```'
 
