@@ -58,6 +58,45 @@ fn runs_echo_commands_from_args_j1() {
 }
 
 #[test]
+fn runs_echo_commands_from_args_keep_order() {
+    rust_parallel()
+        .arg("-k")
+        .arg("echo")
+        .arg(":::")
+        .arg("A")
+        .arg("B")
+        .arg("C")
+        .assert()
+        .success()
+        .stdout(
+            (predicate::str::contains("\n").count(3))
+                .and(predicate::str::contains("A\n").count(1))
+                .and(predicate::str::contains("B\n").count(1))
+                .and(predicate::str::contains("C\n").count(1)),
+        )
+        .stderr(predicate::str::is_empty());
+}
+
+#[test]
+fn test_keep_order_with_sleep() {
+    // This test uses sleep commands with different durations
+    // Without -k, the output would be in the order of completion (C, B, A)
+    // With -k, the output should be in the order of input (A, B, C)
+    rust_parallel()
+        .arg("-k")
+        .arg("-s")
+        .arg(r#"sleep {1}; echo {1}"#)
+        .arg(":::")
+        .arg("0.3")
+        .arg("0.2")
+        .arg("0.1")
+        .assert()
+        .success()
+        .stdout(predicate::eq("0.3\n0.2\n0.1\n"))
+        .stderr(predicate::str::is_empty());
+}
+
+#[test]
 fn runs_echo_commands_dry_run() {
     rust_parallel()
         .arg("-s")
