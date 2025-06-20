@@ -13,7 +13,10 @@ pub struct OutputTask {
 
 impl OutputTask {
     pub fn new(receiver: Receiver<OutputMessage>, keep_order: bool) -> Self {
-        Self { receiver, keep_order }
+        Self {
+            receiver,
+            keep_order,
+        }
     }
 
     #[instrument(skip_all, name = "OutputTask::run", level = "debug")]
