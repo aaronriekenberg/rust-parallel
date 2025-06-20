@@ -77,6 +77,10 @@ pub struct CommandLineArgs {
     #[arg(long)]
     pub no_run_if_empty: bool,
 
+    /// Keep output in the same order as input.
+    #[arg(short, long)]
+    pub keep_order: bool,
+
     /// Path to shell to use for shell mode
     #[arg(long, default_value = Self::default_shell())]
     pub shell_path: String,
