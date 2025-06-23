@@ -49,4 +49,24 @@ impl Progress {
             progress_bar.finish();
         }
     }
+
+    pub fn println(&self, message: impl AsRef<str>) {
+        if let Some(progress_bar) = &self.progress_bar {
+            progress_bar.suspend(|| {
+                println!("{}", message.as_ref());
+            });
+        } else {
+            println!("{}", message.as_ref());
+        }
+    }
+
+    pub fn eprintln(&self, message: impl AsRef<str>) {
+        if let Some(progress_bar) = &self.progress_bar {
+            progress_bar.suspend(|| {
+                eprintln!("{}", message.as_ref());
+            });
+        } else {
+            eprintln!("{}", message.as_ref());
+        }
+    }
 }

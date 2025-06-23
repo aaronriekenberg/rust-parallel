@@ -1,21 +1,26 @@
-use tokio::{io::AsyncWrite, sync::mpsc::Receiver};
+use tokio::sync::mpsc::Receiver;
 
-use tracing::{debug, error, instrument, trace};
+use tracing::{debug, error, instrument};
 
 use std::collections::BTreeMap;
+use std::sync::Arc;
+
+use crate::progress::Progress;
 
 use super::OutputMessage;
 
 pub struct OutputTask {
     receiver: Receiver<OutputMessage>,
     keep_order: bool,
+    progress: Arc<Progress>,
 }
 
 impl OutputTask {
-    pub fn new(receiver: Receiver<OutputMessage>, keep_order: bool) -> Self {
+    pub fn new(receiver: Receiver<OutputMessage>, keep_order: bool, progress: Arc<Progress>) -> Self {
         Self {
             receiver,
             keep_order,
+            progress,
         }
     }
 
@@ -23,21 +28,18 @@ impl OutputTask {
     pub async fn run(self) {
         debug!("begin run");
 
-        async fn copy(mut buffer: &[u8], output_stream: &mut (impl AsyncWrite + Unpin)) {
-            let result = tokio::io::copy(&mut buffer, &mut *output_stream).await;
-            trace!("copy result = {:?}", result);
-        }
-
-        async fn process_output_message(
-            output_message: OutputMessage,
-            stdout: &mut (impl AsyncWrite + Unpin),
-            stderr: &mut (impl AsyncWrite + Unpin),
-        ) {
+        fn process_output_message(output_message: OutputMessage, progress: &Progress) {
             if !output_message.stdout.is_empty() {
-                copy(&output_message.stdout, stdout).await;
+                let stdout_str = String::from_utf8_lossy(&output_message.stdout);
+                for line in stdout_str.lines() {
+                    progress.println(line);
+                }
             }
             if !output_message.stderr.is_empty() {
-                copy(&output_message.stderr, stderr).await;
+                let stderr_str = String::from_utf8_lossy(&output_message.stderr);
+                for line in stderr_str.lines() {
+                    progress.eprintln(line);
+                }
             }
             if !output_message.exit_status.success() {
                 error!(
@@ -49,9 +51,7 @@ impl OutputTask {
             }
         }
 
-        let mut stdout = tokio::io::stdout();
-        let mut stderr = tokio::io::stderr();
-
+        let progress = &self.progress;
         let mut receiver = self.receiver;
 
         if self.keep_order {
@@ -67,19 +67,19 @@ impl OutputTask {
 
                 // Process any buffered outputs that are ready (in order)
                 while let Some(output_message) = buffered_outputs.remove(&next_line_number) {
-                    process_output_message(output_message, &mut stdout, &mut stderr).await;
+                    process_output_message(output_message, progress);
                     next_line_number += 1;
                 }
             }
 
             // Process any remaining buffered outputs
             for (_, output_message) in buffered_outputs.into_iter() {
-                process_output_message(output_message, &mut stdout, &mut stderr).await;
+                process_output_message(output_message, progress);
             }
         } else {
             // When keep-order is disabled, process outputs as they arrive (original behavior)
             while let Some(output_message) = receiver.recv().await {
-                process_output_message(output_message, &mut stdout, &mut stderr).await;
+                process_output_message(output_message, progress);
             }
         }
 

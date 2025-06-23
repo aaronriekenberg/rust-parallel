@@ -13,7 +13,9 @@ use std::process::{ExitStatus, Output};
 
 use crate::{
     command_line_args::CommandLineArgs, common::OwnedCommandAndArgs, input::InputLineNumber,
+    progress::Progress,
 };
+use std::sync::Arc;
 
 #[derive(Debug)]
 struct OutputMessage {
@@ -59,7 +61,7 @@ pub struct OutputWriter {
 }
 
 impl OutputWriter {
-    pub fn new(command_line_args: &CommandLineArgs) -> Self {
+    pub fn new(command_line_args: &CommandLineArgs, progress: Arc<Progress>) -> Self {
         let (sender, receiver) = channel(command_line_args.channel_capacity);
         debug!(
             "created output channel with capacity {}",
@@ -67,7 +69,7 @@ impl OutputWriter {
         );
 
         let output_task_join_handle =
-            tokio::spawn(task::OutputTask::new(receiver, command_line_args.keep_order).run());
+            tokio::spawn(task::OutputTask::new(receiver, command_line_args.keep_order, progress).run());
 
         Self {
             sender,
