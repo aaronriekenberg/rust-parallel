@@ -2,6 +2,8 @@ mod task;
 
 use anyhow::Context;
 
+use indicatif::ProgressBar;
+
 use tokio::{
     sync::mpsc::{Sender, channel},
     task::JoinHandle,
@@ -9,7 +11,7 @@ use tokio::{
 
 use tracing::{debug, warn};
 
-use std::process::{ExitStatus, Output};
+use std::{process::{ExitStatus, Output}, sync::Arc};
 
 use crate::{
     command_line_args::CommandLineArgs, common::OwnedCommandAndArgs, input::InputLineNumber,
@@ -59,15 +61,22 @@ pub struct OutputWriter {
 }
 
 impl OutputWriter {
-    pub fn new(command_line_args: &CommandLineArgs) -> Self {
+    pub fn new(
+        command_line_args: &CommandLineArgs,
+        progress_bar: Option<Arc<ProgressBar>>,
+    ) -> Self {
         let (sender, receiver) = channel(command_line_args.channel_capacity);
         debug!(
             "created output channel with capacity {}",
             command_line_args.channel_capacity,
         );
 
-        let output_task_join_handle =
-            tokio::spawn(task::OutputTask::new(receiver, command_line_args.keep_order).run());
+        let output_task_join_handle = tokio::spawn(task::OutputTask::new(
+            receiver,
+            command_line_args.keep_order,
+            progress_bar,
+        )
+        .run());
 
         Self {
             sender,
