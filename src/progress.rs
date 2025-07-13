@@ -9,7 +9,7 @@ use std::sync::Arc;
 use crate::command_line_args::CommandLineArgs;
 
 pub struct Progress {
-    progress_bar: Option<ProgressBar>,
+    progress_bar: Option<Arc<ProgressBar>>,
 }
 
 impl Progress {
@@ -19,7 +19,7 @@ impl Progress {
         } else {
             let style_info = style::choose_progress_style(command_line_args)?;
 
-            let progress_bar = ProgressBar::new(0);
+            let progress_bar = Arc::new(ProgressBar::new(0));
             if style_info.enable_steady_tick {
                 progress_bar.enable_steady_tick(Duration::from_millis(100));
             }
@@ -48,5 +48,9 @@ impl Progress {
         if let Some(progress_bar) = &self.progress_bar {
             progress_bar.finish();
         }
+    }
+
+    pub fn progress_bar(&self) -> Option<Arc<ProgressBar>> {
+        self.progress_bar.as_ref().map(Arc::clone)
     }
 }

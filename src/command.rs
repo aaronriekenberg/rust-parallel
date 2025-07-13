@@ -110,14 +110,14 @@ impl CommandService {
         let context = Arc::new(CommandRunContext {
             child_process_factory: ChildProcessFactory::new(command_line_args),
             command_metrics: CommandMetrics::default(),
-            progress,
+            progress: Arc::clone(&progress),
         });
         Self {
             command_line_args,
             command_path_cache: CommandPathCache::new(command_line_args),
             command_semaphore: Arc::new(Semaphore::new(command_line_args.jobs)),
             context,
-            output_writer: OutputWriter::new(command_line_args),
+            output_writer: OutputWriter::new(command_line_args, progress.progress_bar()),
         }
     }
 
