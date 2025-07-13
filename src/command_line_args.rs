@@ -125,7 +125,7 @@ impl CommandLineArgs {
         if range.contains(&value) {
             Ok(value)
         } else {
-            Err(format!("value not in range {:?}", range))
+            Err(format!("value not in range {range:?}"))
         }
     }
 

@@ -101,11 +101,11 @@ impl CommandLineRegex {
         let mut named_group_to_match_key = Vec::with_capacity(capture_names.len());
 
         for (i, capture_name_option) in capture_names.enumerate() {
-            let match_key = format!("{{{}}}", i);
+            let match_key = format!("{{{i}}}");
             numbered_group_match_keys.push(match_key);
 
             if let Some(capture_name) = capture_name_option {
-                let match_key = format!("{{{}}}", capture_name);
+                let match_key = format!("{{{capture_name}}}");
                 named_group_to_match_key.push((capture_name.to_owned(), match_key));
             }
         }

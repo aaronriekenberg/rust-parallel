@@ -25,7 +25,7 @@ impl std::fmt::Display for BufferedInput {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Stdin => write!(f, "stdin"),
-            Self::File { file_name } => write!(f, "{}", file_name),
+            Self::File { file_name } => write!(f, "{file_name}"),
         }
     }
 }
@@ -40,7 +40,7 @@ pub enum Input {
 impl std::fmt::Display for Input {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::Buffered(b) => write!(f, "{}", b),
+            Self::Buffered(b) => write!(f, "{b}"),
             Self::CommandLineArgs => write!(f, "command_line_args"),
         }
     }

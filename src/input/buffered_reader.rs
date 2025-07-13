@@ -45,7 +45,7 @@ impl BufferedInputReader {
             }
             BufferedInput::File { file_name } => {
                 let file = tokio::fs::File::open(file_name).await.with_context(|| {
-                    format!("error opening input file file_name = '{}'", file_name)
+                    format!("error opening input file file_name = '{file_name}'")
                 })?;
                 let buf_reader = BufReader::new(file);
 
