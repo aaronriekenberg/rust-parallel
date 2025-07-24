@@ -57,7 +57,7 @@ impl OutputTask {
         if self.keep_order {
             // When keep-order is enabled, buffer outputs and process them in order
             let mut buffered_outputs: BTreeMap<usize, OutputMessage> = BTreeMap::new();
-            let mut next_line_number = 0;
+            let mut next_line_number = 1;
 
             while let Some(output_message) = receiver.recv().await {
                 let line_number = output_message.input_line_number.line_number;
