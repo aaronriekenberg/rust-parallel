@@ -1,11 +1,10 @@
 use std::process::Command;
 
-use assert_cmd::cargo::CommandCargoExt;
-
+use assert_cmd::cargo;
 use predicates::prelude::*;
 
 fn rust_parallel_raw_command() -> Command {
-    let mut cmd = Command::cargo_bin("rust-parallel").unwrap();
+    let mut cmd = Command::new(cargo::cargo_bin!());
     cmd.current_dir("tests/");
     cmd
 }
