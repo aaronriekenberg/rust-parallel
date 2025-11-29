@@ -2,7 +2,7 @@ use anyhow::Context;
 
 use tokio::sync::Mutex;
 
-use tracing::warn;
+use tracing::error;
 
 use std::{collections::HashMap, path::PathBuf};
 
@@ -60,7 +60,7 @@ impl CommandPathCache {
         let full_path = match which_result {
             Ok(path) => path,
             Err(e) => {
-                warn!("error resolving path {:?}: {}", command_path, e);
+                error!("error resolving path {:?}: {}", command_path, e);
                 cache.insert(command_path.clone(), CacheValue::NotResolvable);
                 return Ok(None);
             }
