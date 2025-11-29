@@ -62,7 +62,7 @@ impl CommandPathCache {
         let full_path = match which_result {
             Ok(path) => path,
             Err(e) => {
-                error!("error resolving path {:?}: {}", command_path, e);
+                error!("error resolving path {command_path:?}: {e}");
                 cache.insert(command_path.to_path_buf(), CacheValue::NotResolvable);
                 return Ok(None);
             }
