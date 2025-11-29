@@ -7,7 +7,7 @@ use tokio::sync::Semaphore;
 
 use tracing::{Level, Span, debug, error, info, instrument, span_enabled, trace};
 
-use std::{borrow::Cow, sync::Arc};
+use std::sync::Arc;
 
 use crate::{
     command_line_args::CommandLineArgs,
@@ -167,9 +167,11 @@ impl CommandService {
             input_line_number,
         } = input_message;
 
+        let command_path = &command_and_args.command_path;
+
         let Some(command_path) = self
             .command_path_cache
-            .resolve_command_path(Cow::from(&command_and_args.command_path))
+            .resolve_command_path(command_path.into())
             .await?
         else {
             error!("command path cache error resolving command path: {command_and_args:?}");
