@@ -47,7 +47,7 @@ impl CommandPathCache {
         if let Some(cached_value) = cache.get(command_path.as_ref()) {
             return Ok(match cached_value {
                 CacheValue::NotResolvable => None,
-                CacheValue::Resolved(cached_path) => Some(Cow::Owned(cached_path.to_path_buf())),
+                CacheValue::Resolved(cached_path) => Some(Cow::Owned(cached_path.clone())),
             });
         }
 
