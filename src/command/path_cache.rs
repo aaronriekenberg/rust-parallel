@@ -4,7 +4,11 @@ use tokio::sync::Mutex;
 
 use tracing::error;
 
-use std::{collections::HashMap, path::PathBuf};
+use std::{
+    borrow::Cow,
+    collections::HashMap,
+    path::{Path, PathBuf},
+};
 
 use crate::command_line_args::CommandLineArgs;
 
@@ -27,24 +31,26 @@ impl CommandPathCache {
         }
     }
 
-    pub async fn resolve_command_path(
+    pub async fn resolve_command_path<'a>(
         &self,
-        command_path: &PathBuf,
-    ) -> anyhow::Result<Option<PathBuf>> {
+        command_path: Cow<'a, Path>,
+    ) -> anyhow::Result<Option<Cow<'a, Path>>> {
         if !self.enabled {
-            return Ok(Some(command_path.clone()));
+            return Ok(Some(command_path));
         }
+
+        let command_path_buf = command_path.to_path_buf();
 
         let mut cache = self.cache.lock().await;
 
-        if let Some(cached_value) = cache.get(command_path) {
+        if let Some(cached_value) = cache.get(&command_path_buf) {
             return Ok(match cached_value {
                 CacheValue::NotResolvable => None,
-                CacheValue::Resolved(cached_path) => Some(cached_path.clone()),
+                CacheValue::Resolved(cached_path) => Some(Cow::Owned(cached_path.to_path_buf())),
             });
         }
 
-        let command_path_clone = command_path.clone();
+        let command_path_clone = command_path_buf.clone();
 
         let which_result = tokio::task::spawn_blocking(move || which::which(command_path_clone))
             .await
@@ -54,16 +60,13 @@ impl CommandPathCache {
             Ok(path) => path,
             Err(e) => {
                 error!("error resolving path {:?}: {}", command_path, e);
-                cache.insert(command_path.clone(), CacheValue::NotResolvable);
+                cache.insert(command_path_buf, CacheValue::NotResolvable);
                 return Ok(None);
             }
         };
 
-        cache.insert(
-            command_path.clone(),
-            CacheValue::Resolved(full_path.clone()),
-        );
+        cache.insert(command_path_buf, CacheValue::Resolved(full_path.clone()));
 
-        Ok(Some(full_path))
+        Ok(Some(Cow::from(full_path)))
     }
 }
