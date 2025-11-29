@@ -62,12 +62,17 @@ $ rust-parallel gzip -k ::: *.html
 
 echo '### Automatic Variables'
 
-echo 'When using commands from arguments, numbered variables `{0}`, `{1}`, etc are automatically available based on the number of arguments.  `{0}` will be replaced by the entire input line, and other groups match individual argument groups.  This is useful for building more complex command lines.  For example:
+echo 'When using commands from arguments, numbered variables `{0}`, `{1}`, etc are automatically available based on the number of arguments.  `{0}` will be replaced by the entire input line, and other groups match individual argument groups.  `{}` is the same as `{0}`.  This is useful for building more complex command lines.  For example:
 '
 
 echo '```
 $ rust-parallel echo group0={0} group1={1} group2={2} group3={3} group2again={2} ::: A B ::: C D ::: E F G'
 $RUST_PARALLEL echo group0={0} group1={1} group2={2} group3={3} group2again={2} ::: A B ::: C D ::: E F G
+echo '```'
+
+echo '```
+$ rust-parallel echo entireline={} group1={1} group2={2} group3={3} group2again={2} ::: A B ::: C D ::: E F G'
+$RUST_PARALLEL echo entireline={} group1={1} group2={2} group3={3} group2again={2} ::: A B ::: C D ::: E F G
 echo '```'
 
 echo 'Internally these variables are implemented using an auto-generated [regular expression](#regular-expression).  If a regular expression is manually specified this will override the auto-generated one.'
@@ -305,7 +310,7 @@ Regular expressions can be specified by the `-r` or `--regex` command line argum
 
 ### Named Capture Groups
 
-In these examples using command line arguments `{url}` and `{filename}` are named capture groups.  `{0}` is a numbered capture group.
+In these examples using command line arguments `{url}` and `{filename}` are named capture groups.  `{}` is a variable meaning the entire input line.
 '
 
 echo '```'
@@ -313,14 +318,14 @@ echo -e '$ rust-parallel -r \x27(?P<url>.*),(?P<filename>.*)\x27 echo got url={u
 $RUST_PARALLEL -r '(?P<url>.*),(?P<filename>.*)' echo got url={url} filename={filename} ::: URL1,filename1 URL2,filename2
 
 echo
-echo -e '$ rust-parallel -r \x27(?P<url>.*) (?P<filename>.*)\x27 echo got url={url} filename={filename} full input={0} ::: URL1 URL2 ::: filename1 filename2'
-$RUST_PARALLEL -r '(?P<url>.*) (?P<filename>.*)' echo got url={url} filename={filename} full input={0} ::: URL1 URL2 ::: filename1 filename2
+echo -e '$ rust-parallel -r \x27(?P<url>.*) (?P<filename>.*)\x27 echo got url={url} filename={filename} full input={} ::: URL1 URL2 ::: filename1 filename2'
+$RUST_PARALLEL -r '(?P<url>.*) (?P<filename>.*)' echo got url={url} filename={filename} full input={} ::: URL1 URL2 ::: filename1 filename2
 
 echo '```'
 
 echo '### Numbered Capture Groups
 
-In the next example input file arguments `{0}` `{1}` `{2}` `{3}` are numbered capture groups, and the input is a csv file:'
+In the next example input file arguments `{1}` `{2}` `{3}` are numbered capture groups, `{}` is a variable meaning the entire input line.  The input is a csv file:'
 
 echo '```'
 echo '$ cat >./test <<EOL
@@ -335,8 +340,8 @@ foo3,bar3,baz3
 EOL
 
 echo
-echo -e '$ cat test | rust-parallel -r \x27(.*),(.*),(.*)\x27 echo got arg1={1} arg2={2} arg3={3} full input={0}'
-cat test | $RUST_PARALLEL -r '(.*),(.*),(.*)' echo got arg1={1} arg2={2} arg3={3} full input={0}
+echo -e '$ cat test | rust-parallel -r \x27(.*),(.*),(.*)\x27 echo got arg1={1} arg2={2} arg3={3} full input={}'
+cat test | $RUST_PARALLEL -r '(.*),(.*),(.*)' echo got arg1={1} arg2={2} arg3={3} full input={}
 
 echo '```'
 
