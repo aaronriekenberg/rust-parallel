@@ -19,15 +19,17 @@ enum CacheValue {
 }
 
 pub struct CommandPathCache {
-    enabled: bool,
-    cache: Mutex<HashMap<PathBuf, CacheValue>>,
+    cache: Option<Mutex<HashMap<PathBuf, CacheValue>>>,
 }
 
 impl CommandPathCache {
     pub fn new(command_line_args: &CommandLineArgs) -> Self {
         Self {
-            enabled: !command_line_args.disable_path_cache,
-            cache: Mutex::new(HashMap::new()),
+            cache: if command_line_args.disable_path_cache {
+                None
+            } else {
+                Some(Mutex::new(HashMap::new()))
+            },
         }
     }
 
@@ -35,11 +37,12 @@ impl CommandPathCache {
         &self,
         command_path: Cow<'a, Path>,
     ) -> anyhow::Result<Option<Cow<'a, Path>>> {
-        if !self.enabled {
-            return Ok(Some(command_path));
-        }
+        let cache = match &self.cache {
+            None => return Ok(Some(command_path)),
+            Some(cache) => cache,
+        };
 
-        let mut cache = self.cache.lock().await;
+        let mut cache = cache.lock().await;
 
         if let Some(cached_value) = cache.get(command_path.as_ref()) {
             return Ok(match cached_value {
