@@ -6,7 +6,7 @@ use tracing::error;
 
 use std::{collections::HashMap, path::PathBuf};
 
-use crate::{command_line_args::CommandLineArgs, common::OwnedCommandAndArgs};
+use crate::command_line_args::CommandLineArgs;
 
 enum CacheValue {
     NotResolvable,
@@ -29,25 +29,18 @@ impl CommandPathCache {
 
     pub async fn resolve_command_path(
         &self,
-        command_and_args: OwnedCommandAndArgs,
-    ) -> anyhow::Result<Option<OwnedCommandAndArgs>> {
+        command_path: &PathBuf,
+    ) -> anyhow::Result<Option<PathBuf>> {
         if !self.enabled {
-            return Ok(Some(command_and_args));
+            return Ok(Some(command_path.clone()));
         }
-
-        let mut command_and_args = command_and_args;
-
-        let command_path = &command_and_args.command_path;
 
         let mut cache = self.cache.lock().await;
 
         if let Some(cached_value) = cache.get(command_path) {
             return Ok(match cached_value {
                 CacheValue::NotResolvable => None,
-                CacheValue::Resolved(cached_path) => {
-                    command_and_args.command_path.clone_from(cached_path);
-                    Some(command_and_args)
-                }
+                CacheValue::Resolved(cached_path) => Some(cached_path.clone()),
             });
         }
 
@@ -71,8 +64,6 @@ impl CommandPathCache {
             CacheValue::Resolved(full_path.clone()),
         );
 
-        command_and_args.command_path = full_path;
-
-        Ok(Some(command_and_args))
+        Ok(Some(full_path))
     }
 }

@@ -126,14 +126,19 @@ impl CommandService {
         command_and_args: OwnedCommandAndArgs,
         input_line_number: InputLineNumber,
     ) -> anyhow::Result<()> {
-        let Some(command_and_args) = self
+        let Some(command_path) = self
             .command_path_cache
-            .resolve_command_path(command_and_args)
+            .resolve_command_path(&command_and_args.command_path)
             .await?
         else {
-            error!("command path cache error resolving command");
+            error!("command path cache error resolving command path: {command_and_args:?}");
             self.context.command_metrics.increment_spawn_errors();
             return Ok(());
+        };
+
+        let command_and_args = OwnedCommandAndArgs {
+            command_path,
+            args: command_and_args.args,
         };
 
         let command = Command {

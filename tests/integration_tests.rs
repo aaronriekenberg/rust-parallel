@@ -583,3 +583,46 @@ fn test_exit_status_on_failing_commands_exit_on_error() {
         )
         .stderr(predicate::str::contains("cat: A: No such file or directory").count(1));
 }
+
+#[test]
+fn test_unresolvable_command() {
+    rust_parallel()
+        .arg("badcat")
+        .arg(":::")
+        .arg("A")
+        .arg("B")
+        .arg("C")
+        .assert()
+        .failure()
+        .code(1)
+        .stdout(
+            (predicate::str::contains("command path cache error resolving command path").count(3))
+                .and(
+                    predicate::str::contains(
+                        "error resolving path \"badcat\": cannot find binary path",
+                    )
+                    .count(1),
+                )
+                .and(predicate::str::contains("command failures:"))
+                .and(predicate::str::contains("spawn_errors=3")),
+        );
+}
+
+#[test]
+fn test_unresolvable_command_disable_path_cache() {
+    rust_parallel()
+        .arg("--disable-path-cache")
+        .arg("badcat")
+        .arg(":::")
+        .arg("A")
+        .arg("B")
+        .arg("C")
+        .assert()
+        .failure()
+        .code(1)
+        .stdout(
+            (predicate::str::contains("spawn error command").count(3))
+                .and(predicate::str::contains("command failures:"))
+                .and(predicate::str::contains("spawn_errors=3")),
+        );
+}
