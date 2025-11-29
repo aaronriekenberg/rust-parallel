@@ -2,7 +2,7 @@ use anyhow::Context;
 
 use tokio::sync::Mutex;
 
-use tracing::error;
+use tracing::{debug, error};
 
 use std::{
     borrow::Cow,
@@ -53,6 +53,8 @@ impl CommandPathCache {
 
         let command_path_clone = command_path.to_path_buf();
 
+        debug!("calling which command_path={command_path:?}");
+
         let which_result = tokio::task::spawn_blocking(move || which::which(command_path_clone))
             .await
             .context("spawn_blocking error")?;
@@ -65,6 +67,8 @@ impl CommandPathCache {
                 return Ok(None);
             }
         };
+
+        debug!("resolved command_path={command_path:?} to full_path={full_path:?}");
 
         cache.insert(
             command_path.to_path_buf(),
