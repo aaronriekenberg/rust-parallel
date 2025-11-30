@@ -1,10 +1,8 @@
 use anyhow::Context;
 
-use tokio::sync::Mutex;
-
 use tracing::{debug, error};
 
-use std::{collections::HashMap, path::PathBuf};
+use std::{cell::RefCell, collections::HashMap, path::PathBuf};
 
 use crate::command_line_args::CommandLineArgs;
 
@@ -15,7 +13,7 @@ enum CacheValue {
 }
 
 pub struct CommandPathCache {
-    cache: Option<Mutex<HashMap<PathBuf, CacheValue>>>,
+    cache: Option<RefCell<HashMap<PathBuf, CacheValue>>>,
 }
 
 impl CommandPathCache {
@@ -24,7 +22,7 @@ impl CommandPathCache {
             cache: if command_line_args.disable_path_cache {
                 None
             } else {
-                Some(Mutex::new(HashMap::new()))
+                Some(RefCell::new(HashMap::new()))
             },
         }
     }
@@ -38,16 +36,14 @@ impl CommandPathCache {
             Some(cache) => cache,
         };
 
-        let mut cache = cache.lock().await;
-
-        if let Some(cached_value) = cache.get(&command_path) {
+        if let Some(cached_value) = cache.borrow().get(&command_path) {
             return Ok(match cached_value {
                 CacheValue::NotResolvable => None,
                 CacheValue::Resolved(cached_path) => Some(cached_path.clone()),
             });
         }
 
-        let command_path_clone = command_path.to_path_buf();
+        let command_path_clone = command_path.clone();
 
         debug!("calling which command_path={command_path:?}");
 
@@ -55,19 +51,21 @@ impl CommandPathCache {
             .await
             .context("spawn_blocking error")?;
 
+        let mut cache_ref = cache.borrow_mut();
+
         let full_path = match which_result {
             Ok(path) => path,
             Err(e) => {
                 error!("error resolving path {command_path:?}: {e}");
-                cache.insert(command_path.to_path_buf(), CacheValue::NotResolvable);
+                cache_ref.insert(command_path.clone(), CacheValue::NotResolvable);
                 return Ok(None);
             }
         };
 
         debug!("resolved command_path={command_path:?} to full_path={full_path:?}");
 
-        cache.insert(
-            command_path.to_path_buf(),
+        cache_ref.insert(
+            command_path.clone(),
             CacheValue::Resolved(full_path.clone()),
         );
 
