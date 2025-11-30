@@ -4,11 +4,7 @@ use tokio::sync::Mutex;
 
 use tracing::{debug, error};
 
-use std::{
-    borrow::Cow,
-    collections::HashMap,
-    path::{Path, PathBuf},
-};
+use std::{collections::HashMap, path::PathBuf};
 
 use crate::command_line_args::CommandLineArgs;
 
@@ -33,10 +29,10 @@ impl CommandPathCache {
         }
     }
 
-    pub async fn resolve_command_path<'a>(
+    pub async fn resolve_command_path(
         &self,
-        command_path: Cow<'a, Path>,
-    ) -> anyhow::Result<Option<Cow<'a, Path>>> {
+        command_path: PathBuf,
+    ) -> anyhow::Result<Option<PathBuf>> {
         let cache = match &self.cache {
             None => return Ok(Some(command_path)),
             Some(cache) => cache,
@@ -44,10 +40,10 @@ impl CommandPathCache {
 
         let mut cache = cache.lock().await;
 
-        if let Some(cached_value) = cache.get(command_path.as_ref()) {
+        if let Some(cached_value) = cache.get(&command_path) {
             return Ok(match cached_value {
                 CacheValue::NotResolvable => None,
-                CacheValue::Resolved(cached_path) => Some(Cow::Owned(cached_path.clone())),
+                CacheValue::Resolved(cached_path) => Some(cached_path.clone()),
             });
         }
 
@@ -75,6 +71,6 @@ impl CommandPathCache {
             CacheValue::Resolved(full_path.clone()),
         );
 
-        Ok(Some(Cow::from(full_path)))
+        Ok(Some(full_path))
     }
 }

@@ -167,11 +167,9 @@ impl CommandService {
             input_line_number,
         } = input_message;
 
-        let command_path = &command_and_args.command_path;
-
         let Some(command_path) = self
             .command_path_cache
-            .resolve_command_path(command_path.into())
+            .resolve_command_path(command_and_args.command_path.clone())
             .await?
         else {
             error!("command path cache error resolving command path: {command_and_args:?}");
@@ -180,7 +178,7 @@ impl CommandService {
         };
 
         let command_and_args = OwnedCommandAndArgs {
-            command_path: command_path.to_path_buf(),
+            command_path,
             args: command_and_args.args,
         };
 
