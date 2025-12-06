@@ -172,7 +172,7 @@ impl CommandService {
             .resolve_command_path(command_and_args.command_path.clone())
             .await?
         else {
-            error!("command path cache error resolving command path: {command_and_args:?}");
+            error!("command path cache error resolving command path: {command_and_args}");
             self.context.command_metrics.increment_spawn_errors();
             return Ok(());
         };
