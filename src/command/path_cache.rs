@@ -53,22 +53,20 @@ impl CommandPathCache {
 
         let mut cache_ref = cache.borrow_mut();
 
-        let full_path = match which_result {
-            Ok(path) => path,
+        Ok(match which_result {
+            Ok(full_path) => {
+                debug!("resolved command_path={command_path:?} to full_path={full_path:?}");
+                cache_ref.insert(
+                    command_path.clone(),
+                    CacheValue::Resolved(full_path.clone()),
+                );
+                Some(full_path)
+            }
             Err(e) => {
                 error!("error resolving path {command_path:?}: {e}");
                 cache_ref.insert(command_path.clone(), CacheValue::NotResolvable);
-                return Ok(None);
+                None
             }
-        };
-
-        debug!("resolved command_path={command_path:?} to full_path={full_path:?}");
-
-        cache_ref.insert(
-            command_path.clone(),
-            CacheValue::Resolved(full_path.clone()),
-        );
-
-        Ok(Some(full_path))
+        })
     }
 }
