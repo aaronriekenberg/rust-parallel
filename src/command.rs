@@ -48,6 +48,8 @@ impl Command {
             stdin,
         } = &self.command_and_args;
 
+        // TODO: pass stdin to child process
+
         command_metrics.increment_commands_run();
 
         let child_process = match context
@@ -181,11 +183,7 @@ impl CommandService {
             return Ok(());
         };
 
-        let command_and_args = OwnedCommandAndArgs {
-            command_path,
-            args: command_and_args.args,
-            stdin: command_and_args.stdin,
-        };
+        let command_and_args = command_and_args.with_command_path(command_path);
 
         self.spawn_command(command_and_args, input_line_number)
             .await?;

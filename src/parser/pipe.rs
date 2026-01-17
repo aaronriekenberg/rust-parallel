@@ -2,7 +2,7 @@ use crate::{
     command_line_args::CommandLineArgs, common::OwnedCommandAndArgs, parser::ShellCommandAndArgs,
 };
 
-const BLOCK_SIZE_BYTES: usize = 1024;
+const BLOCK_SIZE_BYTES: usize = 1_024 * 1_024; // 1 MB
 
 pub struct PipeModeParser {
     // split_whitespace: bool,
@@ -35,7 +35,7 @@ impl PipeModeParser {
         }
     }
 
-    pub fn parse_line(&mut self, input_line: &str) -> Option<OwnedCommandAndArgs> {
+    fn parse_line(&mut self, input_line: &str) -> Option<OwnedCommandAndArgs> {
         self.buffered_data.push_str(input_line);
         self.buffered_data.push('\n');
 

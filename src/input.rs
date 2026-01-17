@@ -70,12 +70,12 @@ enum InputList {
 }
 
 fn build_input_list(command_line_args: &'static CommandLineArgs) -> InputList {
-    if command_line_args.commands_from_args_mode() {
+    if command_line_args.pipe {
+        InputList::Pipe
+    } else if command_line_args.commands_from_args_mode() {
         InputList::CommandLineArgs
     } else if command_line_args.input_file.is_empty() {
         InputList::BufferedInputList(vec![BufferedInput::Stdin])
-    } else if command_line_args.pipe {
-        InputList::Pipe
     } else {
         InputList::BufferedInputList(
             command_line_args

@@ -52,6 +52,11 @@ impl TryFrom<Vec<String>> for OwnedCommandAndArgs {
 }
 
 impl OwnedCommandAndArgs {
+    pub fn with_command_path(mut self, command_path: PathBuf) -> Self {
+        self.command_path = command_path;
+        self
+    }
+
     pub fn with_stdin(mut self, stdin: String) -> Self {
         self.stdin = Some(stdin);
         self
