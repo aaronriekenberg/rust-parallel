@@ -96,6 +96,7 @@ mod test {
             Some(OwnedCommandAndArgs {
                 command_path: PathBuf::from("echo"),
                 args: vec!["hi", "there"].into_iter().map_into().collect(),
+                ..Default::default()
             })
         );
 
@@ -106,6 +107,7 @@ mod test {
             Some(OwnedCommandAndArgs {
                 command_path: PathBuf::from("echo"),
                 args: vec!["hi", "there"].into_iter().map_into().collect(),
+                ..Default::default()
             })
         );
 
@@ -116,6 +118,7 @@ mod test {
             Some(OwnedCommandAndArgs {
                 command_path: PathBuf::from("/bin/echo"),
                 args: vec![],
+                ..Default::default()
             })
         );
 
@@ -148,6 +151,7 @@ mod test {
                     .into_iter()
                     .map_into()
                     .collect(),
+                ..Default::default()
             })
         );
     }
@@ -178,6 +182,7 @@ mod test {
                     .into_iter()
                     .map_into()
                     .collect(),
+                ..Default::default()
             })
         );
 
@@ -205,6 +210,7 @@ mod test {
                     .into_iter()
                     .map_into()
                     .collect(),
+                ..Default::default()
             })
         );
     }
@@ -254,6 +260,7 @@ mod test {
             Some(OwnedCommandAndArgs {
                 command_path: PathBuf::from("md5"),
                 args: vec!["-s", "stuff"].into_iter().map_into().collect(),
+                ..Default::default()
             })
         );
 
@@ -267,6 +274,7 @@ mod test {
                     .into_iter()
                     .map_into()
                     .collect(),
+                ..Default::default()
             })
         );
     }
@@ -297,6 +305,7 @@ mod test {
                     .into_iter()
                     .map_into()
                     .collect(),
+                ..Default::default()
             })
         );
     }
@@ -327,6 +336,7 @@ mod test {
                     .into_iter()
                     .map_into()
                     .collect(),
+                ..Default::default()
             })
         );
     }

@@ -42,7 +42,11 @@ impl Command {
 
         let command_metrics = &context.command_metrics;
 
-        let OwnedCommandAndArgs { command_path, args } = &self.command_and_args;
+        let OwnedCommandAndArgs {
+            command_path,
+            args,
+            stdin,
+        } = &self.command_and_args;
 
         command_metrics.increment_commands_run();
 
@@ -180,6 +184,7 @@ impl CommandService {
         let command_and_args = OwnedCommandAndArgs {
             command_path,
             args: command_and_args.args,
+            stdin: command_and_args.stdin,
         };
 
         self.spawn_command(command_and_args, input_line_number)

@@ -81,6 +81,10 @@ pub struct CommandLineArgs {
     #[arg(short, long)]
     pub keep_order: bool,
 
+    /// Use pipe input mode
+    #[arg(long)]
+    pub pipe: bool,
+
     /// Path to shell to use for shell mode
     #[arg(long, default_value = Self::default_shell())]
     pub shell_path: String,

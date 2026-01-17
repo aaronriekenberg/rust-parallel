@@ -1,14 +1,23 @@
 use std::{collections::VecDeque, path::PathBuf};
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq, Default)]
 pub struct OwnedCommandAndArgs {
     pub command_path: PathBuf,
     pub args: Vec<String>,
+    pub stdin: Option<String>,
 }
 
 impl std::fmt::Display for OwnedCommandAndArgs {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "cmd={:?},args={:?}", self.command_path, self.args)
+        let stdin_len = match &self.stdin {
+            Some(s) => s.len(),
+            None => 0,
+        };
+        write!(
+            f,
+            "cmd={:?},args={:?},stdin.len={:?}",
+            self.command_path, self.args, stdin_len
+        )
     }
 }
 
@@ -29,6 +38,7 @@ impl TryFrom<VecDeque<String>> for OwnedCommandAndArgs {
         Ok(Self {
             command_path: PathBuf::from(command),
             args: deque.into(),
+            stdin: None,
         })
     }
 }
@@ -38,5 +48,12 @@ impl TryFrom<Vec<String>> for OwnedCommandAndArgs {
 
     fn try_from(vec: Vec<String>) -> Result<Self, Self::Error> {
         Self::try_from(VecDeque::from(vec))
+    }
+}
+
+impl OwnedCommandAndArgs {
+    pub fn with_stdin(mut self, stdin: String) -> Self {
+        self.stdin = Some(stdin);
+        self
     }
 }

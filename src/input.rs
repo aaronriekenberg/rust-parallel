@@ -35,6 +35,8 @@ pub enum Input {
     Buffered(BufferedInput),
 
     CommandLineArgs,
+
+    Pipe,
 }
 
 impl std::fmt::Display for Input {
@@ -42,6 +44,7 @@ impl std::fmt::Display for Input {
         match self {
             Self::Buffered(b) => write!(f, "{b}"),
             Self::CommandLineArgs => write!(f, "command_line_args"),
+            Self::Pipe => write!(f, "pipe"),
         }
     }
 }
@@ -62,6 +65,8 @@ enum InputList {
     BufferedInputList(Vec<BufferedInput>),
 
     CommandLineArgs,
+
+    Pipe,
 }
 
 fn build_input_list(command_line_args: &'static CommandLineArgs) -> InputList {
@@ -69,6 +74,8 @@ fn build_input_list(command_line_args: &'static CommandLineArgs) -> InputList {
         InputList::CommandLineArgs
     } else if command_line_args.input_file.is_empty() {
         InputList::BufferedInputList(vec![BufferedInput::Stdin])
+    } else if command_line_args.pipe {
+        InputList::Pipe
     } else {
         InputList::BufferedInputList(
             command_line_args

@@ -141,6 +141,43 @@ impl InputTask {
         }
     }
 
+    async fn process_pipe_input(&self) -> anyhow::Result<()> {
+        debug!("begin process_pipe_input");
+
+        let mut input_reader =
+            BufferedInputReader::new(BufferedInput::Stdin, self.command_line_args).await?;
+
+        let mut parser = self.parsers.pipe_mode_parser();
+
+        loop {
+            match input_reader
+                .next_segment()
+                .await
+                .context("next_segment error")?
+            {
+                Some((_input_line_number, segment)) => {
+                    let command_and_args_option = parser.parse_segment(segment);
+                    if let Some(command_and_args) = command_and_args_option {
+                        self.send(InputMessage {
+                            command_and_args,
+                            input_line_number: InputLineNumber {
+                                input: Input::Pipe,
+                                line_number: 0, // TODO line number not tracked in pipe mode
+                            },
+                        })
+                        .await
+                    }
+                }
+                None => {
+                    debug!("input_reader.next_segment EOF");
+                    break;
+                }
+            }
+        }
+
+        Ok(())
+    }
+
     #[instrument(skip_all, name = "InputTask::run", level = "debug")]
     pub async fn run(self) {
         debug!("begin run");
@@ -157,6 +194,9 @@ impl InputTask {
                 }
             }
             InputList::CommandLineArgs => self.process_command_line_args_input().await,
+            InputList::Pipe => self.process_pipe_input().await.unwrap_or_else(|e| {
+                warn!("process_pipe_input error: {}", e);
+            }),
         }
 
         debug!("end run");
