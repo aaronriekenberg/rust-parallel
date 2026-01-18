@@ -2,6 +2,8 @@ use crate::{
     command_line_args::CommandLineArgs, common::OwnedCommandAndArgs, parser::ShellCommandAndArgs,
 };
 
+use tracing::trace;
+
 const BLOCK_SIZE_BYTES: usize = 1_024 * 1_024; // 1 MB
 
 pub struct PipeModeParser {
@@ -23,7 +25,7 @@ impl PipeModeParser {
             // split_whitespace,
             shell_command_and_args,
             command_and_initial_arguments,
-            buffered_data: String::new(),
+            buffered_data: String::with_capacity(BLOCK_SIZE_BYTES),
         }
     }
 
@@ -40,6 +42,11 @@ impl PipeModeParser {
         self.buffered_data.push('\n');
 
         if self.buffered_data.len() < BLOCK_SIZE_BYTES {
+            trace!(
+                "buffered_data length {} is less than BLOCK_SIZE_BYTES {}, continuing to buffer",
+                self.buffered_data.len(),
+                BLOCK_SIZE_BYTES
+            );
             None
         } else {
             let stdin = self.buffered_data.clone();
@@ -52,6 +59,22 @@ impl PipeModeParser {
 
             owned_command_and_args_option
                 .map(|owned_command_and_args| owned_command_and_args.with_stdin(stdin))
+        }
+    }
+
+    pub fn parse_last_command(self) -> Option<OwnedCommandAndArgs> {
+        if !self.buffered_data.is_empty() {
+            let stdin = self.buffered_data;
+
+            let owned_command_and_args_option = super::build_owned_command_and_args(
+                &self.shell_command_and_args,
+                self.command_and_initial_arguments.clone(),
+            );
+
+            owned_command_and_args_option
+                .map(|owned_command_and_args| owned_command_and_args.with_stdin(stdin))
+        } else {
+            None
         }
     }
 }

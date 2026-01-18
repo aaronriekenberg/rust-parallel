@@ -175,6 +175,18 @@ impl InputTask {
             }
         }
 
+        let command_and_args_option = parser.parse_last_command();
+        if let Some(command_and_args) = command_and_args_option {
+            self.send(InputMessage {
+                command_and_args,
+                input_line_number: InputLineNumber {
+                    input: Input::Pipe,
+                    line_number: 0, // TODO line number not tracked in pipe mode
+                },
+            })
+            .await
+        }
+
         Ok(())
     }
 

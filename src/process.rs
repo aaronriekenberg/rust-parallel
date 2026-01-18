@@ -1,7 +1,10 @@
 use tokio::{
+    io::AsyncWriteExt,
     process::{Child, Command},
     time::Duration,
 };
+
+use tracing::debug;
 
 use std::{
     ffi::OsStr,
@@ -24,6 +27,7 @@ pub struct ChildProcess {
     child: Child,
     discard_all_output: bool,
     timeout: Option<Duration>,
+    stdin_option: Option<String>,
 }
 
 impl ChildProcess {
@@ -45,7 +49,23 @@ impl ChildProcess {
         Ok(output)
     }
 
-    pub async fn await_completion(self) -> Result<Output, ChildProcessExecutionError> {
+    pub async fn await_completion(mut self) -> Result<Output, ChildProcessExecutionError> {
+        let _stdin_task_join_handle = if self.stdin_option.is_some()
+            && let Some(mut child_stdin) = self.child.stdin.take()
+            && let Some(stdin_data) = self.stdin_option.take()
+        {
+            debug!(
+                "writing to child stdin, stdin_data.len={}",
+                stdin_data.len()
+            );
+            Some(tokio::spawn(async move {
+                child_stdin.write_all(stdin_data.as_bytes()).await
+            }))
+        } else {
+            None
+        };
+
+        // TODO wait for stdin task to complete before awaiting output, handle errors
         match self.timeout {
             None => self.await_output().await,
             Some(timeout) => {
@@ -103,15 +123,25 @@ impl ChildProcessFactory {
         self.discard_stdout && self.discard_stderr
     }
 
-    pub async fn spawn<C, AI, A>(&self, command: C, args: AI) -> std::io::Result<ChildProcess>
+    pub async fn spawn<C, AI, A>(
+        &self,
+        command: C,
+        args: AI,
+        stdin_option: &Option<String>,
+    ) -> std::io::Result<ChildProcess>
     where
         C: AsRef<OsStr>,
         AI: IntoIterator<Item = A>,
         A: AsRef<OsStr>,
     {
+        let child_stdin = match stdin_option {
+            Some(_) => Stdio::piped(),
+            None => Stdio::null(),
+        };
+
         let child = Command::new(command)
             .args(args)
-            .stdin(Stdio::null())
+            .stdin(child_stdin)
             .stdout(self.stdout())
             .stderr(self.stderr())
             .kill_on_drop(self.timeout.is_some())
@@ -121,6 +151,7 @@ impl ChildProcessFactory {
             child,
             discard_all_output: self.discard_all_output(),
             timeout: self.timeout,
+            stdin_option: stdin_option.clone(),
         })
     }
 }

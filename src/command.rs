@@ -48,13 +48,11 @@ impl Command {
             stdin,
         } = &self.command_and_args;
 
-        // TODO: pass stdin to child process
-
         command_metrics.increment_commands_run();
 
         let child_process = match context
             .child_process_factory
-            .spawn(command_path, args)
+            .spawn(command_path, args, stdin)
             .await
         {
             Err(e) => {
