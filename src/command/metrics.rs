@@ -11,6 +11,8 @@ pub struct CommandMetrics {
     spawn_errors: AtomicU64,
     timeouts: AtomicU64,
     io_errors: AtomicU64,
+    child_stdin_io_errors: AtomicU64,
+    child_stdin_task_join_errors: AtomicU64,
     exit_status_errors: AtomicU64,
 }
 
@@ -32,7 +34,12 @@ impl CommandMetrics {
     }
 
     fn total_failures(&self) -> u64 {
-        self.spawn_errors() + self.timeouts() + self.io_errors() + self.exit_status_errors()
+        self.spawn_errors()
+            + self.timeouts()
+            + self.io_errors()
+            + self.exit_status_errors()
+            + self.child_stdin_io_errors()
+            + self.child_stdin_task_join_errors()
     }
 
     pub fn increment_spawn_errors(&self) {
@@ -48,6 +55,12 @@ impl CommandMetrics {
         match error {
             ChildProcessExecutionError::IOError(_) => self.increment_io_errors(),
             ChildProcessExecutionError::Timeout(_) => self.increment_timeouts(),
+            ChildProcessExecutionError::ChildStdinIOError(_) => {
+                self.increment_child_stdin_io_errors()
+            }
+            ChildProcessExecutionError::TaskJoinError(_) => {
+                self.increment_child_stdin_task_join_errors()
+            }
         }
     }
 
@@ -58,6 +71,24 @@ impl CommandMetrics {
 
     fn timeouts(&self) -> u64 {
         self.timeouts.load(ORDERING)
+    }
+
+    fn increment_child_stdin_io_errors(&self) {
+        self.set_error_occurred();
+        self.child_stdin_io_errors.fetch_add(1, ORDERING);
+    }
+
+    fn child_stdin_io_errors(&self) -> u64 {
+        self.child_stdin_io_errors.load(ORDERING)
+    }
+
+    fn increment_child_stdin_task_join_errors(&self) {
+        self.set_error_occurred();
+        self.child_stdin_task_join_errors.fetch_add(1, ORDERING);
+    }
+
+    fn child_stdin_task_join_errors(&self) -> u64 {
+        self.child_stdin_task_join_errors.load(ORDERING)
     }
 
     fn increment_io_errors(&self) {
@@ -83,12 +114,14 @@ impl std::fmt::Display for CommandMetrics {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "commands_run={} total_failures={} spawn_errors={} timeouts={} io_errors={} exit_status_errors={}",
+            "commands_run={} total_failures={} spawn_errors={} timeouts={} io_errors={} child_stdin_io_errors={} child_stdin_task_join_errors={} exit_status_errors={}",
             self.commands_run(),
             self.total_failures(),
             self.spawn_errors(),
             self.timeouts(),
             self.io_errors(),
+            self.child_stdin_io_errors(),
+            self.child_stdin_task_join_errors(),
             self.exit_status_errors(),
         )
     }

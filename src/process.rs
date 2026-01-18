@@ -4,8 +4,6 @@ use tokio::{
     time::Duration,
 };
 
-use tracing::debug;
-
 use std::{
     ffi::OsStr,
     process::{Output, Stdio},
@@ -20,6 +18,12 @@ pub enum ChildProcessExecutionError {
 
     #[error("i/o error: {0}")]
     IOError(#[from] std::io::Error),
+
+    #[error("child stdin i/o error: {0}")]
+    ChildStdinIOError(std::io::Error),
+
+    #[error("child stdin task join error: {0}")]
+    TaskJoinError(#[from] tokio::task::JoinError),
 }
 
 #[derive(Debug)]
@@ -49,27 +53,36 @@ impl ChildProcess {
         Ok(output)
     }
 
-    pub async fn await_completion(mut self) -> Result<Output, ChildProcessExecutionError> {
-        let _stdin_task_join_handle = if self.stdin_option.is_some()
+    async fn internal_await_completion(mut self) -> Result<Output, ChildProcessExecutionError> {
+        let stdin_writer_join_handle_option = if let Some(stdin_data) = self.stdin_option.take()
             && let Some(mut child_stdin) = self.child.stdin.take()
-            && let Some(stdin_data) = self.stdin_option.take()
         {
-            debug!(
-                "writing to child stdin, stdin_data.len={}",
-                stdin_data.len()
-            );
             Some(tokio::spawn(async move {
-                child_stdin.write_all(stdin_data.as_bytes()).await
+                let result = child_stdin.write_all(stdin_data.as_bytes()).await;
+                result.map_err(ChildProcessExecutionError::ChildStdinIOError)
             }))
         } else {
             None
         };
 
-        // TODO wait for stdin task to complete before awaiting output, handle errors
-        match self.timeout {
+        match stdin_writer_join_handle_option {
             None => self.await_output().await,
+            Some(stdin_writer_join_handle) => {
+                let result = tokio::try_join!(self.await_output(), async move {
+                    stdin_writer_join_handle.await?
+                })?;
+
+                Ok(result.0)
+            }
+        }
+    }
+
+    pub async fn await_completion(self) -> Result<Output, ChildProcessExecutionError> {
+        match self.timeout {
+            None => self.internal_await_completion().await,
             Some(timeout) => {
-                let result = tokio::time::timeout(timeout, self.await_output()).await?;
+                let result =
+                    tokio::time::timeout(timeout, self.internal_await_completion()).await?;
 
                 let output = result?;
 
