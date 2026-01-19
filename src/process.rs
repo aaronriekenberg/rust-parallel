@@ -18,12 +18,6 @@ pub enum ChildProcessExecutionError {
 
     #[error("i/o error: {0}")]
     IOError(#[from] std::io::Error),
-
-    #[error("child stdin i/o error: {0}")]
-    ChildStdinIOError(std::io::Error),
-
-    #[error("child stdin task join error: {0}")]
-    TaskJoinError(#[from] tokio::task::JoinError),
 }
 
 #[derive(Debug)]
@@ -54,23 +48,21 @@ impl ChildProcess {
     }
 
     async fn internal_await_completion(mut self) -> Result<Output, ChildProcessExecutionError> {
-        let stdin_writer_join_handle_option = if let Some(stdin_data) = self.stdin_option.take()
+        let stdin_writer_future_option = if let Some(stdin_data) = self.stdin_option.take()
             && let Some(mut child_stdin) = self.child.stdin.take()
         {
-            Some(tokio::spawn(async move {
+            Some(async move {
                 let result = child_stdin.write_all(stdin_data.as_bytes()).await;
-                result.map_err(ChildProcessExecutionError::ChildStdinIOError)
-            }))
+                result.map_err(ChildProcessExecutionError::IOError)
+            })
         } else {
             None
         };
 
-        match stdin_writer_join_handle_option {
+        match stdin_writer_future_option {
             None => self.await_output().await,
             Some(stdin_writer_join_handle) => {
-                let result = tokio::try_join!(self.await_output(), async move {
-                    stdin_writer_join_handle.await?
-                })?;
+                let result = tokio::try_join!(self.await_output(), stdin_writer_join_handle)?;
 
                 Ok(result.0)
             }
