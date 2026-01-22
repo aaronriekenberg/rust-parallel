@@ -35,8 +35,6 @@ pub enum Input {
     Buffered(BufferedInput),
 
     CommandLineArgs,
-
-    Pipe,
 }
 
 impl std::fmt::Display for Input {
@@ -44,7 +42,6 @@ impl std::fmt::Display for Input {
         match self {
             Self::Buffered(b) => write!(f, "{b}"),
             Self::CommandLineArgs => write!(f, "command_line_args"),
-            Self::Pipe => write!(f, "pipe"),
         }
     }
 }

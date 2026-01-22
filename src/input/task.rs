@@ -161,7 +161,7 @@ impl InputTask {
                         self.send(InputMessage {
                             command_and_args,
                             input_line_number: InputLineNumber {
-                                input: Input::Pipe,
+                                input: Input::Buffered(BufferedInput::Stdin),
                                 line_number: 0, // TODO line number not tracked in pipe mode
                             },
                         })
@@ -180,7 +180,7 @@ impl InputTask {
             self.send(InputMessage {
                 command_and_args,
                 input_line_number: InputLineNumber {
-                    input: Input::Pipe,
+                    input: Input::Buffered(BufferedInput::Stdin),
                     line_number: 0, // TODO line number not tracked in pipe mode
                 },
             })
