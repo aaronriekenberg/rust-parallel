@@ -57,13 +57,7 @@ impl PipeModeParser {
                 .buffered_data
                 .replace(String::with_capacity(BLOCK_SIZE_BYTES));
 
-            let owned_command_and_args_option = super::build_owned_command_and_args(
-                &self.shell_command_and_args,
-                self.command_and_initial_arguments.clone(),
-            );
-
-            owned_command_and_args_option
-                .map(|owned_command_and_args| owned_command_and_args.with_stdin(stdin))
+            self.build_owned_command_and_args(stdin)
         }
     }
 
@@ -71,15 +65,17 @@ impl PipeModeParser {
         if !self.buffered_data.borrow().is_empty() {
             let stdin = self.buffered_data.take();
 
-            let owned_command_and_args_option = super::build_owned_command_and_args(
-                &self.shell_command_and_args,
-                self.command_and_initial_arguments.clone(),
-            );
-
-            owned_command_and_args_option
-                .map(|owned_command_and_args| owned_command_and_args.with_stdin(stdin))
+            self.build_owned_command_and_args(stdin)
         } else {
             None
         }
+    }
+
+    fn build_owned_command_and_args(&self, stdin: String) -> Option<OwnedCommandAndArgs> {
+        super::build_owned_command_and_args(
+            &self.shell_command_and_args,
+            self.command_and_initial_arguments.clone(),
+        )
+        .map(|owned_command_and_args| owned_command_and_args.with_stdin(stdin))
     }
 }
