@@ -4,13 +4,15 @@ use crate::{
 
 use tracing::trace;
 
+use std::cell::RefCell;
+
 const BLOCK_SIZE_BYTES: usize = 1_024 * 1_024; // 1 MB
 
 pub struct PipeModeParser {
     // split_whitespace: bool,
     shell_command_and_args: ShellCommandAndArgs,
     command_and_initial_arguments: Vec<String>,
-    buffered_data: String,
+    buffered_data: RefCell<String>,
 }
 
 impl PipeModeParser {
@@ -25,7 +27,7 @@ impl PipeModeParser {
             // split_whitespace,
             shell_command_and_args,
             command_and_initial_arguments,
-            buffered_data: String::with_capacity(BLOCK_SIZE_BYTES),
+            buffered_data: RefCell::new(String::with_capacity(BLOCK_SIZE_BYTES)),
         }
     }
 
@@ -38,19 +40,22 @@ impl PipeModeParser {
     }
 
     fn parse_line(&mut self, input_line: &str) -> Option<OwnedCommandAndArgs> {
-        self.buffered_data.push_str(input_line);
-        self.buffered_data.push('\n');
+        let mut buffered_data = self.buffered_data.borrow_mut();
+        buffered_data.push_str(input_line);
+        buffered_data.push('\n');
 
-        if self.buffered_data.len() < BLOCK_SIZE_BYTES {
+        if buffered_data.len() < BLOCK_SIZE_BYTES {
             trace!(
                 "buffered_data length {} is less than BLOCK_SIZE_BYTES {}, continuing to buffer",
-                self.buffered_data.len(),
+                buffered_data.len(),
                 BLOCK_SIZE_BYTES
             );
             None
         } else {
-            let stdin = self.buffered_data.clone();
-            self.buffered_data.clear();
+            drop(buffered_data); // Release the borrow
+            let stdin = self
+                .buffered_data
+                .replace(String::with_capacity(BLOCK_SIZE_BYTES));
 
             let owned_command_and_args_option = super::build_owned_command_and_args(
                 &self.shell_command_and_args,
@@ -63,8 +68,8 @@ impl PipeModeParser {
     }
 
     pub fn parse_last_command(self) -> Option<OwnedCommandAndArgs> {
-        if !self.buffered_data.is_empty() {
-            let stdin = self.buffered_data;
+        if !self.buffered_data.borrow().is_empty() {
+            let stdin = self.buffered_data.take();
 
             let owned_command_and_args_option = super::build_owned_command_and_args(
                 &self.shell_command_and_args,
