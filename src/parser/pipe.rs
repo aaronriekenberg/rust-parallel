@@ -2,8 +2,6 @@ use crate::{
     command_line_args::CommandLineArgs, common::OwnedCommandAndArgs, parser::ShellCommandAndArgs,
 };
 
-use tracing::trace;
-
 use std::{cell::RefCell, sync::Arc};
 
 pub struct PipeModeParser {
@@ -43,11 +41,6 @@ impl PipeModeParser {
         buffered_data.push('\n');
 
         if buffered_data.len() < self.block_size_bytes {
-            trace!(
-                "buffered_data length {} is less than block_size_bytes {}, continuing to buffer",
-                buffered_data.len(),
-                self.block_size_bytes
-            );
             None
         } else {
             drop(buffered_data); // Release the borrow
