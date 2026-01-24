@@ -109,6 +109,13 @@ impl ChildProcessFactory {
         }
     }
 
+    fn stdin(&self, stdin_option: &Option<Arc<String>>) -> Stdio {
+        match stdin_option {
+            Some(_) => Stdio::piped(),
+            None => Stdio::null(),
+        }
+    }
+
     fn stdout(&self) -> Stdio {
         if self.discard_stdout {
             Stdio::null()
@@ -140,14 +147,9 @@ impl ChildProcessFactory {
         AI: IntoIterator<Item = A>,
         A: AsRef<OsStr>,
     {
-        let child_stdin = match stdin_option {
-            Some(_) => Stdio::piped(),
-            None => Stdio::null(),
-        };
-
         let child = Command::new(command)
             .args(args)
-            .stdin(child_stdin)
+            .stdin(self.stdin(&stdin_option))
             .stdout(self.stdout())
             .stderr(self.stderr())
             .kill_on_drop(self.timeout.is_some())
