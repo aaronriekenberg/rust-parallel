@@ -1,22 +1,22 @@
-use std::{collections::VecDeque, path::PathBuf};
+use std::{collections::VecDeque, path::PathBuf, sync::Arc};
 
 #[derive(Debug, Eq, PartialEq, Default)]
 pub struct OwnedCommandAndArgs {
     pub command_path: PathBuf,
     pub args: Vec<String>,
-    pub stdin: Option<String>,
+    pub stdin: Option<Arc<String>>,
 }
 
 impl std::fmt::Display for OwnedCommandAndArgs {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let stdin_len = match &self.stdin {
-            Some(s) => s.len(),
-            None => 0,
+        let stdin = match &self.stdin {
+            Some(_) => "Some",
+            None => "None",
         };
         write!(
             f,
-            "cmd={:?},args={:?},stdin.len={:?}",
-            self.command_path, self.args, stdin_len
+            "cmd={:?},args={:?},stdin={:?}",
+            self.command_path, self.args, stdin
         )
     }
 }
@@ -57,7 +57,7 @@ impl OwnedCommandAndArgs {
         self
     }
 
-    pub fn with_stdin(mut self, stdin: String) -> Self {
+    pub fn with_stdin(mut self, stdin: Arc<String>) -> Self {
         self.stdin = Some(stdin);
         self
     }

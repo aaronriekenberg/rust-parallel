@@ -52,7 +52,7 @@ impl Command {
 
         let child_process = match context
             .child_process_factory
-            .spawn(command_path, args, stdin)
+            .spawn(command_path, args, stdin.clone())
             .await
         {
             Err(e) => {
@@ -93,10 +93,17 @@ impl Command {
 
 impl std::fmt::Display for Command {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let stdin = match &self.command_and_args.stdin {
+            Some(_) => "Some",
+            None => "None",
+        };
         write!(
             f,
-            "cmd={:?},args={:?},line={}",
-            self.command_and_args.command_path, self.command_and_args.args, self.input_line_number,
+            "cmd={:?},args={:?},stdin={},line={}",
+            self.command_and_args.command_path,
+            self.command_and_args.args,
+            stdin,
+            self.input_line_number,
         )
     }
 }

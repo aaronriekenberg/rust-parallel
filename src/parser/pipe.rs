@@ -4,7 +4,7 @@ use crate::{
 
 use tracing::trace;
 
-use std::cell::RefCell;
+use std::{cell::RefCell, sync::Arc};
 
 const BLOCK_SIZE_BYTES: usize = 1_024 * 1_024; // 1 MB
 
@@ -76,6 +76,6 @@ impl PipeModeParser {
             &self.shell_command_and_args,
             self.command_and_initial_arguments.clone(),
         )
-        .map(|owned_command_and_args| owned_command_and_args.with_stdin(stdin))
+        .map(|owned_command_and_args| owned_command_and_args.with_stdin(Arc::new(stdin)))
     }
 }

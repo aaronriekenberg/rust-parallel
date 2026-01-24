@@ -111,19 +111,19 @@ fn runs_echo_commands_dry_run() {
             (predicate::str::contains("\n").count(3))
                 .and(
                     predicate::str::contains(
-                        r#"cmd="/bin/bash",args=["-c", "echo A"],line=command_line_args:1"#,
+                        r#"cmd="/bin/bash",args=["-c", "echo A"],stdin=None,line=command_line_args:1"#,
                     )
                     .count(1),
                 )
                 .and(
                     predicate::str::contains(
-                        r#"cmd="/bin/bash",args=["-c", "echo B"],line=command_line_args:2"#,
+                        r#"cmd="/bin/bash",args=["-c", "echo B"],stdin=None,line=command_line_args:2"#,
                     )
                     .count(1),
                 )
                 .and(
                     predicate::str::contains(
-                        r#"cmd="/bin/bash",args=["-c", "echo C"],line=command_line_args:3"#,
+                        r#"cmd="/bin/bash",args=["-c", "echo C"],stdin=None,line=command_line_args:3"#,
                     )
                     .count(1),
                 ),

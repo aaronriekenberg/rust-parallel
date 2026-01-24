@@ -7,6 +7,7 @@ use tokio::{
 use std::{
     ffi::OsStr,
     process::{Output, Stdio},
+    sync::Arc,
 };
 
 use crate::command_line_args::{CommandLineArgs, DiscardOutput};
@@ -25,7 +26,7 @@ pub struct ChildProcess {
     child: Child,
     discard_all_output: bool,
     timeout: Option<Duration>,
-    stdin_option: Option<String>,
+    stdin_option: Option<Arc<String>>,
 }
 
 impl ChildProcess {
@@ -132,7 +133,7 @@ impl ChildProcessFactory {
         &self,
         command: C,
         args: AI,
-        stdin_option: &Option<String>,
+        stdin_option: Option<Arc<String>>,
     ) -> std::io::Result<ChildProcess>
     where
         C: AsRef<OsStr>,
