@@ -151,7 +151,7 @@ impl InputTask {
         let mut input_reader =
             BufferedInputReader::new(BufferedInput::Stdin, self.command_line_args).await?;
 
-        let mut parser = self.parsers.pipe_mode_parser();
+        let parser = self.parsers.pipe_mode_parser();
 
         let mut range_start_line_number = 1usize;
         let mut range_end_line_number = 1usize;

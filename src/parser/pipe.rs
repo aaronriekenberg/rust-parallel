@@ -31,7 +31,7 @@ impl PipeModeParser {
         }
     }
 
-    pub fn parse_segment(&mut self, segment: Vec<u8>) -> Option<OwnedCommandAndArgs> {
+    pub fn parse_segment(&self, segment: Vec<u8>) -> Option<OwnedCommandAndArgs> {
         if let Ok(input_line) = std::str::from_utf8(&segment) {
             self.parse_line(input_line)
         } else {
@@ -39,7 +39,7 @@ impl PipeModeParser {
         }
     }
 
-    fn parse_line(&mut self, input_line: &str) -> Option<OwnedCommandAndArgs> {
+    fn parse_line(&self, input_line: &str) -> Option<OwnedCommandAndArgs> {
         let mut buffered_data = self.buffered_data.borrow_mut();
         buffered_data.push_str(input_line);
         buffered_data.push('\n');
