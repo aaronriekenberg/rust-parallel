@@ -626,3 +626,47 @@ fn test_unresolvable_command_disable_path_cache() {
                 .and(predicate::str::contains("spawn_errors=3")),
         );
 }
+
+#[test]
+fn test_pipe_mode() {
+    let stdin = r#"A
+B
+C
+D
+E"#;
+    rust_parallel()
+        .write_stdin(stdin)
+        .arg("--pipe")
+        .arg("--block-size=1")
+        .arg("cat")
+        .assert()
+        .success()
+        .stdout(
+            (predicate::str::contains("\n").count(5))
+                .and(predicate::str::contains("A\n").count(1))
+                .and(predicate::str::contains("B\n").count(1))
+                .and(predicate::str::contains("C\n").count(1))
+                .and(predicate::str::contains("D\n").count(1))
+                .and(predicate::str::contains("E\n").count(1)),
+        )
+        .stderr(predicate::str::is_empty());
+}
+
+#[test]
+fn test_pipe_mode_wc() {
+    let stdin = r#"A
+B
+C
+D
+E"#;
+    rust_parallel()
+        .write_stdin(stdin)
+        .arg("--pipe")
+        .arg("--block-size=1")
+        .arg("wc")
+        .arg("-l")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("1\n").count(5))
+        .stderr(predicate::str::is_empty());
+}
