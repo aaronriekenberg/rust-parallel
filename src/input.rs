@@ -74,7 +74,7 @@ impl std::fmt::Display for InputLineNumber {
 }
 
 enum InputList {
-    BufferedInputList(Vec<BufferedInput>),
+    Buffered(Vec<BufferedInput>),
 
     CommandLineArgs,
 
@@ -87,9 +87,9 @@ fn build_input_list(command_line_args: &'static CommandLineArgs) -> InputList {
     } else if command_line_args.commands_from_args_mode() {
         InputList::CommandLineArgs
     } else if command_line_args.input_file.is_empty() {
-        InputList::BufferedInputList(vec![BufferedInput::Stdin])
+        InputList::Buffered(vec![BufferedInput::Stdin])
     } else {
-        InputList::BufferedInputList(
+        InputList::Buffered(
             command_line_args
                 .input_file
                 .iter()

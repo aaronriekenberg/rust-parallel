@@ -209,7 +209,7 @@ impl InputTask {
         debug!("begin run");
 
         match super::build_input_list(self.command_line_args) {
-            InputList::BufferedInputList(buffered_inputs) => {
+            InputList::Buffered(buffered_inputs) => {
                 for buffered_input in buffered_inputs {
                     if let Err(e) = self.process_buffered_input(buffered_input).await {
                         warn!(
