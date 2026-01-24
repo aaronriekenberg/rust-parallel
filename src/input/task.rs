@@ -13,7 +13,7 @@ use crate::{
 };
 
 use super::{
-    BufferedInput, Input, InputLineNumber, InputList, InputMessage,
+    BufferedInput, Input, InputLineNumber, InputList, InputMessage, LineNumberOrRange,
     buffered_reader::BufferedInputReader,
 };
 
@@ -86,7 +86,11 @@ impl InputTask {
                 .await
                 .context("next_segment error")?
             {
-                Some((input_line_number, segment)) => {
+                Some((input, line_number, segment)) => {
+                    let input_line_number = InputLineNumber {
+                        input,
+                        line_number: LineNumberOrRange::Single(line_number),
+                    };
                     self.process_buffered_input_line(parser, input_line_number, segment)
                         .await
                 }
@@ -133,7 +137,7 @@ impl InputTask {
 
             let input_line_number = InputLineNumber {
                 input: Input::CommandLineArgs,
-                line_number,
+                line_number: LineNumberOrRange::Single(line_number),
             };
 
             self.process_next_command_line_arg(&mut parser, input_line_number)
@@ -149,23 +153,31 @@ impl InputTask {
 
         let mut parser = self.parsers.pipe_mode_parser();
 
+        let mut range_start_line_number = 1usize;
+        let mut range_end_line_number = 1usize;
+
         loop {
             match input_reader
                 .next_segment()
                 .await
                 .context("next_segment error")?
             {
-                Some((_input_line_number, segment)) => {
+                Some((_, line_number, segment)) => {
+                    range_end_line_number = line_number;
                     let command_and_args_option = parser.parse_segment(segment);
                     if let Some(command_and_args) = command_and_args_option {
                         self.send(InputMessage {
                             command_and_args,
                             input_line_number: InputLineNumber {
                                 input: Input::Buffered(BufferedInput::Stdin),
-                                line_number: 0, // TODO line number not tracked in pipe mode
+                                line_number: LineNumberOrRange::Range(
+                                    range_start_line_number,
+                                    range_end_line_number,
+                                ),
                             },
                         })
-                        .await
+                        .await;
+                        range_start_line_number = range_end_line_number + 1;
                     }
                 }
                 None => {
@@ -181,7 +193,10 @@ impl InputTask {
                 command_and_args,
                 input_line_number: InputLineNumber {
                     input: Input::Buffered(BufferedInput::Stdin),
-                    line_number: 0, // TODO line number not tracked in pipe mode
+                    line_number: LineNumberOrRange::Range(
+                        range_start_line_number,
+                        range_end_line_number,
+                    ),
                 },
             })
             .await

@@ -4,6 +4,8 @@ use tracing::{debug, error, instrument, trace};
 
 use std::collections::BTreeMap;
 
+use crate::input::LineNumberOrRange;
+
 use super::OutputMessage;
 
 pub struct OutputTask {
@@ -60,7 +62,10 @@ impl OutputTask {
             let mut next_line_number = 1;
 
             while let Some(output_message) = receiver.recv().await {
-                let line_number = output_message.input_line_number.line_number;
+                let line_number = match output_message.input_line_number.line_number {
+                    LineNumberOrRange::Single(n) => n,
+                    LineNumberOrRange::Range(start, _) => start,
+                };
 
                 // Store the output message in the buffer
                 buffered_outputs.insert(line_number, output_message);

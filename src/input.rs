@@ -47,9 +47,24 @@ impl std::fmt::Display for Input {
 }
 
 #[derive(Debug)]
+pub enum LineNumberOrRange {
+    Single(usize),
+    Range(usize, usize),
+}
+
+impl std::fmt::Display for LineNumberOrRange {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Single(line) => write!(f, "{line}"),
+            Self::Range(start, end) => write!(f, "{start}-{end}"),
+        }
+    }
+}
+
+#[derive(Debug)]
 pub struct InputLineNumber {
     pub input: Input,
-    pub line_number: usize,
+    pub line_number: LineNumberOrRange,
 }
 
 impl std::fmt::Display for InputLineNumber {
