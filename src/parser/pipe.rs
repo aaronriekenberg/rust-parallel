@@ -6,10 +6,8 @@ use tracing::trace;
 
 use std::{cell::RefCell, sync::Arc};
 
-const BLOCK_SIZE_BYTES: usize = 1_024 * 1_024; // 1 MB
-
 pub struct PipeModeParser {
-    // split_whitespace: bool,
+    block_size_bytes: usize,
     shell_command_and_args: ShellCommandAndArgs,
     command_and_initial_arguments: Vec<String>,
     buffered_data: RefCell<String>,
@@ -17,17 +15,17 @@ pub struct PipeModeParser {
 
 impl PipeModeParser {
     pub fn new(command_line_args: &CommandLineArgs) -> Self {
-        // let split_whitespace = !command_line_args.null_separator;
-
         let command_and_initial_arguments = command_line_args.command_and_initial_arguments.clone();
 
         let shell_command_and_args = ShellCommandAndArgs::new(command_line_args);
 
+        let block_size_bytes = command_line_args.block_size;
+
         Self {
-            // split_whitespace,
+            block_size_bytes,
             shell_command_and_args,
             command_and_initial_arguments,
-            buffered_data: RefCell::new(String::with_capacity(BLOCK_SIZE_BYTES)),
+            buffered_data: RefCell::new(String::with_capacity(block_size_bytes)),
         }
     }
 
@@ -44,18 +42,18 @@ impl PipeModeParser {
         buffered_data.push_str(input_line);
         buffered_data.push('\n');
 
-        if buffered_data.len() < BLOCK_SIZE_BYTES {
+        if buffered_data.len() < self.block_size_bytes {
             trace!(
-                "buffered_data length {} is less than BLOCK_SIZE_BYTES {}, continuing to buffer",
+                "buffered_data length {} is less than block_size_bytes {}, continuing to buffer",
                 buffered_data.len(),
-                BLOCK_SIZE_BYTES
+                self.block_size_bytes
             );
             None
         } else {
             drop(buffered_data); // Release the borrow
             let stdin = self
                 .buffered_data
-                .replace(String::with_capacity(BLOCK_SIZE_BYTES));
+                .replace(String::with_capacity(self.block_size_bytes));
 
             self.build_owned_command_and_args(stdin)
         }
