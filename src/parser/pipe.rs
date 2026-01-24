@@ -77,3 +77,93 @@ impl PipeModeParser {
         .map(|owned_command_and_args| owned_command_and_args.with_stdin(Arc::new(stdin)))
     }
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    use std::{default::Default, path::PathBuf};
+
+    #[test]
+    fn test_two_segments_last_command_only() {
+        let command_line_args = CommandLineArgs {
+            command_and_initial_arguments: vec!["echo".to_string(), "hello".to_string()],
+            block_size: 100,
+            ..Default::default()
+        };
+
+        let parser = PipeModeParser::new(&command_line_args);
+
+        let segment1 = b"Hello, World!".to_vec();
+        let segment2 = b"This is a test.".to_vec();
+
+        assert!(parser.parse_segment(segment1).is_none());
+        assert!(parser.parse_segment(segment2).is_none());
+
+        let owned_command_and_args = parser.parse_last_command().unwrap();
+        assert_eq!(owned_command_and_args.command_path, PathBuf::from("echo"));
+        assert_eq!(owned_command_and_args.args, vec!["hello".to_string()]);
+        assert_eq!(
+            owned_command_and_args.stdin.unwrap().as_str(),
+            "Hello, World!\nThis is a test.\n"
+        );
+    }
+
+    #[test]
+    fn test_two_segments_one_command() {
+        let command_line_args = CommandLineArgs {
+            command_and_initial_arguments: vec!["echo".to_string(), "hello".to_string()],
+            block_size: 20,
+            ..Default::default()
+        };
+
+        let parser = PipeModeParser::new(&command_line_args);
+
+        let segment1 = b"Hello, World!".to_vec();
+        let segment2 = b"This is a test.".to_vec();
+
+        assert!(parser.parse_segment(segment1).is_none());
+
+        let owned_command_and_args = parser.parse_segment(segment2).unwrap();
+        assert_eq!(owned_command_and_args.command_path, PathBuf::from("echo"));
+        assert_eq!(owned_command_and_args.args, vec!["hello".to_string()]);
+        assert_eq!(
+            owned_command_and_args.stdin.unwrap().as_str(),
+            "Hello, World!\nThis is a test.\n"
+        );
+
+        assert!(parser.parse_last_command().is_none());
+    }
+
+    #[test]
+    fn test_two_segments_two_commands() {
+        let command_line_args = CommandLineArgs {
+            command_and_initial_arguments: vec!["echo".to_string(), "hello".to_string()],
+            block_size: 10,
+            ..Default::default()
+        };
+
+        let parser = PipeModeParser::new(&command_line_args);
+
+        let segment1 = b"Hello, World!".to_vec();
+        let segment2 = b"This is a test.".to_vec();
+
+        let owned_command_and_args1 = parser.parse_segment(segment1).unwrap();
+        assert_eq!(owned_command_and_args1.command_path, PathBuf::from("echo"));
+        assert_eq!(owned_command_and_args1.args, vec!["hello".to_string()]);
+        assert_eq!(
+            owned_command_and_args1.stdin.unwrap().as_str(),
+            "Hello, World!\n"
+        );
+
+        let owned_command_and_args2 = parser.parse_segment(segment2).unwrap();
+        assert_eq!(owned_command_and_args2.command_path, PathBuf::from("echo"));
+        assert_eq!(owned_command_and_args2.args, vec!["hello".to_string()]);
+        assert_eq!(
+            owned_command_and_args2.stdin.unwrap().as_str(),
+            "This is a test.\n"
+        );
+
+        assert!(parser.parse_last_command().is_none());
+    }
+}
