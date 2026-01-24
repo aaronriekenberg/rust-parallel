@@ -187,8 +187,7 @@ impl InputTask {
             }
         }
 
-        let command_and_args_option = parser.parse_last_command();
-        if let Some(command_and_args) = command_and_args_option {
+        if let Some(command_and_args) = parser.parse_last_command() {
             self.send(InputMessage {
                 command_and_args,
                 input_line_number: InputLineNumber {
