@@ -151,6 +151,8 @@ In pipe mode input from stdin is split into blocks and each block is passed to a
 
 The default block size is 1 MiB, which can be changed with the `--block-size` option.
 
+By default input blocks are split on new line boundaries.  This can be changed to split on null boundaries with the `-0/--null-separator` option.
+
 Here we use `--pipe` to run `wc -l`
 '
 
