@@ -34,6 +34,7 @@ impl Command {
             cmd = ?self.command_and_args.command_path,
             args = ?self.command_and_args.args,
             line = %self.input_line_number,
+            stdin = %self.command_and_args.stdin,
             child_pid,
         ),
         level = "debug")]
@@ -42,13 +43,17 @@ impl Command {
 
         let command_metrics = &context.command_metrics;
 
-        let OwnedCommandAndArgs { command_path, args } = &self.command_and_args;
+        let OwnedCommandAndArgs {
+            command_path,
+            args,
+            stdin,
+        } = &self.command_and_args;
 
         command_metrics.increment_commands_run();
 
         let child_process = match context
             .child_process_factory
-            .spawn(command_path, args)
+            .spawn(command_path, args, stdin.clone())
             .await
         {
             Err(e) => {
@@ -91,8 +96,8 @@ impl std::fmt::Display for Command {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "cmd={:?},args={:?},line={}",
-            self.command_and_args.command_path, self.command_and_args.args, self.input_line_number,
+            "{},line={}",
+            self.command_and_args, self.input_line_number
         )
     }
 }
@@ -177,10 +182,7 @@ impl CommandService {
             return Ok(());
         };
 
-        let command_and_args = OwnedCommandAndArgs {
-            command_path,
-            args: command_and_args.args,
-        };
+        let command_and_args = command_and_args.with_command_path(command_path);
 
         self.spawn_command(command_and_args, input_line_number)
             .await?;

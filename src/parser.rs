@@ -1,12 +1,15 @@
 pub mod buffered;
 pub mod command_line;
+pub mod pipe;
 mod regex;
 
 use tokio::sync::OnceCell;
 
 use std::sync::Arc;
 
-use crate::{command_line_args::CommandLineArgs, common::OwnedCommandAndArgs};
+use crate::{
+    command_line_args::CommandLineArgs, common::OwnedCommandAndArgs, parser::pipe::PipeModeParser,
+};
 
 use self::{
     buffered::BufferedInputLineParser, command_line::CommandLineArgsParser, regex::RegexProcessor,
@@ -67,6 +70,10 @@ impl Parsers {
                 BufferedInputLineParser::new(self.command_line_args, &self.regex_processor)
             })
             .await
+    }
+
+    pub fn pipe_mode_parser(&self) -> PipeModeParser {
+        PipeModeParser::new(self.command_line_args)
     }
 
     pub fn command_line_args_parser(&self) -> CommandLineArgsParser {

@@ -13,7 +13,7 @@ use crate::{
 };
 
 use super::{
-    BufferedInput, Input, InputLineNumber, InputList, InputMessage,
+    BufferedInput, Input, InputLineNumber, InputList, InputMessage, LineNumberOrRange,
     buffered_reader::BufferedInputReader,
 };
 
@@ -86,7 +86,11 @@ impl InputTask {
                 .await
                 .context("next_segment error")?
             {
-                Some((input_line_number, segment)) => {
+                Some((input, line_number, segment)) => {
+                    let input_line_number = InputLineNumber {
+                        input,
+                        line_number: LineNumberOrRange::Single(line_number),
+                    };
                     self.process_buffered_input_line(parser, input_line_number, segment)
                         .await
                 }
@@ -133,7 +137,7 @@ impl InputTask {
 
             let input_line_number = InputLineNumber {
                 input: Input::CommandLineArgs,
-                line_number,
+                line_number: LineNumberOrRange::Single(line_number),
             };
 
             self.process_next_command_line_arg(&mut parser, input_line_number)
@@ -141,12 +145,71 @@ impl InputTask {
         }
     }
 
+    async fn process_pipe_input(&self) -> anyhow::Result<()> {
+        debug!("begin process_pipe_input");
+
+        let mut input_reader =
+            BufferedInputReader::new(BufferedInput::Stdin, self.command_line_args).await?;
+
+        let parser = self.parsers.pipe_mode_parser();
+
+        let mut range_start_line_number = 1usize;
+        let mut range_end_line_number = 1usize;
+
+        loop {
+            match input_reader
+                .next_segment()
+                .await
+                .context("next_segment error")?
+            {
+                Some((_, line_number, segment)) => {
+                    range_end_line_number = line_number;
+                    let command_and_args_option = parser.parse_segment(segment);
+                    if let Some(command_and_args) = command_and_args_option {
+                        self.send(InputMessage {
+                            command_and_args,
+                            input_line_number: InputLineNumber {
+                                input: Input::Buffered(BufferedInput::Stdin),
+                                line_number: LineNumberOrRange::Range(
+                                    range_start_line_number,
+                                    range_end_line_number,
+                                ),
+                            },
+                        })
+                        .await;
+                        range_start_line_number = range_end_line_number + 1;
+                    }
+                }
+                None => {
+                    debug!("input_reader.next_segment EOF");
+                    break;
+                }
+            }
+        }
+
+        if let Some(command_and_args) = parser.parse_last_command() {
+            self.send(InputMessage {
+                command_and_args,
+                input_line_number: InputLineNumber {
+                    input: Input::Buffered(BufferedInput::Stdin),
+                    line_number: LineNumberOrRange::Range(
+                        range_start_line_number,
+                        range_end_line_number,
+                    ),
+                },
+            })
+            .await
+        }
+
+        Ok(())
+    }
+
     #[instrument(skip_all, name = "InputTask::run", level = "debug")]
     pub async fn run(self) {
         debug!("begin run");
 
         match super::build_input_list(self.command_line_args) {
-            InputList::BufferedInputList(buffered_inputs) => {
+            InputList::Buffered(buffered_inputs) => {
                 for buffered_input in buffered_inputs {
                     if let Err(e) = self.process_buffered_input(buffered_input).await {
                         warn!(
@@ -157,6 +220,9 @@ impl InputTask {
                 }
             }
             InputList::CommandLineArgs => self.process_command_line_args_input().await,
+            InputList::Pipe => self.process_pipe_input().await.unwrap_or_else(|e| {
+                warn!("process_pipe_input error: {}", e);
+            }),
         }
 
         debug!("end run");

@@ -1,8 +1,12 @@
+use bytesize::ByteSize;
+
 use clap::{Parser, ValueEnum};
 
 use tokio::sync::OnceCell;
 
 use tracing::debug;
+
+use std::str::FromStr;
 
 pub const COMMANDS_FROM_ARGS_SEPARATOR: &str = ":::";
 
@@ -81,6 +85,14 @@ pub struct CommandLineArgs {
     #[arg(short, long)]
     pub keep_order: bool,
 
+    /// Use pipe input mode
+    #[arg(long)]
+    pub pipe: bool,
+
+    /// Block size for pipe input mode, defaults to 1MiB
+    #[arg(long, default_value = "1MiB", value_parser = Self::parse_block_size_bytes)]
+    pub block_size: usize,
+
     /// Path to shell to use for shell mode
     #[arg(long, default_value = Self::default_shell())]
     pub shell_path: String,
@@ -136,6 +148,19 @@ impl CommandLineArgs {
         } else {
             Err("value not greater than 0".to_string())
         }
+    }
+
+    fn parse_block_size_bytes(s: &str) -> Result<usize, String> {
+        let bytes =
+            ByteSize::from_str(s).map_err(|e| format!("could not parse size `{s}`: {e}"))?;
+
+        if bytes.0 == 0 {
+            return Err("size must be greater than 0".to_string());
+        }
+
+        let bytes =
+            usize::try_from(bytes.0).map_err(|e| format!("size `{s}` is too large: {e}"))?;
+        Ok(bytes)
     }
 
     fn default_shell() -> &'static str {

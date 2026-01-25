@@ -111,19 +111,19 @@ fn runs_echo_commands_dry_run() {
             (predicate::str::contains("\n").count(3))
                 .and(
                     predicate::str::contains(
-                        r#"cmd="/bin/bash",args=["-c", "echo A"],line=command_line_args:1"#,
+                        r#"cmd="/bin/bash",args=["-c", "echo A"],stdin=None,line=command_line_args:1"#,
                     )
                     .count(1),
                 )
                 .and(
                     predicate::str::contains(
-                        r#"cmd="/bin/bash",args=["-c", "echo B"],line=command_line_args:2"#,
+                        r#"cmd="/bin/bash",args=["-c", "echo B"],stdin=None,line=command_line_args:2"#,
                     )
                     .count(1),
                 )
                 .and(
                     predicate::str::contains(
-                        r#"cmd="/bin/bash",args=["-c", "echo C"],line=command_line_args:3"#,
+                        r#"cmd="/bin/bash",args=["-c", "echo C"],stdin=None,line=command_line_args:3"#,
                     )
                     .count(1),
                 ),
@@ -625,4 +625,85 @@ fn test_unresolvable_command_disable_path_cache() {
                 .and(predicate::str::contains("command failures:"))
                 .and(predicate::str::contains("spawn_errors=3")),
         );
+}
+
+#[test]
+fn test_pipe_mode() {
+    let stdin = r#"A
+B
+C
+D
+E"#;
+    rust_parallel()
+        .write_stdin(stdin)
+        .arg("--pipe")
+        .arg("--block-size=1")
+        .arg("cat")
+        .assert()
+        .success()
+        .stdout(
+            (predicate::str::contains("\n").count(5))
+                .and(predicate::str::contains("A\n").count(1))
+                .and(predicate::str::contains("B\n").count(1))
+                .and(predicate::str::contains("C\n").count(1))
+                .and(predicate::str::contains("D\n").count(1))
+                .and(predicate::str::contains("E\n").count(1)),
+        )
+        .stderr(predicate::str::is_empty());
+}
+
+#[test]
+fn test_pipe_mode_wc() {
+    let stdin = r#"A
+B
+C
+D
+E"#;
+    rust_parallel()
+        .write_stdin(stdin)
+        .arg("--pipe")
+        .arg("wc")
+        .arg("-l")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("5\n").count(1))
+        .stderr(predicate::str::is_empty());
+}
+
+#[test]
+fn test_pipe_mode_wc_blocksize_100kib() {
+    let stdin = r#"A
+B
+C
+D
+E"#;
+    rust_parallel()
+        .write_stdin(stdin)
+        .arg("--pipe")
+        .arg("--block-size=100KiB")
+        .arg("wc")
+        .arg("-l")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("5\n").count(1))
+        .stderr(predicate::str::is_empty());
+}
+
+#[test]
+fn test_pipe_mode_wc_blocksize_1() {
+    let stdin = r#"A
+B
+C
+D
+E"#;
+    rust_parallel()
+        .write_stdin(stdin)
+        .arg("--pipe")
+        .arg("--block-size=1")
+        .arg("wc")
+        .arg("-l")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("1\n").count(5))
+        .stderr(predicate::str::is_empty());
 }

@@ -47,9 +47,24 @@ impl std::fmt::Display for Input {
 }
 
 #[derive(Debug)]
+pub enum LineNumberOrRange {
+    Single(usize),
+    Range(usize, usize),
+}
+
+impl std::fmt::Display for LineNumberOrRange {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Single(line) => write!(f, "{line}"),
+            Self::Range(start, end) => write!(f, "{start}-{end}"),
+        }
+    }
+}
+
+#[derive(Debug)]
 pub struct InputLineNumber {
     pub input: Input,
-    pub line_number: usize,
+    pub line_number: LineNumberOrRange,
 }
 
 impl std::fmt::Display for InputLineNumber {
@@ -59,18 +74,22 @@ impl std::fmt::Display for InputLineNumber {
 }
 
 enum InputList {
-    BufferedInputList(Vec<BufferedInput>),
+    Buffered(Vec<BufferedInput>),
 
     CommandLineArgs,
+
+    Pipe,
 }
 
 fn build_input_list(command_line_args: &'static CommandLineArgs) -> InputList {
-    if command_line_args.commands_from_args_mode() {
+    if command_line_args.pipe {
+        InputList::Pipe
+    } else if command_line_args.commands_from_args_mode() {
         InputList::CommandLineArgs
     } else if command_line_args.input_file.is_empty() {
-        InputList::BufferedInputList(vec![BufferedInput::Stdin])
+        InputList::Buffered(vec![BufferedInput::Stdin])
     } else {
-        InputList::BufferedInputList(
+        InputList::Buffered(
             command_line_args
                 .input_file
                 .iter()

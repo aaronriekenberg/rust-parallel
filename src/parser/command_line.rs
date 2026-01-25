@@ -147,26 +147,32 @@ mod test {
                 OwnedCommandAndArgs {
                     command_path: PathBuf::from("echo"),
                     args: vec!["-n", "A", "C"].into_iter().map_into().collect(),
+                    ..Default::default()
                 },
                 OwnedCommandAndArgs {
                     command_path: PathBuf::from("echo"),
                     args: vec!["-n", "A", "D"].into_iter().map_into().collect(),
+                    ..Default::default()
                 },
                 OwnedCommandAndArgs {
                     command_path: PathBuf::from("echo"),
                     args: vec!["-n", "A", "E"].into_iter().map_into().collect(),
+                    ..Default::default()
                 },
                 OwnedCommandAndArgs {
                     command_path: PathBuf::from("echo"),
                     args: vec!["-n", "B", "C"].into_iter().map_into().collect(),
+                    ..Default::default()
                 },
                 OwnedCommandAndArgs {
                     command_path: PathBuf::from("echo"),
                     args: vec!["-n", "B", "D"].into_iter().map_into().collect(),
+                    ..Default::default()
                 },
                 OwnedCommandAndArgs {
                     command_path: PathBuf::from("echo"),
                     args: vec!["-n", "B", "E"].into_iter().map_into().collect(),
+                    ..Default::default()
                 },
             ]
         );
@@ -198,26 +204,32 @@ mod test {
                 OwnedCommandAndArgs {
                     command_path: PathBuf::from("echo"),
                     args: vec!["arg1"].into_iter().map_into().collect(),
+                    ..Default::default()
                 },
                 OwnedCommandAndArgs {
                     command_path: PathBuf::from("echo"),
                     args: vec!["arg2"].into_iter().map_into().collect(),
+                    ..Default::default()
                 },
                 OwnedCommandAndArgs {
                     command_path: PathBuf::from("echo"),
                     args: vec!["arg3"].into_iter().map_into().collect(),
+                    ..Default::default()
                 },
                 OwnedCommandAndArgs {
                     command_path: PathBuf::from("say"),
                     args: vec!["arg1"].into_iter().map_into().collect(),
+                    ..Default::default()
                 },
                 OwnedCommandAndArgs {
                     command_path: PathBuf::from("say"),
                     args: vec!["arg2"].into_iter().map_into().collect(),
+                    ..Default::default()
                 },
                 OwnedCommandAndArgs {
                     command_path: PathBuf::from("say"),
                     args: vec!["arg3"].into_iter().map_into().collect(),
+                    ..Default::default()
                 },
             ]
         );
@@ -287,26 +299,32 @@ mod test {
                 OwnedCommandAndArgs {
                     command_path: PathBuf::from("/bin/bash"),
                     args: vec!["-c", "echo -n A C"].into_iter().map_into().collect(),
+                    ..Default::default()
                 },
                 OwnedCommandAndArgs {
                     command_path: PathBuf::from("/bin/bash"),
                     args: vec!["-c", "echo -n A D"].into_iter().map_into().collect(),
+                    ..Default::default()
                 },
                 OwnedCommandAndArgs {
                     command_path: PathBuf::from("/bin/bash"),
                     args: vec!["-c", "echo -n A E"].into_iter().map_into().collect(),
+                    ..Default::default()
                 },
                 OwnedCommandAndArgs {
                     command_path: PathBuf::from("/bin/bash"),
                     args: vec!["-c", "echo -n B C"].into_iter().map_into().collect(),
+                    ..Default::default()
                 },
                 OwnedCommandAndArgs {
                     command_path: PathBuf::from("/bin/bash"),
                     args: vec!["-c", "echo -n B D"].into_iter().map_into().collect(),
+                    ..Default::default()
                 },
                 OwnedCommandAndArgs {
                     command_path: PathBuf::from("/bin/bash"),
                     args: vec!["-c", "echo -n B E"].into_iter().map_into().collect(),
+                    ..Default::default()
                 },
             ]
         );
@@ -338,26 +356,32 @@ mod test {
                 OwnedCommandAndArgs {
                     command_path: PathBuf::from("/bin/bash"),
                     args: vec!["-c", "say C"].into_iter().map_into().collect(),
+                    ..Default::default()
                 },
                 OwnedCommandAndArgs {
                     command_path: PathBuf::from("/bin/bash"),
                     args: vec!["-c", "say D"].into_iter().map_into().collect(),
+                    ..Default::default()
                 },
                 OwnedCommandAndArgs {
                     command_path: PathBuf::from("/bin/bash"),
                     args: vec!["-c", "say E"].into_iter().map_into().collect(),
+                    ..Default::default()
                 },
                 OwnedCommandAndArgs {
                     command_path: PathBuf::from("/bin/bash"),
                     args: vec!["-c", "echo C"].into_iter().map_into().collect(),
+                    ..Default::default()
                 },
                 OwnedCommandAndArgs {
                     command_path: PathBuf::from("/bin/bash"),
                     args: vec!["-c", "echo D"].into_iter().map_into().collect(),
+                    ..Default::default()
                 },
                 OwnedCommandAndArgs {
                     command_path: PathBuf::from("/bin/bash"),
                     args: vec!["-c", "echo E"].into_iter().map_into().collect(),
+                    ..Default::default()
                 },
             ]
         );
@@ -399,6 +423,7 @@ mod test {
                         .into_iter()
                         .map_into()
                         .collect(),
+                    ..Default::default()
                 },
                 OwnedCommandAndArgs {
                     command_path: PathBuf::from("echo"),
@@ -406,6 +431,7 @@ mod test {
                         .into_iter()
                         .map_into()
                         .collect(),
+                    ..Default::default()
                 },
             ]
         );
@@ -447,6 +473,7 @@ mod test {
                         .into_iter()
                         .map_into()
                         .collect(),
+                    ..Default::default()
                 },
                 OwnedCommandAndArgs {
                     command_path: PathBuf::from("echo"),
@@ -454,6 +481,7 @@ mod test {
                         .into_iter()
                         .map_into()
                         .collect(),
+                    ..Default::default()
                 },
             ]
         );
@@ -487,6 +515,7 @@ mod test {
                         .into_iter()
                         .map_into()
                         .collect(),
+                    ..Default::default()
                 },
                 OwnedCommandAndArgs {
                     command_path: PathBuf::from("echo"),
@@ -494,6 +523,7 @@ mod test {
                         .into_iter()
                         .map_into()
                         .collect(),
+                    ..Default::default()
                 },
                 OwnedCommandAndArgs {
                     command_path: PathBuf::from("echo"),
@@ -501,6 +531,7 @@ mod test {
                         .into_iter()
                         .map_into()
                         .collect(),
+                    ..Default::default()
                 },
                 OwnedCommandAndArgs {
                     command_path: PathBuf::from("echo"),
@@ -508,6 +539,7 @@ mod test {
                         .into_iter()
                         .map_into()
                         .collect(),
+                    ..Default::default()
                 },
             ]
         );

@@ -15,6 +15,7 @@ echo '
 1. [Commands from stdin](#commands-from-stdin)
 1. [Command and initial arguments on command line](#command-and-initial-arguments-on-command-line)
 1. [Reading multiple inputs](#reading-multiple-inputs)
+1. [Pipe Mode](#pipe-mode)
 1. [Parallelism](#parallelism)
 1. [Keep Output Order](#keep-output-order)
 1. [Dry run](#dry-run)
@@ -141,6 +142,30 @@ head -5 /usr/share/dict/words | $RUST_PARALLEL -i - -i ./test echo
 rm -f test
 
 echo '```'
+
+echo '## Pipe Mode
+
+The `--pipe` option can be used to enable pipe mode.
+
+In pipe mode input from stdin is split into blocks and each block is passed to a separate instance of the command via stdin.  Command instances are run in parallel.  
+
+The default block size is 1 MiB, which can be changed with the `--block-size` option.
+
+Here we use `--pipe` to run `wc -l`
+'
+
+echo '```'
+echo '$ cat /usr/share/dict/words | rust-parallel --pipe wc -l'
+cat /usr/share/dict/words | $RUST_PARALLEL --pipe wc -l
+echo '```'
+
+echo 'Here we use pipe mode with with a smaller block size of 500 KiB:'
+
+echo '```'
+echo '$ cat /usr/share/dict/words | rust-parallel --pipe --block-size=500KiB wc -l'
+cat /usr/share/dict/words | $RUST_PARALLEL --pipe --block-size=500KiB wc -l
+echo '```'
+
 
 echo '
 ## Parallelism
