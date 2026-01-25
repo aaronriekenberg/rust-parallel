@@ -671,7 +671,26 @@ E"#;
 }
 
 #[test]
-fn test_pipe_mode_wc_blocksize1() {
+fn test_pipe_mode_wc_blocksize_100kib() {
+    let stdin = r#"A
+B
+C
+D
+E"#;
+    rust_parallel()
+        .write_stdin(stdin)
+        .arg("--pipe")
+        .arg("--block-size=100KiB")
+        .arg("wc")
+        .arg("-l")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("5\n").count(1))
+        .stderr(predicate::str::is_empty());
+}
+
+#[test]
+fn test_pipe_mode_wc_blocksize_1() {
     let stdin = r#"A
 B
 C
