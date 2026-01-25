@@ -242,6 +242,12 @@ $ RUST_LOG=debug rust-parallel echo ::: hi there how are you | grep 'command_lin
 RUST_LOG=debug $RUST_PARALLEL echo ::: hi there how are you | grep 'command_line_args:1'
 echo '```'
 
+echo 'If [pipe mode](#pipe-mode) is being used debug logs will show information line ranges and stdin block sizes:'
+echo '```'
+echo '$ cat /usr/share/dict/words| RUST_LOG=debug rust-parallel --pipe wc -l | grep spawned'
+cat /usr/share/dict/words | RUST_LOG=debug $RUST_PARALLEL --pipe wc -l | grep spawned
+echo '```'
+
 echo '## Error handling
 
 The following are considered command failures and error will be logged:
