@@ -7,10 +7,12 @@ use tokio::{
 use std::{
     ffi::OsStr,
     process::{Output, Stdio},
-    sync::Arc,
 };
 
-use crate::command_line_args::{CommandLineArgs, DiscardOutput};
+use crate::{
+    command_line_args::{CommandLineArgs, DiscardOutput},
+    common::StdinData,
+};
 
 #[derive(thiserror::Error, Debug)]
 pub enum ChildProcessExecutionError {
@@ -26,7 +28,7 @@ pub struct ChildProcess {
     child: Child,
     discard_all_output: bool,
     timeout: Option<Duration>,
-    stdin_option: Option<Arc<String>>,
+    stdin_data: StdinData,
 }
 
 impl ChildProcess {
@@ -49,7 +51,7 @@ impl ChildProcess {
     }
 
     async fn internal_await_completion(mut self) -> Result<Output, ChildProcessExecutionError> {
-        let stdin_writer_future_option = if let Some(stdin_data) = self.stdin_option.take()
+        let stdin_writer_future_option = if let Some(stdin_data) = self.stdin_data.0.take()
             && let Some(mut child_stdin) = self.child.stdin.take()
         {
             Some(async move {
@@ -109,8 +111,8 @@ impl ChildProcessFactory {
         }
     }
 
-    fn stdin(&self, stdin_option: &Option<Arc<String>>) -> Stdio {
-        match stdin_option {
+    fn stdin(&self, stdin_data: &StdinData) -> Stdio {
+        match stdin_data.0 {
             Some(_) => Stdio::piped(),
             None => Stdio::null(),
         }
@@ -140,7 +142,7 @@ impl ChildProcessFactory {
         &self,
         command: C,
         args: AI,
-        stdin_option: Option<Arc<String>>,
+        stdin_data: StdinData,
     ) -> std::io::Result<ChildProcess>
     where
         C: AsRef<OsStr>,
@@ -149,7 +151,7 @@ impl ChildProcessFactory {
     {
         let child = Command::new(command)
             .args(args)
-            .stdin(self.stdin(&stdin_option))
+            .stdin(self.stdin(&stdin_data))
             .stdout(self.stdout())
             .stderr(self.stderr())
             .kill_on_drop(self.timeout.is_some())
@@ -159,7 +161,7 @@ impl ChildProcessFactory {
             child,
             discard_all_output: self.discard_all_output(),
             timeout: self.timeout,
-            stdin_option: stdin_option.clone(),
+            stdin_data,
         })
     }
 }

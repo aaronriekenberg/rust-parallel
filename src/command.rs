@@ -34,6 +34,7 @@ impl Command {
             cmd = ?self.command_and_args.command_path,
             args = ?self.command_and_args.args,
             line = %self.input_line_number,
+            stdin = %self.command_and_args.stdin,
             child_pid,
         ),
         level = "debug")]
@@ -93,17 +94,10 @@ impl Command {
 
 impl std::fmt::Display for Command {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let stdin = match &self.command_and_args.stdin {
-            Some(_) => "Some",
-            None => "None",
-        };
         write!(
             f,
-            "cmd={:?},args={:?},stdin={},line={}",
-            self.command_and_args.command_path,
-            self.command_and_args.args,
-            stdin,
-            self.input_line_number,
+            "{},line={}",
+            self.command_and_args, self.input_line_number
         )
     }
 }

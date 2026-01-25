@@ -1,22 +1,35 @@
+use bytesize::ByteSize;
+
 use std::{collections::VecDeque, path::PathBuf, sync::Arc};
+
+#[derive(Clone, Debug, Eq, PartialEq, Default)]
+pub struct StdinData(pub Option<Arc<String>>);
+
+impl std::fmt::Display for StdinData {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match &self.0 {
+            Some(s) => {
+                let size_string = ByteSize::b(s.len().try_into().unwrap_or_default()).to_string();
+                write!(f, "{size_string}")
+            }
+            None => write!(f, "None"),
+        }
+    }
+}
 
 #[derive(Debug, Eq, PartialEq, Default)]
 pub struct OwnedCommandAndArgs {
     pub command_path: PathBuf,
     pub args: Vec<String>,
-    pub stdin: Option<Arc<String>>,
+    pub stdin: StdinData,
 }
 
 impl std::fmt::Display for OwnedCommandAndArgs {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let stdin = match &self.stdin {
-            Some(_) => "Some",
-            None => "None",
-        };
         write!(
             f,
-            "cmd={:?},args={:?},stdin={:?}",
-            self.command_path, self.args, stdin
+            "cmd={:?},args={:?},stdin={}",
+            self.command_path, self.args, self.stdin
         )
     }
 }
@@ -38,7 +51,7 @@ impl TryFrom<VecDeque<String>> for OwnedCommandAndArgs {
         Ok(Self {
             command_path: PathBuf::from(command),
             args: deque.into(),
-            stdin: None,
+            stdin: StdinData(None),
         })
     }
 }
@@ -57,8 +70,8 @@ impl OwnedCommandAndArgs {
         self
     }
 
-    pub fn with_stdin(mut self, stdin: Arc<String>) -> Self {
-        self.stdin = Some(stdin);
+    pub fn with_stdin(mut self, stdin: StdinData) -> Self {
+        self.stdin = stdin;
         self
     }
 }

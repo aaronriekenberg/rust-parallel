@@ -1,5 +1,6 @@
 use crate::{
-    command_line_args::CommandLineArgs, common::OwnedCommandAndArgs, parser::ShellCommandAndArgs,
+    command_line_args::CommandLineArgs, common::OwnedCommandAndArgs, common::StdinData,
+    parser::ShellCommandAndArgs,
 };
 
 use std::{cell::RefCell, sync::Arc};
@@ -67,7 +68,9 @@ impl PipeModeParser {
             &self.shell_command_and_args,
             self.command_and_initial_arguments.clone(),
         )
-        .map(|owned_command_and_args| owned_command_and_args.with_stdin(Arc::new(stdin)))
+        .map(|owned_command_and_args| {
+            owned_command_and_args.with_stdin(StdinData(Some(Arc::new(stdin))))
+        })
     }
 }
 
@@ -97,7 +100,7 @@ mod test {
         assert_eq!(owned_command_and_args.command_path, PathBuf::from("echo"));
         assert_eq!(owned_command_and_args.args, vec!["hello".to_string()]);
         assert_eq!(
-            owned_command_and_args.stdin.unwrap().as_str(),
+            owned_command_and_args.stdin.0.unwrap().as_str(),
             "Hello, World!\nThis is a test.\n"
         );
     }
@@ -121,7 +124,7 @@ mod test {
         assert_eq!(owned_command_and_args.command_path, PathBuf::from("echo"));
         assert_eq!(owned_command_and_args.args, vec!["hello".to_string()]);
         assert_eq!(
-            owned_command_and_args.stdin.unwrap().as_str(),
+            owned_command_and_args.stdin.0.unwrap().as_str(),
             "Hello, World!\nThis is a test.\n"
         );
 
@@ -145,7 +148,7 @@ mod test {
         assert_eq!(owned_command_and_args1.command_path, PathBuf::from("echo"));
         assert_eq!(owned_command_and_args1.args, vec!["hello".to_string()]);
         assert_eq!(
-            owned_command_and_args1.stdin.unwrap().as_str(),
+            owned_command_and_args1.stdin.0.unwrap().as_str(),
             "Hello, World!\n"
         );
 
@@ -153,7 +156,7 @@ mod test {
         assert_eq!(owned_command_and_args2.command_path, PathBuf::from("echo"));
         assert_eq!(owned_command_and_args2.args, vec!["hello".to_string()]);
         assert_eq!(
-            owned_command_and_args2.stdin.unwrap().as_str(),
+            owned_command_and_args2.stdin.0.unwrap().as_str(),
             "This is a test.\n"
         );
 
