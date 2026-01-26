@@ -19,7 +19,7 @@ Listed in [Awesome Rust - utilities](https://github.com/rust-unofficial/awesome-
 Similar interface to [GNU Parallel](https://www.gnu.org/software/parallel/parallel_examples.html) or [xargs](https://man7.org/linux/man-pages/man1/xargs.1.html) plus useful features:
 * More than 10x faster than GNU Parallel [in benchmarks](https://github.com/aaronriekenberg/rust-parallel/wiki/Benchmarks)
 * Run commands from [stdin](https://github.com/aaronriekenberg/rust-parallel/wiki/Manual#commands-from-stdin), [input files](https://github.com/aaronriekenberg/rust-parallel/wiki/Manual#reading-multiple-inputs), or [`:::` arguments](https://github.com/aaronriekenberg/rust-parallel/wiki/Manual#commands-from-arguments)
-* [Pipe mode](https://github.com/aaronriekenberg/rust-parallel/wiki/Manual#pipe-mode) to read blocks from stdin and pass to parallel commands automatically.
+* [Pipe mode](https://github.com/aaronriekenberg/rust-parallel/wiki/Manual#pipe-mode) to read blocks from stdin and pass to commands.
 * Automatic parallelism to all cpus, or [configure manually](https://github.com/aaronriekenberg/rust-parallel/wiki/Manual#parallelism)
 * Transform inputs with [variables](https://github.com/aaronriekenberg/rust-parallel/wiki/Manual#automatic-variables) or [regular expressions](https://github.com/aaronriekenberg/rust-parallel/wiki/Manual#regular-expression)
 * Prevent [output interleaving](https://github.com/aaronriekenberg/rust-parallel/wiki/Output-Interleaving) and maintain input order with `-k`/`--keep-order`
@@ -70,6 +70,7 @@ The same `cargo install rust-parallel` command will also update to the latest ve
 
 ## Tech Stack:
 * [anyhow](https://github.com/dtolnay/anyhow) used for application error handling to propogate and format fatal errors.
+* [bytesize](https://github.com/bytesize-rs/bytesize) use to parse and format `--block-size` parameter.
 * [clap](https://docs.rs/clap/latest/clap/) command line argument parser.
 * [itertools](https://docs.rs/itertools/latest/itertools/) using [`multi_cartesian_product`](https://docs.rs/itertools/latest/itertools/trait.Itertools.html#method.multi_cartesian_product) to process `:::` command line inputs.
 * [indicatif](https://github.com/console-rs/indicatif) optional TUI progress bar.
