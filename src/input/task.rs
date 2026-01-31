@@ -206,12 +206,14 @@ impl InputTask {
         match super::build_input_list(self.command_line_args) {
             InputList::Buffered(buffered_inputs) => {
                 for buffered_input in buffered_inputs {
-                    if let Err(e) = self.process_buffered_input(buffered_input).await {
-                        warn!(
-                            "process_buffered_input error buffered_input = {}: {}",
-                            buffered_input, e
-                        );
-                    }
+                    self.process_buffered_input(buffered_input)
+                        .await
+                        .unwrap_or_else(|e| {
+                            warn!(
+                                "process_buffered_input error buffered_input = {}: {}",
+                                buffered_input, e
+                            );
+                        });
                 }
             }
             InputList::CommandLineArgs => self.process_command_line_args_input().await,
