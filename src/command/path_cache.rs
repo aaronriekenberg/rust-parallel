@@ -2,7 +2,9 @@ use anyhow::Context;
 
 use tracing::{debug, error};
 
-use std::{cell::RefCell, collections::HashMap, path::PathBuf};
+use tokio::sync::RwLock;
+
+use std::{collections::HashMap, path::PathBuf};
 
 use crate::command_line_args::CommandLineArgs;
 
@@ -13,7 +15,7 @@ enum CacheValue {
 }
 
 pub struct CommandPathCache {
-    cache: Option<RefCell<HashMap<PathBuf, CacheValue>>>,
+    cache: Option<RwLock<HashMap<PathBuf, CacheValue>>>,
 }
 
 impl CommandPathCache {
@@ -22,7 +24,7 @@ impl CommandPathCache {
             cache: if command_line_args.disable_path_cache {
                 None
             } else {
-                Some(RefCell::new(HashMap::new()))
+                Some(RwLock::new(HashMap::new()))
             },
         }
     }
@@ -31,17 +33,23 @@ impl CommandPathCache {
         &self,
         command_path: PathBuf,
     ) -> anyhow::Result<Option<PathBuf>> {
-        let cache = match &self.cache {
+        let cache_ref = match &self.cache {
             None => return Ok(Some(command_path)),
             Some(cache) => cache,
         };
 
-        if let Some(cached_value) = cache.borrow().get(&command_path) {
+        let read_cache_ref = cache_ref.read().await;
+
+        if let Some(cached_value) = read_cache_ref.get(&command_path) {
             return Ok(match cached_value {
                 CacheValue::NotResolvable => None,
                 CacheValue::Resolved(cached_path) => Some(cached_path.clone()),
             });
         }
+
+        drop(read_cache_ref);
+
+        let mut write_cache_ref = cache_ref.write().await;
 
         let command_path_clone = command_path.clone();
 
@@ -51,12 +59,10 @@ impl CommandPathCache {
             .await
             .context("spawn_blocking error")?;
 
-        let mut cache_ref = cache.borrow_mut();
-
         Ok(match which_result {
             Ok(full_path) => {
                 debug!("resolved command_path={command_path:?} to full_path={full_path:?}");
-                cache_ref.insert(
+                write_cache_ref.insert(
                     command_path.clone(),
                     CacheValue::Resolved(full_path.clone()),
                 );
@@ -64,7 +70,7 @@ impl CommandPathCache {
             }
             Err(e) => {
                 error!("error resolving path {command_path:?}: {e}");
-                cache_ref.insert(command_path.clone(), CacheValue::NotResolvable);
+                write_cache_ref.insert(command_path.clone(), CacheValue::NotResolvable);
                 None
             }
         })
