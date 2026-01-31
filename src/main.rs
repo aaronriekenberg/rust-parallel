@@ -15,7 +15,7 @@ mod progress;
 async fn try_main() -> anyhow::Result<()> {
     debug!("begin try_main");
 
-    let command_line_args = CommandLineArgs::instance().await;
+    let command_line_args = CommandLineArgs::instance();
 
     let progress = progress::Progress::new(command_line_args)?;
 

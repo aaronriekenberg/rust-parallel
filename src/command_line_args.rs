@@ -2,11 +2,9 @@ use bytesize::ByteSize;
 
 use clap::{Parser, ValueEnum};
 
-use tokio::sync::OnceCell;
-
 use tracing::debug;
 
-use std::str::FromStr;
+use std::{str::FromStr, sync::OnceLock};
 
 pub const COMMANDS_FROM_ARGS_SEPARATOR: &str = ":::";
 
@@ -110,18 +108,16 @@ pub struct CommandLineArgs {
 }
 
 impl CommandLineArgs {
-    pub async fn instance() -> &'static Self {
-        static INSTANCE: OnceCell<CommandLineArgs> = OnceCell::const_new();
+    pub fn instance() -> &'static Self {
+        static INSTANCE: OnceLock<CommandLineArgs> = OnceLock::new();
 
-        INSTANCE
-            .get_or_init(|| async move {
-                let command_line_args = CommandLineArgs::parse();
+        INSTANCE.get_or_init(|| {
+            let command_line_args = CommandLineArgs::parse();
 
-                debug!("command_line_args = {:?}", command_line_args);
+            debug!("command_line_args = {command_line_args:?}");
 
-                command_line_args
-            })
-            .await
+            command_line_args
+        })
     }
 
     pub fn commands_from_args_mode(&self) -> bool {
