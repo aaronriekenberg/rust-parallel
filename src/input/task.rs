@@ -13,7 +13,7 @@ use crate::{
 };
 
 use super::{
-    BufferedInput, Input, InputLineNumber, InputList, InputMessage, LineNumberOrRange,
+    BufferedInput, Input, InputLineNumber, InputList, InputMessage,
     buffered_reader::BufferedInputReader,
 };
 
@@ -89,7 +89,7 @@ impl InputTask {
                 Some((input, line_number, segment)) => {
                     let input_line_number = InputLineNumber {
                         input,
-                        line_number: LineNumberOrRange::Single(line_number),
+                        line_number: line_number.into(),
                     };
                     self.process_buffered_input_line(parser, input_line_number, segment)
                         .await
@@ -137,7 +137,7 @@ impl InputTask {
 
             let input_line_number = InputLineNumber {
                 input: Input::CommandLineArgs,
-                line_number: LineNumberOrRange::Single(line_number),
+                line_number: line_number.into(),
             };
 
             self.process_next_command_line_arg(&mut parser, input_line_number)
@@ -170,10 +170,8 @@ impl InputTask {
                             command_and_args,
                             input_line_number: InputLineNumber {
                                 input: Input::Buffered(BufferedInput::Stdin),
-                                line_number: LineNumberOrRange::Range(
-                                    range_start_line_number,
-                                    range_end_line_number,
-                                ),
+                                line_number: (range_start_line_number, range_end_line_number)
+                                    .into(),
                             },
                         })
                         .await;
@@ -192,10 +190,7 @@ impl InputTask {
                 command_and_args,
                 input_line_number: InputLineNumber {
                     input: Input::Buffered(BufferedInput::Stdin),
-                    line_number: LineNumberOrRange::Range(
-                        range_start_line_number,
-                        range_end_line_number,
-                    ),
+                    line_number: (range_start_line_number, range_end_line_number).into(),
                 },
             })
             .await

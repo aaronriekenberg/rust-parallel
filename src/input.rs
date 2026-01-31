@@ -61,6 +61,18 @@ impl std::fmt::Display for LineNumberOrRange {
     }
 }
 
+impl From<usize> for LineNumberOrRange {
+    fn from(line_number: usize) -> Self {
+        LineNumberOrRange::Single(line_number)
+    }
+}
+
+impl From<(usize, usize)> for LineNumberOrRange {
+    fn from(range: (usize, usize)) -> Self {
+        LineNumberOrRange::Range(range.0, range.1)
+    }
+}
+
 #[derive(Debug)]
 pub struct InputLineNumber {
     pub input: Input,
