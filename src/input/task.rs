@@ -78,7 +78,7 @@ impl InputTask {
         let mut input_reader =
             BufferedInputReader::new(buffered_input, self.command_line_args).await?;
 
-        let parser = self.parsers.buffered_input_line_parser();
+        let parser = self.parsers.buffered_input_line_parser().await;
 
         loop {
             match input_reader

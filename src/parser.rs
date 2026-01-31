@@ -3,7 +3,9 @@ pub mod command_line;
 pub mod pipe;
 mod regex;
 
-use std::{sync::Arc, sync::OnceLock};
+use tokio::sync::OnceCell;
+
+use std::sync::Arc;
 
 use crate::{
     command_line_args::CommandLineArgs, common::OwnedCommandAndArgs, parser::pipe::PipeModeParser,
@@ -46,7 +48,7 @@ fn build_owned_command_and_args(
 }
 
 pub struct Parsers {
-    buffered_input_line_parser: OnceLock<BufferedInputLineParser>,
+    buffered_input_line_parser: OnceCell<BufferedInputLineParser>,
     regex_processor: Arc<RegexProcessor>,
     command_line_args: &'static CommandLineArgs,
 }
@@ -56,16 +58,18 @@ impl Parsers {
         let regex_processor = RegexProcessor::new(command_line_args)?;
 
         Ok(Self {
-            buffered_input_line_parser: OnceLock::new(),
+            buffered_input_line_parser: OnceCell::new(),
             regex_processor,
             command_line_args,
         })
     }
 
-    pub fn buffered_input_line_parser(&self) -> &BufferedInputLineParser {
-        self.buffered_input_line_parser.get_or_init(|| {
-            BufferedInputLineParser::new(self.command_line_args, &self.regex_processor)
-        })
+    pub async fn buffered_input_line_parser(&self) -> &BufferedInputLineParser {
+        self.buffered_input_line_parser
+            .get_or_init(|| async move {
+                BufferedInputLineParser::new(self.command_line_args, &self.regex_processor)
+            })
+            .await
     }
 
     pub fn pipe_mode_parser(&self) -> PipeModeParser {
