@@ -2,7 +2,7 @@ use anyhow::Context;
 
 use tracing::{debug, error};
 
-use tokio::sync::RwLock;
+use tokio::sync::Mutex;
 
 use std::{collections::HashMap, path::PathBuf};
 
@@ -15,7 +15,7 @@ enum CacheValue {
 }
 
 pub struct CommandPathCache {
-    cache: Option<RwLock<HashMap<PathBuf, CacheValue>>>,
+    cache: Option<Mutex<HashMap<PathBuf, CacheValue>>>,
 }
 
 impl CommandPathCache {
@@ -24,7 +24,7 @@ impl CommandPathCache {
             cache: if command_line_args.disable_path_cache {
                 None
             } else {
-                Some(RwLock::new(HashMap::new()))
+                Some(Mutex::new(HashMap::new()))
             },
         }
     }
@@ -33,27 +33,23 @@ impl CommandPathCache {
         &self,
         command_path: PathBuf,
     ) -> anyhow::Result<Option<PathBuf>> {
-        let cache_ref = match &self.cache {
+        let mut cache_ref = match &self.cache {
             None => return Ok(Some(command_path)),
             Some(cache) => cache,
-        };
+        }
+        .lock()
+        .await;
 
-        let read_cache_ref = cache_ref.read().await;
-
-        if let Some(cached_value) = read_cache_ref.get(&command_path) {
+        if let Some(cached_value) = cache_ref.get(&command_path) {
             return Ok(match cached_value {
                 CacheValue::NotResolvable => None,
                 CacheValue::Resolved(cached_path) => Some(cached_path.clone()),
             });
         }
 
-        drop(read_cache_ref);
-
-        let mut write_cache_ref = cache_ref.write().await;
+        debug!("calling which command_path={command_path:?}");
 
         let command_path_clone = command_path.clone();
-
-        debug!("calling which command_path={command_path:?}");
 
         let which_result = tokio::task::spawn_blocking(move || which::which(command_path_clone))
             .await
@@ -62,7 +58,7 @@ impl CommandPathCache {
         Ok(match which_result {
             Ok(full_path) => {
                 debug!("resolved command_path={command_path:?} to full_path={full_path:?}");
-                write_cache_ref.insert(
+                cache_ref.insert(
                     command_path.clone(),
                     CacheValue::Resolved(full_path.clone()),
                 );
@@ -70,7 +66,7 @@ impl CommandPathCache {
             }
             Err(e) => {
                 error!("error resolving path {command_path:?}: {e}");
-                write_cache_ref.insert(command_path.clone(), CacheValue::NotResolvable);
+                cache_ref.insert(command_path.clone(), CacheValue::NotResolvable);
                 None
             }
         })
