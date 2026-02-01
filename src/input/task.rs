@@ -133,8 +133,15 @@ impl InputTask {
 
         let parser = self.parsers.pipe_mode_parser();
 
-        let mut range_start_line_number = 1usize;
-        let mut range_end_line_number = 1usize;
+        let build_input_line_number = |range_start, range_end| -> InputLineNumber {
+            InputLineNumber {
+                input,
+                line_number: (range_start, range_end).into(),
+            }
+        };
+
+        let mut range_start = 1usize;
+        let mut range_end = range_start;
 
         loop {
             match input_reader
@@ -143,19 +150,15 @@ impl InputTask {
                 .context("next_segment error")?
             {
                 Some((_, line_number, segment)) => {
-                    range_end_line_number = line_number;
+                    range_end = line_number;
                     let command_and_args_option = parser.parse_segment(segment);
                     if let Some(command_and_args) = command_and_args_option {
                         self.send(InputMessage {
                             command_and_args,
-                            input_line_number: InputLineNumber {
-                                input,
-                                line_number: (range_start_line_number, range_end_line_number)
-                                    .into(),
-                            },
+                            input_line_number: build_input_line_number(range_start, range_end),
                         })
                         .await;
-                        range_start_line_number = range_end_line_number + 1;
+                        range_start = range_end + 1;
                     }
                 }
                 None => {
@@ -168,10 +171,7 @@ impl InputTask {
         if let Some(command_and_args) = parser.parse_last_command() {
             self.send(InputMessage {
                 command_and_args,
-                input_line_number: InputLineNumber {
-                    input,
-                    line_number: (range_start_line_number, range_end_line_number).into(),
-                },
+                input_line_number: build_input_line_number(range_start, range_end),
             })
             .await
         }
