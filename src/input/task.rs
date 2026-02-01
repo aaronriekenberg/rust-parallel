@@ -148,6 +148,8 @@ impl InputTask {
     async fn process_pipe_input(&self) -> anyhow::Result<()> {
         debug!("begin process_pipe_input");
 
+        let input = Input::Buffered(BufferedInput::Stdin);
+
         let mut input_reader =
             BufferedInputReader::new(BufferedInput::Stdin, self.command_line_args).await?;
 
@@ -169,7 +171,7 @@ impl InputTask {
                         self.send(InputMessage {
                             command_and_args,
                             input_line_number: InputLineNumber {
-                                input: Input::Buffered(BufferedInput::Stdin),
+                                input,
                                 line_number: (range_start_line_number, range_end_line_number)
                                     .into(),
                             },
@@ -189,7 +191,7 @@ impl InputTask {
             self.send(InputMessage {
                 command_and_args,
                 input_line_number: InputLineNumber {
-                    input: Input::Buffered(BufferedInput::Stdin),
+                    input,
                     line_number: (range_start_line_number, range_end_line_number).into(),
                 },
             })
