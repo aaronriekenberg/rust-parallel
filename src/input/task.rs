@@ -49,7 +49,8 @@ impl InputTask {
         fields(
             buffered_input = %buffered_input
         ),
-        level = "debug")]
+        level = "debug"
+    )]
     async fn process_buffered_input(&self, buffered_input: BufferedInput) -> anyhow::Result<()> {
         debug!("begin process_buffered_input");
 
