@@ -134,11 +134,13 @@ impl InputTask {
 
         let parser = self.parsers.pipe_mode_parser();
 
-        let build_input_line_number = |range_start, range_end| -> InputLineNumber {
-            InputLineNumber {
-                input,
-                line_number: (range_start, range_end).into(),
-            }
+        let send_input_message = |command_and_args, start_line_num, end_line_num| async move {
+            let line_number = (start_line_num, end_line_num).into();
+            self.send(InputMessage {
+                command_and_args,
+                input_line_number: InputLineNumber { input, line_number },
+            })
+            .await;
         };
 
         let mut range_start = 1usize;
@@ -152,29 +154,19 @@ impl InputTask {
             {
                 Some((_, line_number, segment)) => {
                     range_end = line_number;
-                    let command_and_args_option = parser.parse_segment(segment);
-                    if let Some(command_and_args) = command_and_args_option {
-                        self.send(InputMessage {
-                            command_and_args,
-                            input_line_number: build_input_line_number(range_start, range_end),
-                        })
-                        .await;
+                    if let Some(command_and_args) = parser.parse_segment(segment) {
+                        send_input_message(command_and_args, range_start, range_end).await;
                         range_start = range_end + 1;
                     }
                 }
                 None => {
                     debug!("input_reader.next_segment EOF");
+                    if let Some(command_and_args) = parser.parse_last_command() {
+                        send_input_message(command_and_args, range_start, range_end).await;
+                    }
                     break;
                 }
             }
-        }
-
-        if let Some(command_and_args) = parser.parse_last_command() {
-            self.send(InputMessage {
-                command_and_args,
-                input_line_number: build_input_line_number(range_start, range_end),
-            })
-            .await
         }
 
         Ok(())
