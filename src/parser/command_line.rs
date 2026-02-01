@@ -14,11 +14,11 @@ use crate::{
 #[derive(Debug)]
 struct ArgumentGroups {
     first_command_and_args: Vec<String>,
-    all_argument_groups: VecDeque<Vec<String>>,
+    all_argument_groups: Mutex<VecDeque<Vec<String>>>,
 }
 
 pub struct CommandLineArgsParser {
-    argument_groups: Mutex<ArgumentGroups>,
+    argument_groups: ArgumentGroups,
     shell_command_and_args: ShellCommandAndArgs,
     regex_processor: Arc<RegexProcessor>,
 }
@@ -30,7 +30,7 @@ impl CommandLineArgsParser {
         let shell_command_and_args = ShellCommandAndArgs::new(command_line_args);
 
         Self {
-            argument_groups: Mutex::new(argument_groups),
+            argument_groups,
             shell_command_and_args,
             regex_processor: Arc::clone(regex_processor),
         }
@@ -68,16 +68,12 @@ impl CommandLineArgsParser {
 
         ArgumentGroups {
             first_command_and_args,
-            all_argument_groups,
+            all_argument_groups: Mutex::new(all_argument_groups),
         }
     }
 
-    fn parse_argument_group(
-        &self,
-        argument_groups: &ArgumentGroups,
-        argument_group: Vec<String>,
-    ) -> Option<OwnedCommandAndArgs> {
-        let first_command_and_args = &argument_groups.first_command_and_args;
+    fn parse_argument_group(&self, argument_group: Vec<String>) -> Option<OwnedCommandAndArgs> {
+        let first_command_and_args = &self.argument_groups.first_command_and_args;
 
         let cmd_and_args = if !self.regex_processor.regex_mode() {
             [first_command_and_args.clone(), argument_group].concat()
@@ -99,17 +95,17 @@ impl CommandLineArgsParser {
     }
 
     pub fn has_remaining_argument_groups(&self) -> bool {
-        let argument_groups = self.argument_groups.lock().unwrap();
+        let all_argument_groups = self.argument_groups.all_argument_groups.lock().unwrap();
 
-        !argument_groups.all_argument_groups.is_empty()
+        !all_argument_groups.is_empty()
     }
 
     pub fn parse_next_argument_group(&self) -> Option<OwnedCommandAndArgs> {
-        let mut argument_groups = self.argument_groups.lock().unwrap();
+        let mut all_argument_groups = self.argument_groups.all_argument_groups.lock().unwrap();
 
-        let argument_group = argument_groups.all_argument_groups.pop_front()?;
+        let argument_group = all_argument_groups.pop_front()?;
 
-        self.parse_argument_group(&argument_groups, argument_group)
+        self.parse_argument_group(argument_group)
     }
 }
 
