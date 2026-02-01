@@ -6,11 +6,7 @@ use tracing::{debug, instrument, warn};
 
 use std::sync::Arc;
 
-use crate::{
-    command_line_args::CommandLineArgs,
-    parser::{Parsers, buffered::BufferedInputLineParser},
-    progress::Progress,
-};
+use crate::{command_line_args::CommandLineArgs, parser::Parsers, progress::Progress};
 
 use super::{
     BufferedInput, Input, InputLineNumber, InputList, InputMessage,
@@ -48,32 +44,14 @@ impl InputTask {
     }
 
     #[instrument(
+        name = "InputTask::process_buffered_input",
         skip_all,
         fields(
-            line=%input_line_number,
-        )
-        name = "process_buffered_input_line",
-    )]
-    async fn process_buffered_input_line(
-        &self,
-        parser: &BufferedInputLineParser,
-        input_line_number: InputLineNumber,
-        segment: Vec<u8>,
-    ) {
-        if let Some(command_and_args) = parser.parse_segment(segment) {
-            self.send(InputMessage {
-                command_and_args,
-                input_line_number,
-            })
-            .await
-        }
-    }
-
+            buffered_input = %buffered_input
+        ),
+        level = "debug")]
     async fn process_buffered_input(&self, buffered_input: BufferedInput) -> anyhow::Result<()> {
-        debug!(
-            "begin process_buffered_input buffered_input {}",
-            buffered_input
-        );
+        debug!("begin process_buffered_input");
 
         let mut input_reader =
             BufferedInputReader::new(buffered_input, self.command_line_args).await?;
@@ -87,12 +65,18 @@ impl InputTask {
                 .context("next_segment error")?
             {
                 Some((input, line_number, segment)) => {
-                    let input_line_number = InputLineNumber {
-                        input,
-                        line_number: line_number.into(),
-                    };
-                    self.process_buffered_input_line(parser, input_line_number, segment)
+                    if let Some(command_and_args) = parser.parse_segment(segment) {
+                        let input_line_number = InputLineNumber {
+                            input,
+                            line_number: line_number.into(),
+                        };
+
+                        self.send(InputMessage {
+                            command_and_args,
+                            input_line_number,
+                        })
                         .await
+                    }
                 }
                 None => {
                     debug!("input_reader.next_segment EOF");
@@ -101,10 +85,17 @@ impl InputTask {
             }
         }
 
+        debug!("end process_buffered_input");
+
         Ok(())
     }
 
-    async fn process_command_line_args_input(self) {
+    #[instrument(
+        name = "InputTask::process_command_line_args_input",
+        skip_all,
+        level = "debug"
+    )]
+    async fn process_command_line_args_input(&self) {
         debug!("begin process_command_line_args_input");
 
         let parser = self.parsers.command_line_args_parser();
@@ -127,8 +118,11 @@ impl InputTask {
                 .await;
             }
         }
+
+        debug!("end process_command_line_args_input");
     }
 
+    #[instrument(name = "InputTask::process_pipe_input", skip_all, level = "debug")]
     async fn process_pipe_input(&self) -> anyhow::Result<()> {
         debug!("begin process_pipe_input");
 
