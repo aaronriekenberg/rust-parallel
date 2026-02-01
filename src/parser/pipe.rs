@@ -3,13 +3,13 @@ use crate::{
     parser::ShellCommandAndArgs,
 };
 
-use std::{cell::RefCell, sync::Arc};
+use std::{sync::Arc, sync::Mutex};
 
 pub struct PipeModeParser {
     block_size_bytes: usize,
     shell_command_and_args: ShellCommandAndArgs,
     command_and_initial_arguments: Vec<String>,
-    buffered_data: RefCell<String>,
+    buffered_data: Mutex<String>,
 }
 
 impl PipeModeParser {
@@ -24,7 +24,7 @@ impl PipeModeParser {
             block_size_bytes,
             shell_command_and_args,
             command_and_initial_arguments,
-            buffered_data: RefCell::new(String::with_capacity(block_size_bytes)),
+            buffered_data: Mutex::new(String::with_capacity(block_size_bytes)),
         }
     }
 
@@ -37,25 +37,26 @@ impl PipeModeParser {
     }
 
     fn parse_line(&self, input_line: &str) -> Option<OwnedCommandAndArgs> {
-        let mut buffered_data = self.buffered_data.borrow_mut();
+        let mut buffered_data = self.buffered_data.lock().unwrap();
         buffered_data.push_str(input_line);
         buffered_data.push('\n');
 
         if buffered_data.len() < self.block_size_bytes {
             None
         } else {
-            drop(buffered_data); // Release the borrow
-            let stdin = self
-                .buffered_data
-                .replace(String::with_capacity(self.block_size_bytes));
+            let stdin = buffered_data.clone();
+            buffered_data.clear();
 
             self.build_owned_command_and_args(stdin)
         }
     }
 
-    pub fn parse_last_command(self) -> Option<OwnedCommandAndArgs> {
-        if !self.buffered_data.borrow().is_empty() {
-            let stdin = self.buffered_data.take();
+    pub fn parse_last_command(&self) -> Option<OwnedCommandAndArgs> {
+        let mut buffered_data = self.buffered_data.lock().unwrap();
+
+        if !buffered_data.is_empty() {
+            let stdin = buffered_data.clone();
+            buffered_data.clear();
 
             self.build_owned_command_and_args(stdin)
         } else {

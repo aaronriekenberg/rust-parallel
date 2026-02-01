@@ -1,6 +1,9 @@
 use itertools::Itertools;
 
-use std::{collections::VecDeque, sync::Arc};
+use std::{
+    collections::VecDeque,
+    sync::{Arc, Mutex},
+};
 
 use crate::{
     command_line_args::{COMMANDS_FROM_ARGS_SEPARATOR, CommandLineArgs},
@@ -15,7 +18,7 @@ struct ArgumentGroups {
 }
 
 pub struct CommandLineArgsParser {
-    argument_groups: ArgumentGroups,
+    argument_groups: Mutex<ArgumentGroups>,
     shell_command_and_args: ShellCommandAndArgs,
     regex_processor: Arc<RegexProcessor>,
 }
@@ -27,7 +30,7 @@ impl CommandLineArgsParser {
         let shell_command_and_args = ShellCommandAndArgs::new(command_line_args);
 
         Self {
-            argument_groups,
+            argument_groups: Mutex::new(argument_groups),
             shell_command_and_args,
             regex_processor: Arc::clone(regex_processor),
         }
@@ -69,8 +72,12 @@ impl CommandLineArgsParser {
         }
     }
 
-    fn parse_argument_group(&self, argument_group: Vec<String>) -> Option<OwnedCommandAndArgs> {
-        let first_command_and_args = &self.argument_groups.first_command_and_args;
+    fn parse_argument_group(
+        &self,
+        argument_groups: &ArgumentGroups,
+        argument_group: Vec<String>,
+    ) -> Option<OwnedCommandAndArgs> {
+        let first_command_and_args = &argument_groups.first_command_and_args;
 
         let cmd_and_args = if !self.regex_processor.regex_mode() {
             [first_command_and_args.clone(), argument_group].concat()
@@ -92,12 +99,17 @@ impl CommandLineArgsParser {
     }
 
     pub fn has_remaining_argument_groups(&self) -> bool {
-        !self.argument_groups.all_argument_groups.is_empty()
+        let argument_groups = self.argument_groups.lock().unwrap();
+
+        !argument_groups.all_argument_groups.is_empty()
     }
 
-    pub fn parse_next_argument_group(&mut self) -> Option<OwnedCommandAndArgs> {
-        let argument_group = self.argument_groups.all_argument_groups.pop_front()?;
-        self.parse_argument_group(argument_group)
+    pub fn parse_next_argument_group(&self) -> Option<OwnedCommandAndArgs> {
+        let mut argument_groups = self.argument_groups.lock().unwrap();
+
+        let argument_group = argument_groups.all_argument_groups.pop_front()?;
+
+        self.parse_argument_group(&argument_groups, argument_group)
     }
 }
 
@@ -107,7 +119,7 @@ mod test {
 
     use std::{default::Default, path::PathBuf};
 
-    fn collect_into_vec(mut parser: CommandLineArgsParser) -> Vec<OwnedCommandAndArgs> {
+    fn collect_into_vec(parser: CommandLineArgsParser) -> Vec<OwnedCommandAndArgs> {
         let mut result = vec![];
 
         while parser.has_remaining_argument_groups() {

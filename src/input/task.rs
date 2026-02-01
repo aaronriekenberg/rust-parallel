@@ -78,7 +78,7 @@ impl InputTask {
         let mut input_reader =
             BufferedInputReader::new(buffered_input, self.command_line_args).await?;
 
-        let parser = self.parsers.buffered_input_line_parser().await;
+        let parser = self.parsers.buffered_input_line_parser();
 
         loop {
             match input_reader
@@ -113,7 +113,7 @@ impl InputTask {
     )]
     async fn process_next_command_line_arg(
         &self,
-        parser: &mut CommandLineArgsParser,
+        parser: &CommandLineArgsParser,
         input_line_number: InputLineNumber,
     ) {
         if let Some(command_and_args) = parser.parse_next_argument_group() {
@@ -128,7 +128,7 @@ impl InputTask {
     async fn process_command_line_args_input(self) {
         debug!("begin process_command_line_args_input");
 
-        let mut parser = self.parsers.command_line_args_parser();
+        let parser = self.parsers.command_line_args_parser();
 
         let mut line_number = 0;
 
@@ -140,7 +140,7 @@ impl InputTask {
                 line_number: line_number.into(),
             };
 
-            self.process_next_command_line_arg(&mut parser, input_line_number)
+            self.process_next_command_line_arg(parser, input_line_number)
                 .await;
         }
     }

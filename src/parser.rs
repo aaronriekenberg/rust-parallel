@@ -3,9 +3,7 @@ pub mod command_line;
 pub mod pipe;
 mod regex;
 
-use tokio::sync::OnceCell;
-
-use std::sync::Arc;
+use std::sync::{Arc, OnceLock};
 
 use crate::{
     command_line_args::CommandLineArgs, common::OwnedCommandAndArgs, parser::pipe::PipeModeParser,
@@ -48,7 +46,9 @@ fn build_owned_command_and_args(
 }
 
 pub struct Parsers {
-    buffered_input_line_parser: OnceCell<BufferedInputLineParser>,
+    buffered_input_line_parser: OnceLock<BufferedInputLineParser>,
+    command_line_args_parser: OnceLock<CommandLineArgsParser>,
+    pipe_mode_parser: OnceLock<PipeModeParser>,
     regex_processor: Arc<RegexProcessor>,
     command_line_args: &'static CommandLineArgs,
 }
@@ -58,25 +58,28 @@ impl Parsers {
         let regex_processor = RegexProcessor::new(command_line_args)?;
 
         Ok(Self {
-            buffered_input_line_parser: OnceCell::new(),
+            buffered_input_line_parser: OnceLock::new(),
+            command_line_args_parser: OnceLock::new(),
+            pipe_mode_parser: OnceLock::new(),
             regex_processor,
             command_line_args,
         })
     }
 
-    pub async fn buffered_input_line_parser(&self) -> &BufferedInputLineParser {
-        self.buffered_input_line_parser
-            .get_or_init(|| async move {
-                BufferedInputLineParser::new(self.command_line_args, &self.regex_processor)
-            })
-            .await
+    pub fn buffered_input_line_parser(&self) -> &BufferedInputLineParser {
+        self.buffered_input_line_parser.get_or_init(|| {
+            BufferedInputLineParser::new(self.command_line_args, &self.regex_processor)
+        })
     }
 
-    pub fn pipe_mode_parser(&self) -> PipeModeParser {
-        PipeModeParser::new(self.command_line_args)
+    pub fn command_line_args_parser(&self) -> &CommandLineArgsParser {
+        self.command_line_args_parser.get_or_init(|| {
+            CommandLineArgsParser::new(self.command_line_args, &self.regex_processor)
+        })
     }
 
-    pub fn command_line_args_parser(&self) -> CommandLineArgsParser {
-        CommandLineArgsParser::new(self.command_line_args, &self.regex_processor)
+    pub fn pipe_mode_parser(&self) -> &PipeModeParser {
+        self.pipe_mode_parser
+            .get_or_init(|| PipeModeParser::new(self.command_line_args))
     }
 }
