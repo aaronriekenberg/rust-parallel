@@ -8,7 +8,7 @@ use std::sync::Arc;
 
 use crate::{
     command_line_args::CommandLineArgs,
-    parser::{Parsers, buffered::BufferedInputLineParser, command_line::CommandLineArgsParser},
+    parser::{Parsers, buffered::BufferedInputLineParser},
     progress::Progress,
 };
 
@@ -104,44 +104,28 @@ impl InputTask {
         Ok(())
     }
 
-    #[instrument(
-        skip_all,
-        fields(
-            line=%input_line_number,
-        )
-        name = "process_next_command_line_arg",
-    )]
-    async fn process_next_command_line_arg(
-        &self,
-        parser: &CommandLineArgsParser,
-        input_line_number: InputLineNumber,
-    ) {
-        if let Some(command_and_args) = parser.parse_next_argument_group() {
-            self.send(InputMessage {
-                command_and_args,
-                input_line_number,
-            })
-            .await
-        };
-    }
-
     async fn process_command_line_args_input(self) {
         debug!("begin process_command_line_args_input");
 
         let parser = self.parsers.command_line_args_parser();
 
-        let mut line_number = 0;
+        let input = Input::CommandLineArgs;
 
-        while parser.has_remaining_argument_groups() {
-            line_number += 1;
+        let num_argument_groups = parser.num_argument_groups();
 
+        for line_number in 1..=num_argument_groups {
             let input_line_number = InputLineNumber {
-                input: Input::CommandLineArgs,
+                input,
                 line_number: line_number.into(),
             };
 
-            self.process_next_command_line_arg(parser, input_line_number)
+            if let Some(command_and_args) = parser.parse_next_argument_group() {
+                self.send(InputMessage {
+                    command_and_args,
+                    input_line_number,
+                })
                 .await;
+            }
         }
     }
 

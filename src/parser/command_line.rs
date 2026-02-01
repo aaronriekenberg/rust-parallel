@@ -94,10 +94,10 @@ impl CommandLineArgsParser {
         super::build_owned_command_and_args(&self.shell_command_and_args, cmd_and_args)
     }
 
-    pub fn has_remaining_argument_groups(&self) -> bool {
+    pub fn num_argument_groups(&self) -> usize {
         let all_argument_groups = self.argument_groups.all_argument_groups.lock().unwrap();
 
-        !all_argument_groups.is_empty()
+        all_argument_groups.len()
     }
 
     pub fn parse_next_argument_group(&self) -> Option<OwnedCommandAndArgs> {
@@ -117,8 +117,9 @@ mod test {
 
     fn collect_into_vec(parser: CommandLineArgsParser) -> Vec<OwnedCommandAndArgs> {
         let mut result = vec![];
+        let num_groups = parser.num_argument_groups();
 
-        while parser.has_remaining_argument_groups() {
+        for _ in 1..=num_groups {
             let Some(cmd_and_args) = parser.parse_next_argument_group() else {
                 continue;
             };
