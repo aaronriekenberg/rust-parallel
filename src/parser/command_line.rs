@@ -119,7 +119,7 @@ mod test {
         let mut result = vec![];
         let num_groups = parser.num_argument_groups();
 
-        for _ in 1..=num_groups {
+        for _ in 0..num_groups {
             let Some(cmd_and_args) = parser.parse_next_argument_group() else {
                 continue;
             };

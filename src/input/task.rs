@@ -6,7 +6,10 @@ use tracing::{debug, instrument, warn};
 
 use std::sync::Arc;
 
-use crate::{command_line_args::CommandLineArgs, parser::Parsers, progress::Progress};
+use crate::{
+    command_line_args::CommandLineArgs, common::OwnedCommandAndArgs, input::LineNumberOrRange,
+    parser::Parsers, progress::Progress,
+};
 
 use super::{
     BufferedInput, Input, InputLineNumber, InputList, InputMessage,
@@ -35,8 +38,18 @@ impl InputTask {
         })
     }
 
-    async fn send(&self, input_message: InputMessage) {
+    async fn send(
+        &self,
+        command_and_args: OwnedCommandAndArgs,
+        input: Input,
+        line_number: LineNumberOrRange,
+    ) {
         self.progress.increment_total_commands(1);
+
+        let input_message = InputMessage {
+            command_and_args,
+            input_line_number: InputLineNumber { input, line_number },
+        };
 
         if let Err(e) = self.sender.send(input_message).await {
             warn!("input sender send error: {}", e);
@@ -67,16 +80,7 @@ impl InputTask {
             {
                 Some((input, line_number, segment)) => {
                     if let Some(command_and_args) = parser.parse_segment(segment) {
-                        let input_line_number = InputLineNumber {
-                            input,
-                            line_number: line_number.into(),
-                        };
-
-                        self.send(InputMessage {
-                            command_and_args,
-                            input_line_number,
-                        })
-                        .await
+                        self.send(command_and_args, input, line_number.into()).await
                     }
                 }
                 None => {
@@ -105,18 +109,11 @@ impl InputTask {
 
         let num_argument_groups = parser.num_argument_groups();
 
-        for line_number in 1..=num_argument_groups {
-            let input_line_number = InputLineNumber {
-                input,
-                line_number: line_number.into(),
-            };
+        for i in 0..num_argument_groups {
+            let line_number = i + 1;
 
             if let Some(command_and_args) = parser.parse_next_argument_group() {
-                self.send(InputMessage {
-                    command_and_args,
-                    input_line_number,
-                })
-                .await;
+                self.send(command_and_args, input, line_number.into()).await;
             }
         }
 
@@ -134,15 +131,6 @@ impl InputTask {
 
         let parser = self.parsers.pipe_mode_parser();
 
-        let send_input_message = |command_and_args, start_line_num, end_line_num| async move {
-            let line_number = (start_line_num, end_line_num).into();
-            self.send(InputMessage {
-                command_and_args,
-                input_line_number: InputLineNumber { input, line_number },
-            })
-            .await;
-        };
-
         let mut range_start = 1usize;
         let mut range_end = range_start;
 
@@ -155,14 +143,16 @@ impl InputTask {
                 Some((_, line_number, segment)) => {
                     range_end = line_number;
                     if let Some(command_and_args) = parser.parse_segment(segment) {
-                        send_input_message(command_and_args, range_start, range_end).await;
+                        self.send(command_and_args, input, (range_start, range_end).into())
+                            .await;
                         range_start = range_end + 1;
                     }
                 }
                 None => {
                     debug!("input_reader.next_segment EOF");
                     if let Some(command_and_args) = parser.parse_last_command() {
-                        send_input_message(command_and_args, range_start, range_end).await;
+                        self.send(command_and_args, input, (range_start, range_end).into())
+                            .await;
                     }
                     break;
                 }
