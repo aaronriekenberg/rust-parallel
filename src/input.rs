@@ -85,6 +85,15 @@ impl std::fmt::Display for InputLineNumber {
     }
 }
 
+impl From<(Input, LineNumberOrRange)> for InputLineNumber {
+    fn from(value: (Input, LineNumberOrRange)) -> Self {
+        Self {
+            input: value.0,
+            line_number: value.1,
+        }
+    }
+}
+
 enum InputList {
     Buffered(Vec<BufferedInput>),
 
@@ -123,6 +132,15 @@ fn build_input_list(command_line_args: &'static CommandLineArgs) -> InputList {
 pub struct InputMessage {
     pub command_and_args: OwnedCommandAndArgs,
     pub input_line_number: InputLineNumber,
+}
+
+impl From<(OwnedCommandAndArgs, Input, LineNumberOrRange)> for InputMessage {
+    fn from(value: (OwnedCommandAndArgs, Input, LineNumberOrRange)) -> Self {
+        Self {
+            command_and_args: value.0,
+            input_line_number: (value.1, value.2).into(),
+        }
+    }
 }
 
 pub struct InputProducer {

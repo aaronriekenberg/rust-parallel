@@ -4,12 +4,11 @@ use tokio::io::{AsyncBufRead, AsyncBufReadExt, BufReader, Split};
 
 use crate::command_line_args::CommandLineArgs;
 
-use super::{BufferedInput, Input};
+use super::BufferedInput;
 
 type AsyncBufReadBox = Box<dyn AsyncBufRead + Unpin + Send>;
 
 pub struct BufferedInputReader {
-    buffered_input: BufferedInput,
     split: Split<AsyncBufReadBox>,
     next_line_number: usize,
 }
@@ -30,7 +29,6 @@ impl BufferedInputReader {
         let split = buf_reader.split(line_separator);
 
         Ok(Self {
-            buffered_input,
             split,
             next_line_number: 0,
         })
@@ -54,7 +52,7 @@ impl BufferedInputReader {
         }
     }
 
-    pub async fn next_segment(&mut self) -> anyhow::Result<Option<(Input, usize, Vec<u8>)>> {
+    pub async fn next_segment(&mut self) -> anyhow::Result<Option<(usize, Vec<u8>)>> {
         let segment = self.split.next_segment().await?;
 
         match segment {
@@ -62,11 +60,7 @@ impl BufferedInputReader {
             Some(segment) => {
                 self.next_line_number += 1;
 
-                Ok(Some((
-                    Input::Buffered(self.buffered_input),
-                    self.next_line_number,
-                    segment,
-                )))
+                Ok(Some((self.next_line_number, segment)))
             }
         }
     }

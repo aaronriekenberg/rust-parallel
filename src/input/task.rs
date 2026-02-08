@@ -6,15 +6,9 @@ use tracing::{debug, instrument, warn};
 
 use std::sync::Arc;
 
-use crate::{
-    command_line_args::CommandLineArgs, common::OwnedCommandAndArgs, input::LineNumberOrRange,
-    parser::Parsers, progress::Progress,
-};
+use crate::{command_line_args::CommandLineArgs, parser::Parsers, progress::Progress};
 
-use super::{
-    BufferedInput, Input, InputLineNumber, InputList, InputMessage,
-    buffered_reader::BufferedInputReader,
-};
+use super::{BufferedInput, Input, InputList, InputMessage, buffered_reader::BufferedInputReader};
 
 pub struct InputTask {
     sender: Sender<InputMessage>,
@@ -38,18 +32,8 @@ impl InputTask {
         })
     }
 
-    async fn send(
-        &self,
-        command_and_args: OwnedCommandAndArgs,
-        input: Input,
-        line_number: LineNumberOrRange,
-    ) {
+    async fn send(&self, input_message: InputMessage) {
         self.progress.increment_total_commands(1);
-
-        let input_message = InputMessage {
-            command_and_args,
-            input_line_number: InputLineNumber { input, line_number },
-        };
 
         if let Err(e) = self.sender.send(input_message).await {
             warn!("input sender send error: {}", e);
@@ -70,6 +54,8 @@ impl InputTask {
         let mut input_reader =
             BufferedInputReader::new(buffered_input, self.command_line_args).await?;
 
+        let input = Input::Buffered(buffered_input);
+
         let parser = self.parsers.buffered_input_line_parser();
 
         loop {
@@ -78,9 +64,10 @@ impl InputTask {
                 .await
                 .context("next_segment error")?
             {
-                Some((input, line_number, segment)) => {
+                Some((line_number, segment)) => {
                     if let Some(command_and_args) = parser.parse_segment(segment) {
-                        self.send(command_and_args, input, line_number.into()).await
+                        let input_message = (command_and_args, input, line_number.into()).into();
+                        self.send(input_message).await;
                     }
                 }
                 None => {
@@ -113,7 +100,8 @@ impl InputTask {
             let line_number = i + 1;
 
             if let Some(command_and_args) = parser.parse_next_argument_group() {
-                self.send(command_and_args, input, line_number.into()).await;
+                let input_message = (command_and_args, input, line_number.into()).into();
+                self.send(input_message).await;
             }
         }
 
@@ -140,19 +128,21 @@ impl InputTask {
                 .await
                 .context("next_segment error")?
             {
-                Some((_, line_number, segment)) => {
+                Some((line_number, segment)) => {
                     range_end = line_number;
                     if let Some(command_and_args) = parser.parse_segment(segment) {
-                        self.send(command_and_args, input, (range_start, range_end).into())
-                            .await;
+                        let input_message =
+                            (command_and_args, input, (range_start, range_end).into()).into();
+                        self.send(input_message).await;
                         range_start = range_end + 1;
                     }
                 }
                 None => {
                     debug!("input_reader.next_segment EOF");
                     if let Some(command_and_args) = parser.parse_last_command() {
-                        self.send(command_and_args, input, (range_start, range_end).into())
-                            .await;
+                        let input_message =
+                            (command_and_args, input, (range_start, range_end).into()).into();
+                        self.send(input_message).await;
                     }
                     break;
                 }
