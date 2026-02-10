@@ -50,7 +50,7 @@ impl ChildProcess {
         Ok(output)
     }
 
-    async fn internal_await_completion(mut self) -> Result<Output, ChildProcessExecutionError> {
+    async fn await_io(mut self) -> Result<Output, ChildProcessExecutionError> {
         let stdin_writer_future_option = if let Some(stdin_data) = self.stdin_data.0.take()
             && let Some(mut child_stdin) = self.child.stdin.take()
         {
@@ -74,10 +74,9 @@ impl ChildProcess {
 
     pub async fn await_completion(self) -> Result<Output, ChildProcessExecutionError> {
         match self.timeout {
-            None => self.internal_await_completion().await,
+            None => self.await_io().await,
             Some(timeout) => {
-                let result =
-                    tokio::time::timeout(timeout, self.internal_await_completion()).await?;
+                let result = tokio::time::timeout(timeout, self.await_io()).await?;
 
                 let output = result?;
 
