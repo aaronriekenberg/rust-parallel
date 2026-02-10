@@ -64,8 +64,8 @@ impl ChildProcess {
 
         match stdin_writer_future_option {
             None => self.await_output().await,
-            Some(stdin_writer_join_handle) => {
-                let result = tokio::try_join!(self.await_output(), stdin_writer_join_handle)?;
+            Some(stdin_writer_future) => {
+                let result = tokio::try_join!(self.await_output(), stdin_writer_future)?;
 
                 Ok(result.0)
             }
