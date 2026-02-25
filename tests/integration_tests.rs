@@ -110,22 +110,24 @@ fn runs_echo_commands_dry_run() {
         .stdout(
             (predicate::str::contains("\n").count(3))
                 .and(
-                    predicate::str::contains(
-                        r#"cmd="/bin/bash",args=["-c", "echo A"],stdin=None,line=command_line_args:1"#,
+                    // Don't hardcode /bin/bash since it may not be here, for instance NixOs uses
+                    // a path like cmd="/nix/store/35yc81...-bash-interactive-5.3p3/bin/bash"
+                    predicate::str::is_match(
+                        r#"cmd="[^"]*bash",args=\["-c", "echo A"\],stdin=None,line=command_line_args:1"#,
                     )
-                    .count(1),
+                    .unwrap(),
                 )
                 .and(
-                    predicate::str::contains(
-                        r#"cmd="/bin/bash",args=["-c", "echo B"],stdin=None,line=command_line_args:2"#,
+                    predicate::str::is_match(
+                        r#"cmd="[^"]*bash",args=\["-c", "echo B"\],stdin=None,line=command_line_args:2"#,
                     )
-                    .count(1),
+                    .unwrap(),
                 )
                 .and(
-                    predicate::str::contains(
-                        r#"cmd="/bin/bash",args=["-c", "echo C"],stdin=None,line=command_line_args:3"#,
+                    predicate::str::is_match(
+                        r#"cmd="[^"]*bash",args=\["-c", "echo C"\],stdin=None,line=command_line_args:3"#,
                     )
-                    .count(1),
+                    .unwrap(),
                 ),
         )
         .stderr(predicate::str::is_empty());

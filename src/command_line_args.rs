@@ -161,7 +161,7 @@ impl CommandLineArgs {
 
     fn default_shell() -> &'static str {
         if cfg!(unix) {
-            "/bin/bash"
+            "bash"
         } else if cfg!(windows) {
             "cmd"
         } else {
