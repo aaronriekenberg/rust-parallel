@@ -290,7 +290,7 @@ mod test {
             .into_iter()
             .map_into()
             .collect(),
-            shell_path: "/bin/bash".to_owned(),
+            shell_path: "bash".to_owned(),
             shell_argument: "-c".to_owned(),
             ..Default::default()
         };
@@ -306,32 +306,32 @@ mod test {
             result,
             vec![
                 OwnedCommandAndArgs {
-                    command_path: PathBuf::from("/bin/bash"),
+                    command_path: PathBuf::from("bash"),
                     args: vec!["-c", "echo -n A C"].into_iter().map_into().collect(),
                     ..Default::default()
                 },
                 OwnedCommandAndArgs {
-                    command_path: PathBuf::from("/bin/bash"),
+                    command_path: PathBuf::from("bash"),
                     args: vec!["-c", "echo -n A D"].into_iter().map_into().collect(),
                     ..Default::default()
                 },
                 OwnedCommandAndArgs {
-                    command_path: PathBuf::from("/bin/bash"),
+                    command_path: PathBuf::from("bash"),
                     args: vec!["-c", "echo -n A E"].into_iter().map_into().collect(),
                     ..Default::default()
                 },
                 OwnedCommandAndArgs {
-                    command_path: PathBuf::from("/bin/bash"),
+                    command_path: PathBuf::from("bash"),
                     args: vec!["-c", "echo -n B C"].into_iter().map_into().collect(),
                     ..Default::default()
                 },
                 OwnedCommandAndArgs {
-                    command_path: PathBuf::from("/bin/bash"),
+                    command_path: PathBuf::from("bash"),
                     args: vec!["-c", "echo -n B D"].into_iter().map_into().collect(),
                     ..Default::default()
                 },
                 OwnedCommandAndArgs {
-                    command_path: PathBuf::from("/bin/bash"),
+                    command_path: PathBuf::from("bash"),
                     args: vec!["-c", "echo -n B E"].into_iter().map_into().collect(),
                     ..Default::default()
                 },
@@ -347,7 +347,7 @@ mod test {
                 .into_iter()
                 .map_into()
                 .collect(),
-            shell_path: "/bin/bash".to_owned(),
+            shell_path: "bash".to_owned(),
             shell_argument: "-c".to_owned(),
             ..Default::default()
         };
@@ -363,32 +363,32 @@ mod test {
             result,
             vec![
                 OwnedCommandAndArgs {
-                    command_path: PathBuf::from("/bin/bash"),
+                    command_path: PathBuf::from("bash"),
                     args: vec!["-c", "say C"].into_iter().map_into().collect(),
                     ..Default::default()
                 },
                 OwnedCommandAndArgs {
-                    command_path: PathBuf::from("/bin/bash"),
+                    command_path: PathBuf::from("bash"),
                     args: vec!["-c", "say D"].into_iter().map_into().collect(),
                     ..Default::default()
                 },
                 OwnedCommandAndArgs {
-                    command_path: PathBuf::from("/bin/bash"),
+                    command_path: PathBuf::from("bash"),
                     args: vec!["-c", "say E"].into_iter().map_into().collect(),
                     ..Default::default()
                 },
                 OwnedCommandAndArgs {
-                    command_path: PathBuf::from("/bin/bash"),
+                    command_path: PathBuf::from("bash"),
                     args: vec!["-c", "echo C"].into_iter().map_into().collect(),
                     ..Default::default()
                 },
                 OwnedCommandAndArgs {
-                    command_path: PathBuf::from("/bin/bash"),
+                    command_path: PathBuf::from("bash"),
                     args: vec!["-c", "echo D"].into_iter().map_into().collect(),
                     ..Default::default()
                 },
                 OwnedCommandAndArgs {
-                    command_path: PathBuf::from("/bin/bash"),
+                    command_path: PathBuf::from("bash"),
                     args: vec!["-c", "echo E"].into_iter().map_into().collect(),
                     ..Default::default()
                 },

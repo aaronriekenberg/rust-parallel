@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 hyperfine --warmup 3 \
   'seq 1 1000 | rust-parallel echo' \

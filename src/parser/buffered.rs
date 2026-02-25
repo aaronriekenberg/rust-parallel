@@ -162,7 +162,7 @@ mod test {
             null_separator: false,
             shell: true,
             command_and_initial_arguments: vec![],
-            shell_path: "/bin/bash".to_owned(),
+            shell_path: "bash".to_owned(),
             shell_argument: "-c".to_owned(),
             ..Default::default()
         };
@@ -177,7 +177,7 @@ mod test {
         assert_eq!(
             result,
             Some(OwnedCommandAndArgs {
-                command_path: PathBuf::from("/bin/bash"),
+                command_path: PathBuf::from("bash"),
                 args: vec!["-c", "awesomebashfunction 1 2 3"]
                     .into_iter()
                     .map_into()
