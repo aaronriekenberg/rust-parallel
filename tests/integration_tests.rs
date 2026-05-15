@@ -603,7 +603,7 @@ fn test_exit_status_on_failing_commands_exit_on_error() {
         .failure()
         .code(1)
         .stdout(
-            (predicate::str::contains("command failed"))
+            (predicate::str::contains("command failed").count(1))
                 .and(predicate::str::contains("command failures:"))
                 .and(predicate::str::contains("exit_status_errors=0").not()),
         )

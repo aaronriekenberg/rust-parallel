@@ -141,11 +141,6 @@ impl CommandService {
             return Ok(());
         }
 
-        if self.command_line_args.exit_on_error && self.context.command_metrics.error_occurred() {
-            trace!("return from spawn_command due to exit_on_error");
-            return Ok(());
-        }
-
         let context_clone = Arc::clone(&self.context);
 
         let output_sender = self.output_writer.sender();
@@ -154,6 +149,11 @@ impl CommandService {
             .acquire_owned()
             .await
             .context("command_semaphore.acquire_owned error")?;
+
+        if self.command_line_args.exit_on_error && self.context.command_metrics.error_occurred() {
+            trace!("return from spawn_command due to exit_on_error");
+            return Ok(());
+        }
 
         tokio::spawn(async move {
             command.run(&context_clone, output_sender).await;
