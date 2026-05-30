@@ -1,13 +1,11 @@
-use crate::{
-    command_line_args::CommandLineArgs, common::OwnedCommandAndArgs, common::StdinData,
-    parser::ShellCommandAndArgs,
-};
+use crate::command_line_args::CommandLineArgs;
 
-use std::{sync::Arc, sync::Mutex};
+use std::sync::Mutex;
+
+use super::ParsedCommand;
 
 pub struct PipeModeParser {
     block_size_bytes: usize,
-    shell_command_and_args: ShellCommandAndArgs,
     command_and_initial_arguments: Vec<String>,
     buffered_data: Mutex<String>,
 }
@@ -16,19 +14,16 @@ impl PipeModeParser {
     pub fn new(command_line_args: &CommandLineArgs) -> Self {
         let command_and_initial_arguments = command_line_args.command_and_initial_arguments.clone();
 
-        let shell_command_and_args = ShellCommandAndArgs::new(command_line_args);
-
         let block_size_bytes = command_line_args.block_size;
 
         Self {
             block_size_bytes,
-            shell_command_and_args,
             command_and_initial_arguments,
             buffered_data: Mutex::new(String::with_capacity(block_size_bytes)),
         }
     }
 
-    pub fn parse_segment(&self, segment: Vec<u8>) -> Option<OwnedCommandAndArgs> {
+    pub fn parse_segment(&self, segment: Vec<u8>) -> Option<ParsedCommand> {
         if let Ok(input_line) = std::str::from_utf8(&segment) {
             self.parse_line(input_line)
         } else {
@@ -36,7 +31,7 @@ impl PipeModeParser {
         }
     }
 
-    fn parse_line(&self, input_line: &str) -> Option<OwnedCommandAndArgs> {
+    fn parse_line(&self, input_line: &str) -> Option<ParsedCommand> {
         let mut buffered_data = self.buffered_data.lock().unwrap();
         buffered_data.push_str(input_line);
         buffered_data.push('\n');
@@ -47,37 +42,29 @@ impl PipeModeParser {
             let stdin = buffered_data.clone();
             buffered_data.clear();
 
-            self.build_owned_command_and_args(stdin)
+            Some(ParsedCommand::new(self.command_and_initial_arguments.clone()).with_stdin(stdin))
         }
     }
 
-    pub fn parse_last_command(&self) -> Option<OwnedCommandAndArgs> {
+    pub fn parse_last_command(&self) -> Option<ParsedCommand> {
         let mut buffered_data = self.buffered_data.lock().unwrap();
 
         if !buffered_data.is_empty() {
             let stdin = buffered_data.clone();
             buffered_data.clear();
 
-            self.build_owned_command_and_args(stdin)
+            Some(ParsedCommand::new(self.command_and_initial_arguments.clone()).with_stdin(stdin))
         } else {
             None
         }
-    }
-
-    fn build_owned_command_and_args(&self, stdin: String) -> Option<OwnedCommandAndArgs> {
-        super::build_owned_command_and_args(
-            &self.shell_command_and_args,
-            self.command_and_initial_arguments.clone(),
-        )
-        .map(|owned_command_and_args| {
-            owned_command_and_args.with_stdin(StdinData(Some(Arc::new(stdin))))
-        })
     }
 }
 
 #[cfg(test)]
 mod test {
     use super::*;
+    use crate::common::OwnedCommandAndArgs;
+    use crate::parser::CommandBuilder;
 
     use std::{default::Default, path::PathBuf};
 
@@ -90,6 +77,7 @@ mod test {
         };
 
         let parser = PipeModeParser::new(&command_line_args);
+        let builder = CommandBuilder::new(&command_line_args);
 
         let segment1 = b"Hello, World!".to_vec();
         let segment2 = b"This is a test.".to_vec();
@@ -97,7 +85,7 @@ mod test {
         assert!(parser.parse_segment(segment1).is_none());
         assert!(parser.parse_segment(segment2).is_none());
 
-        let owned_command_and_args = parser.parse_last_command().unwrap();
+        let owned_command_and_args = builder.build(parser.parse_last_command().unwrap()).unwrap();
         assert_eq!(owned_command_and_args.command_path, PathBuf::from("echo"));
         assert_eq!(owned_command_and_args.args, vec!["hello".to_string()]);
         assert_eq!(
@@ -115,13 +103,16 @@ mod test {
         };
 
         let parser = PipeModeParser::new(&command_line_args);
+        let builder = CommandBuilder::new(&command_line_args);
 
         let segment1 = b"Hello, World!".to_vec();
         let segment2 = b"This is a test.".to_vec();
 
         assert!(parser.parse_segment(segment1).is_none());
 
-        let owned_command_and_args = parser.parse_segment(segment2).unwrap();
+        let owned_command_and_args = builder
+            .build(parser.parse_segment(segment2).unwrap())
+            .unwrap();
         assert_eq!(owned_command_and_args.command_path, PathBuf::from("echo"));
         assert_eq!(owned_command_and_args.args, vec!["hello".to_string()]);
         assert_eq!(
@@ -141,11 +132,14 @@ mod test {
         };
 
         let parser = PipeModeParser::new(&command_line_args);
+        let builder = CommandBuilder::new(&command_line_args);
 
         let segment1 = b"Hello, World!".to_vec();
         let segment2 = b"This is a test.".to_vec();
 
-        let owned_command_and_args1 = parser.parse_segment(segment1).unwrap();
+        let owned_command_and_args1 = builder
+            .build(parser.parse_segment(segment1).unwrap())
+            .unwrap();
         assert_eq!(owned_command_and_args1.command_path, PathBuf::from("echo"));
         assert_eq!(owned_command_and_args1.args, vec!["hello".to_string()]);
         assert_eq!(
@@ -153,7 +147,9 @@ mod test {
             "Hello, World!\n"
         );
 
-        let owned_command_and_args2 = parser.parse_segment(segment2).unwrap();
+        let owned_command_and_args2 = builder
+            .build(parser.parse_segment(segment2).unwrap())
+            .unwrap();
         assert_eq!(owned_command_and_args2.command_path, PathBuf::from("echo"));
         assert_eq!(owned_command_and_args2.args, vec!["hello".to_string()]);
         assert_eq!(

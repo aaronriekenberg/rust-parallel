@@ -7,9 +7,10 @@ use std::{
 
 use crate::{
     command_line_args::{COMMANDS_FROM_ARGS_SEPARATOR, CommandLineArgs},
-    common::OwnedCommandAndArgs,
-    parser::{ShellCommandAndArgs, regex::RegexProcessor},
+    parser::regex::RegexProcessor,
 };
+
+use super::ParsedCommand;
 
 #[derive(Debug)]
 struct ArgumentGroups {
@@ -19,7 +20,6 @@ struct ArgumentGroups {
 
 pub struct CommandLineArgsParser {
     argument_groups: ArgumentGroups,
-    shell_command_and_args: ShellCommandAndArgs,
     regex_processor: Arc<RegexProcessor>,
 }
 
@@ -27,11 +27,8 @@ impl CommandLineArgsParser {
     pub fn new(command_line_args: &CommandLineArgs, regex_processor: &Arc<RegexProcessor>) -> Self {
         let argument_groups = Self::build_argument_groups(command_line_args);
 
-        let shell_command_and_args = ShellCommandAndArgs::new(command_line_args);
-
         Self {
             argument_groups,
-            shell_command_and_args,
             regex_processor: Arc::clone(regex_processor),
         }
     }
@@ -72,7 +69,7 @@ impl CommandLineArgsParser {
         }
     }
 
-    fn parse_argument_group(&self, argument_group: Vec<String>) -> Option<OwnedCommandAndArgs> {
+    fn parse_argument_group(&self, argument_group: Vec<String>) -> Option<ParsedCommand> {
         let first_command_and_args = &self.argument_groups.first_command_and_args;
 
         let cmd_and_args = if !self.regex_processor.regex_mode() {
@@ -91,7 +88,7 @@ impl CommandLineArgsParser {
             }
         };
 
-        super::build_owned_command_and_args(&self.shell_command_and_args, cmd_and_args)
+        Some(ParsedCommand::new(cmd_and_args))
     }
 
     pub fn num_argument_groups(&self) -> usize {
@@ -100,7 +97,7 @@ impl CommandLineArgsParser {
         all_argument_groups.len()
     }
 
-    pub fn parse_next_argument_group(&self) -> Option<OwnedCommandAndArgs> {
+    pub fn parse_next_argument_group(&self) -> Option<ParsedCommand> {
         let mut all_argument_groups = self.argument_groups.all_argument_groups.lock().unwrap();
 
         let argument_group = all_argument_groups.pop_front()?;
@@ -112,19 +109,26 @@ impl CommandLineArgsParser {
 #[cfg(test)]
 mod test {
     use super::*;
+    use crate::common::OwnedCommandAndArgs;
+    use crate::parser::CommandBuilder;
 
     use std::{default::Default, path::PathBuf};
 
-    fn collect_into_vec(parser: CommandLineArgsParser) -> Vec<OwnedCommandAndArgs> {
+    fn collect_into_vec(
+        parser: CommandLineArgsParser,
+        builder: &CommandBuilder,
+    ) -> Vec<OwnedCommandAndArgs> {
         let mut result = vec![];
         let num_groups = parser.num_argument_groups();
 
         for _ in 0..num_groups {
-            let Some(cmd_and_args) = parser.parse_next_argument_group() else {
+            let Some(parsed) = parser.parse_next_argument_group() else {
                 continue;
             };
 
-            result.push(cmd_and_args);
+            if let Some(cmd_and_args) = builder.build(parsed) {
+                result.push(cmd_and_args);
+            }
         }
 
         result
@@ -148,7 +152,8 @@ mod test {
             &RegexProcessor::new(&command_line_args).unwrap(),
         );
 
-        let result = collect_into_vec(parser);
+        let builder = CommandBuilder::new(&command_line_args);
+        let result = collect_into_vec(parser, &builder);
 
         assert_eq!(
             result,
@@ -205,7 +210,8 @@ mod test {
             &RegexProcessor::new(&command_line_args).unwrap(),
         );
 
-        let result = collect_into_vec(parser);
+        let builder = CommandBuilder::new(&command_line_args);
+        let result = collect_into_vec(parser, &builder);
 
         assert_eq!(
             result,
@@ -257,7 +263,8 @@ mod test {
             &RegexProcessor::new(&command_line_args).unwrap(),
         );
 
-        let result = collect_into_vec(parser);
+        let builder = CommandBuilder::new(&command_line_args);
+        let result = collect_into_vec(parser, &builder);
 
         assert_eq!(result, vec![]);
     }
@@ -275,7 +282,8 @@ mod test {
             &RegexProcessor::new(&command_line_args).unwrap(),
         );
 
-        let result = collect_into_vec(parser);
+        let builder = CommandBuilder::new(&command_line_args);
+        let result = collect_into_vec(parser, &builder);
 
         assert_eq!(result, vec![]);
     }
@@ -300,7 +308,8 @@ mod test {
             &RegexProcessor::new(&command_line_args).unwrap(),
         );
 
-        let result = collect_into_vec(parser);
+        let builder = CommandBuilder::new(&command_line_args);
+        let result = collect_into_vec(parser, &builder);
 
         assert_eq!(
             result,
@@ -357,7 +366,8 @@ mod test {
             &RegexProcessor::new(&command_line_args).unwrap(),
         );
 
-        let result = collect_into_vec(parser);
+        let builder = CommandBuilder::new(&command_line_args);
+        let result = collect_into_vec(parser, &builder);
 
         assert_eq!(
             result,
@@ -421,7 +431,8 @@ mod test {
             &RegexProcessor::new(&command_line_args).unwrap(),
         );
 
-        let result = collect_into_vec(parser);
+        let builder = CommandBuilder::new(&command_line_args);
+        let result = collect_into_vec(parser, &builder);
 
         assert_eq!(
             result,
@@ -471,7 +482,8 @@ mod test {
             &RegexProcessor::new(&command_line_args).unwrap(),
         );
 
-        let result = collect_into_vec(parser);
+        let builder = CommandBuilder::new(&command_line_args);
+        let result = collect_into_vec(parser, &builder);
 
         assert_eq!(
             result,
@@ -513,7 +525,8 @@ mod test {
             &RegexProcessor::new(&command_line_args).unwrap(),
         );
 
-        let result = collect_into_vec(parser);
+        let builder = CommandBuilder::new(&command_line_args);
+        let result = collect_into_vec(parser, &builder);
 
         assert_eq!(
             result,
