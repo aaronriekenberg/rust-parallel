@@ -63,7 +63,6 @@ impl PipeModeParser {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::common::OwnedCommandAndArgs;
     use crate::parser::CommandBuilder;
 
     use std::{default::Default, path::PathBuf};
