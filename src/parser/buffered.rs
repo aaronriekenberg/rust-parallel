@@ -2,16 +2,13 @@ use itertools::Itertools;
 
 use std::sync::Arc;
 
-use crate::{
-    command_line_args::CommandLineArgs,
-    common::OwnedCommandAndArgs,
-    parser::{ShellCommandAndArgs, regex::RegexProcessor},
-};
+use crate::{command_line_args::CommandLineArgs, parser::regex::RegexProcessor};
+
+use super::ParsedCommand;
 
 pub struct BufferedInputLineParser {
     no_run_if_empty: bool,
     split_whitespace: bool,
-    shell_command_and_args: ShellCommandAndArgs,
     command_and_initial_arguments: Vec<String>,
     regex_processor: Arc<RegexProcessor>,
 }
@@ -22,18 +19,15 @@ impl BufferedInputLineParser {
 
         let command_and_initial_arguments = command_line_args.command_and_initial_arguments.clone();
 
-        let shell_command_and_args = ShellCommandAndArgs::new(command_line_args);
-
         Self {
             no_run_if_empty: command_line_args.no_run_if_empty,
             split_whitespace,
-            shell_command_and_args,
             command_and_initial_arguments,
             regex_processor: Arc::clone(regex_processor),
         }
     }
 
-    pub fn parse_segment(&self, segment: Vec<u8>) -> Option<OwnedCommandAndArgs> {
+    pub fn parse_segment(&self, segment: Vec<u8>) -> Option<ParsedCommand> {
         if let Ok(input_line) = std::str::from_utf8(&segment) {
             self.parse_line(input_line)
         } else {
@@ -41,7 +35,7 @@ impl BufferedInputLineParser {
         }
     }
 
-    pub fn parse_line(&self, input_line: &str) -> Option<OwnedCommandAndArgs> {
+    pub fn parse_line(&self, input_line: &str) -> Option<ParsedCommand> {
         if self.no_run_if_empty && input_line.trim().is_empty() {
             return None;
         }
@@ -65,15 +59,30 @@ impl BufferedInputLineParser {
             apply_regex_result.arguments
         };
 
-        super::build_owned_command_and_args(&self.shell_command_and_args, cmd_and_args)
+        Some(ParsedCommand::new(cmd_and_args))
     }
 }
 
 #[cfg(test)]
 mod test {
     use super::*;
+    use crate::common::OwnedCommandAndArgs;
+    use crate::parser::CommandBuilder;
 
     use std::{default::Default, path::PathBuf};
+
+    use itertools::Itertools;
+
+    /// Helper to parse and build through the full pipeline.
+    fn parse_and_build(
+        command_line_args: &CommandLineArgs,
+        input_line: &str,
+    ) -> Option<OwnedCommandAndArgs> {
+        let regex_processor = RegexProcessor::new(command_line_args).unwrap();
+        let parser = BufferedInputLineParser::new(command_line_args, &regex_processor);
+        let builder = CommandBuilder::new(command_line_args);
+        parser.parse_line(input_line).and_then(|p| builder.build(p))
+    }
 
     #[test]
     fn test_split_whitespace() {
@@ -84,12 +93,7 @@ mod test {
             ..Default::default()
         };
 
-        let parser = BufferedInputLineParser::new(
-            &command_line_args,
-            &RegexProcessor::new(&command_line_args).unwrap(),
-        );
-
-        let result = parser.parse_line("echo hi there");
+        let result = parse_and_build(&command_line_args, "echo hi there");
 
         assert_eq!(
             result,
@@ -100,7 +104,7 @@ mod test {
             })
         );
 
-        let result = parser.parse_line(" echo  hi    there  ");
+        let result = parse_and_build(&command_line_args, " echo  hi    there  ");
 
         assert_eq!(
             result,
@@ -111,7 +115,7 @@ mod test {
             })
         );
 
-        let result = parser.parse_line(" /bin/echo ");
+        let result = parse_and_build(&command_line_args, " /bin/echo ");
 
         assert_eq!(
             result,
@@ -122,7 +126,7 @@ mod test {
             })
         );
 
-        let result = parser.parse_line("");
+        let result = parse_and_build(&command_line_args, "");
 
         assert_eq!(result, None);
     }
@@ -136,12 +140,7 @@ mod test {
             ..Default::default()
         };
 
-        let parser = BufferedInputLineParser::new(
-            &command_line_args,
-            &RegexProcessor::new(&command_line_args).unwrap(),
-        );
-
-        let result = parser.parse_line("file with spaces");
+        let result = parse_and_build(&command_line_args, "file with spaces");
 
         assert_eq!(
             result,
@@ -167,12 +166,7 @@ mod test {
             ..Default::default()
         };
 
-        let parser = BufferedInputLineParser::new(
-            &command_line_args,
-            &RegexProcessor::new(&command_line_args).unwrap(),
-        );
-
-        let result = parser.parse_line("awesomebashfunction 1 2 3");
+        let result = parse_and_build(&command_line_args, "awesomebashfunction 1 2 3");
 
         assert_eq!(
             result,
@@ -195,12 +189,7 @@ mod test {
             ..Default::default()
         };
 
-        let parser = BufferedInputLineParser::new(
-            &command_line_args,
-            &RegexProcessor::new(&command_line_args).unwrap(),
-        );
-
-        let result = parser.parse_line(" awesomebashfunction 1 2 3 ");
+        let result = parse_and_build(&command_line_args, " awesomebashfunction 1 2 3 ");
 
         assert_eq!(
             result,
@@ -225,16 +214,11 @@ mod test {
             ..Default::default()
         };
 
-        let parser = BufferedInputLineParser::new(
-            &command_line_args,
-            &RegexProcessor::new(&command_line_args).unwrap(),
-        );
-
-        let result = parser.parse_line("");
+        let result = parse_and_build(&command_line_args, "");
 
         assert_eq!(result, None);
 
-        let result = parser.parse_line(" \n\r\t ");
+        let result = parse_and_build(&command_line_args, " \n\r\t ");
 
         assert_eq!(result, None);
     }
@@ -248,12 +232,7 @@ mod test {
             ..Default::default()
         };
 
-        let parser = BufferedInputLineParser::new(
-            &command_line_args,
-            &RegexProcessor::new(&command_line_args).unwrap(),
-        );
-
-        let result = parser.parse_line("stuff");
+        let result = parse_and_build(&command_line_args, "stuff");
 
         assert_eq!(
             result,
@@ -264,7 +243,7 @@ mod test {
             })
         );
 
-        let result = parser.parse_line(" stuff things ");
+        let result = parse_and_build(&command_line_args, " stuff things ");
 
         assert_eq!(
             result,
@@ -290,12 +269,7 @@ mod test {
             ..Default::default()
         };
 
-        let parser = BufferedInputLineParser::new(
-            &command_line_args,
-            &RegexProcessor::new(&command_line_args).unwrap(),
-        );
-
-        let result = parser.parse_line("foo,bar");
+        let result = parse_and_build(&command_line_args, "foo,bar");
 
         assert_eq!(
             result,
@@ -321,12 +295,7 @@ mod test {
             ..Default::default()
         };
 
-        let parser = BufferedInputLineParser::new(
-            &command_line_args,
-            &RegexProcessor::new(&command_line_args).unwrap(),
-        );
-
-        let result = parser.parse_line("foo,bar");
+        let result = parse_and_build(&command_line_args, "foo,bar");
 
         assert_eq!(
             result,

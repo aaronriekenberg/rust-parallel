@@ -6,42 +6,74 @@ mod regex;
 use std::sync::{Arc, OnceLock};
 
 use crate::{
-    command_line_args::CommandLineArgs, common::OwnedCommandAndArgs, parser::pipe::PipeModeParser,
+    command_line_args::CommandLineArgs,
+    common::{OwnedCommandAndArgs, StdinData},
+    parser::pipe::PipeModeParser,
 };
 
 use self::{
     buffered::BufferedInputLineParser, command_line::CommandLineArgsParser, regex::RegexProcessor,
 };
 
-struct ShellCommandAndArgs(Option<Vec<String>>);
+/// Intermediate result from parsing, before shell wrapping is applied.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ParsedCommand {
+    pub command_and_args: Vec<String>,
+    pub stdin: Option<String>,
+}
 
-impl ShellCommandAndArgs {
-    fn new(command_line_args: &CommandLineArgs) -> Self {
-        Self(if command_line_args.shell {
+impl ParsedCommand {
+    pub fn new(command_and_args: Vec<String>) -> Self {
+        Self {
+            command_and_args,
+            stdin: None,
+        }
+    }
+
+    pub fn with_stdin(mut self, stdin: String) -> Self {
+        self.stdin = Some(stdin);
+        self
+    }
+}
+
+/// Applies shell wrapping (if configured) and converts to OwnedCommandAndArgs.
+pub struct CommandBuilder {
+    shell_command_and_args: Option<Vec<String>>,
+}
+
+impl CommandBuilder {
+    pub fn new(command_line_args: &CommandLineArgs) -> Self {
+        let shell_command_and_args = if command_line_args.shell {
             Some(vec![
                 command_line_args.shell_path.clone(),
                 command_line_args.shell_argument.clone(),
             ])
         } else {
             None
-        })
-    }
-}
-
-fn build_owned_command_and_args(
-    shell_command_and_args: &ShellCommandAndArgs,
-    command_and_args: Vec<String>,
-) -> Option<OwnedCommandAndArgs> {
-    match &shell_command_and_args.0 {
-        None => OwnedCommandAndArgs::try_from(command_and_args).ok(),
-        Some(shell_command_and_args) => {
-            let mut result = Vec::with_capacity(shell_command_and_args.len() + 1);
-
-            result.extend(shell_command_and_args.iter().cloned());
-            result.push(command_and_args.join(" "));
-
-            OwnedCommandAndArgs::try_from(result).ok()
+        };
+        Self {
+            shell_command_and_args,
         }
+    }
+
+    pub fn build(&self, parsed: ParsedCommand) -> Option<OwnedCommandAndArgs> {
+        let command_and_args = match &self.shell_command_and_args {
+            None => parsed.command_and_args,
+            Some(shell_prefix) => {
+                let mut result = Vec::with_capacity(shell_prefix.len() + 1);
+                result.extend(shell_prefix.iter().cloned());
+                result.push(parsed.command_and_args.join(" "));
+                result
+            }
+        };
+
+        let mut owned = OwnedCommandAndArgs::try_from(command_and_args).ok()?;
+
+        if let Some(stdin) = parsed.stdin {
+            owned = owned.with_stdin(StdinData(Some(Arc::new(stdin))));
+        }
+
+        Some(owned)
     }
 }
 
