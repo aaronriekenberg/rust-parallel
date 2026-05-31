@@ -16,7 +16,7 @@ use self::{
 };
 
 /// Intermediate result from parsing, before shell wrapping is applied.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct ParsedCommand {
     pub command_and_args: Vec<String>,
     pub stdin: Option<String>,
