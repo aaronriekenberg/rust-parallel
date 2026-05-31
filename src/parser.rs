@@ -16,21 +16,21 @@ use self::{
 };
 
 /// Intermediate result from parsing, before shell wrapping is applied.
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug)]
 pub struct ParsedCommand {
-    pub command_and_args: Vec<String>,
-    pub stdin: Option<String>,
+    command_and_args: Vec<String>,
+    stdin: Option<String>,
 }
 
 impl ParsedCommand {
-    pub fn new(command_and_args: Vec<String>) -> Self {
+    fn new(command_and_args: Vec<String>) -> Self {
         Self {
             command_and_args,
             stdin: None,
         }
     }
 
-    pub fn with_stdin(mut self, stdin: String) -> Self {
+    fn with_stdin(mut self, stdin: String) -> Self {
         self.stdin = Some(stdin);
         self
     }
