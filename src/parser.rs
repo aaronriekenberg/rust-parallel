@@ -59,9 +59,9 @@ impl CommandBuilder {
     pub fn build(&self, parsed: ParsedCommand) -> Option<OwnedCommandAndArgs> {
         let command_and_args = match &self.shell_command_and_args {
             None => parsed.command_and_args,
-            Some(shell_prefix) => {
-                let mut result = Vec::with_capacity(shell_prefix.len() + 1);
-                result.extend(shell_prefix.iter().cloned());
+            Some(shell_command_and_args) => {
+                let mut result = Vec::with_capacity(shell_command_and_args.len() + 1);
+                result.extend(shell_command_and_args.iter().cloned());
                 result.push(parsed.command_and_args.join(" "));
                 result
             }
