@@ -225,7 +225,7 @@ mod test {
 
         let regex_processor = RegexProcessor::new(&command_line_args).unwrap();
 
-        assert_eq!(regex_processor.regex_mode(), false);
+        assert!(!regex_processor.regex_mode());
 
         let arguments = vec!["{0}".to_string()];
         assert_eq!(
@@ -243,7 +243,7 @@ mod test {
 
         let regex_processor = RegexProcessor::new(&command_line_args).unwrap();
 
-        assert_eq!(regex_processor.regex_mode(), true);
+        assert!(regex_processor.regex_mode());
 
         let arguments = vec!["{1} {2}".to_string()];
         assert_eq!(
@@ -264,7 +264,7 @@ mod test {
 
         let regex_processor = RegexProcessor::new(&command_line_args).unwrap();
 
-        assert_eq!(regex_processor.regex_mode(), true);
+        assert!(regex_processor.regex_mode());
 
         let arguments = vec!["{arg1} {arg2}".to_string()];
         assert_eq!(
@@ -285,7 +285,7 @@ mod test {
 
         let regex_processor = RegexProcessor::new(&command_line_args).unwrap();
 
-        assert_eq!(regex_processor.regex_mode(), true);
+        assert!(regex_processor.regex_mode());
 
         let arguments =
             vec![r#"{"id": 123, "$zero": "{0}", "one": "{1}", "two": "{2}"}"#.to_string()];
@@ -310,7 +310,7 @@ mod test {
 
         let regex_processor = RegexProcessor::new(&command_line_args).unwrap();
 
-        assert_eq!(regex_processor.regex_mode(), true);
+        assert!(regex_processor.regex_mode());
 
         let arguments =
             vec![r#"{"id": 123, "$zero": "{}", "one": "{1}", "two": "{2}"}"#.to_string()];
@@ -335,7 +335,7 @@ mod test {
 
         let regex_processor = RegexProcessor::new(&command_line_args).unwrap();
 
-        assert_eq!(regex_processor.regex_mode(), true);
+        assert!(regex_processor.regex_mode());
 
         let arguments =
             vec![r#"{"id": 123, "$zero": "{0}", "one": "{arg1}", "two": "{arg2}"}"#.to_string()];
@@ -360,7 +360,7 @@ mod test {
 
         let regex_processor = RegexProcessor::new(&command_line_args).unwrap();
 
-        assert_eq!(regex_processor.regex_mode(), true);
+        assert!(regex_processor.regex_mode());
 
         let arguments =
             vec![r#"{"id": 123, "$zero": "{}", "one": "{arg1}", "two": "{arg2}"}"#.to_string()];
@@ -385,7 +385,7 @@ mod test {
 
         let regex_processor = RegexProcessor::new(&command_line_args).unwrap();
 
-        assert_eq!(regex_processor.regex_mode(), true);
+        assert!(regex_processor.regex_mode());
 
         let arguments = vec![r#"{arg2}${FOO}{arg1}$BAR${BAR}{arg2}"#.to_string()];
         assert_eq!(
@@ -406,7 +406,7 @@ mod test {
 
         let regex_processor = RegexProcessor::new(&command_line_args).unwrap();
 
-        assert_eq!(regex_processor.regex_mode(), true);
+        assert!(regex_processor.regex_mode());
 
         let arguments = vec!["{arg2},{arg1}".to_string()];
         assert_eq!(

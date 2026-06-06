@@ -69,10 +69,10 @@ mod test {
         };
 
         let result = choose_progress_style(&command_line_args);
-        assert_eq!(result.is_err(), false);
+        assert!(result.is_ok());
         let result = result.unwrap();
         assert_eq!(result._style_name, LIGHT_BG_PROGRESS_STYLE);
-        assert_eq!(result.enable_steady_tick, true);
+        assert!(result.enable_steady_tick);
     }
 
     #[test]
@@ -83,10 +83,10 @@ mod test {
         };
 
         let result = choose_progress_style(&command_line_args);
-        assert_eq!(result.is_err(), false);
+        assert!(result.is_ok());
         let result = result.unwrap();
         assert_eq!(result._style_name, LIGHT_BG_PROGRESS_STYLE);
-        assert_eq!(result.enable_steady_tick, true);
+        assert!(result.enable_steady_tick);
     }
 
     #[test]
@@ -97,10 +97,10 @@ mod test {
         };
 
         let result = choose_progress_style(&command_line_args);
-        assert_eq!(result.is_err(), false);
+        assert!(result.is_ok());
         let result = result.unwrap();
         assert_eq!(result._style_name, LIGHT_BG_PROGRESS_STYLE);
-        assert_eq!(result.enable_steady_tick, true);
+        assert!(result.enable_steady_tick);
     }
 
     #[test]
@@ -111,10 +111,10 @@ mod test {
         };
 
         let result = choose_progress_style(&command_line_args);
-        assert_eq!(result.is_err(), false);
+        assert!(result.is_ok());
         let result = result.unwrap();
         assert_eq!(result._style_name, DARK_BG_PROGRESS_STYLE);
-        assert_eq!(result.enable_steady_tick, true);
+        assert!(result.enable_steady_tick);
     }
 
     #[test]
@@ -125,10 +125,10 @@ mod test {
         };
 
         let result = choose_progress_style(&command_line_args);
-        assert_eq!(result.is_err(), false);
+        assert!(result.is_ok());
         let result = result.unwrap();
         assert_eq!(result._style_name, SIMPLE_PROGRESS_STYLE);
-        assert_eq!(result.enable_steady_tick, false);
+        assert!(!result.enable_steady_tick);
     }
 
     #[test]
@@ -139,6 +139,6 @@ mod test {
         };
 
         let result = choose_progress_style(&command_line_args);
-        assert_eq!(result.is_err(), true);
+        assert!(result.is_err());
     }
 }
