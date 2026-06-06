@@ -33,3 +33,6 @@ predicates = "3"
 
 [lints.rust]
 unsafe_code = "forbid"
+
+[profile.release]
+lto = true
