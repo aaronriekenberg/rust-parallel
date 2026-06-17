@@ -18,7 +18,7 @@ anyhow = "1"
 bytesize = "2"
 clap = { version = "4", features = ["derive"] }
 indicatif = "0.18"
-itertools = "0.14"
+itertools = "0.15"
 num_cpus = "1"
 regex = "1"
 thiserror = "2"
