@@ -23,7 +23,7 @@ Similar interface to [GNU Parallel](https://www.gnu.org/software/parallel/parall
 * Automatic parallelism to all cpus, or [configure manually](https://github.com/aaronriekenberg/rust-parallel/wiki/Manual#parallelism)
 * Transform inputs with [variables](https://github.com/aaronriekenberg/rust-parallel/wiki/Manual#automatic-variables) or [regular expressions](https://github.com/aaronriekenberg/rust-parallel/wiki/Manual#regular-expression)
 * Prevent [output interleaving](https://github.com/aaronriekenberg/rust-parallel/wiki/Output-Interleaving) and maintain input order with `-k`/`--keep-order`
-* Shell mode to run [bash functions](https://github.com/aaronriekenberg/rust-parallel/wiki/Manual#bash-function) and [commands](https://github.com/aaronriekenberg/rust-parallel/wiki/Manual#shell-commands)
+* Shell mode to run [bash functions](https://github.com/aaronriekenberg/rust-parallel/wiki/Manual#bash-function) and [commands](https://github.com/aaronriekenberg/rust-parallel/wiki/Manual#shell-commands), configurable (shell quoting)[https://github.com/aaronriekenberg/rust-parallel/wiki/Manual#shell-quote]
 * [TUI progress bar](https://github.com/aaronriekenberg/rust-parallel/wiki/Manual#progress-bar) using [indicatif](https://github.com/console-rs/indicatif)
 * [Path cache](https://github.com/aaronriekenberg/rust-parallel/wiki/Manual#path-cache)
 * [Command timeouts](https://github.com/aaronriekenberg/rust-parallel/wiki/Manual#timeout)
@@ -75,6 +75,7 @@ The same `cargo install rust-parallel` command will also update to the latest ve
 * [itertools](https://docs.rs/itertools/latest/itertools/) using [`multi_cartesian_product`](https://docs.rs/itertools/latest/itertools/trait.Itertools.html#method.multi_cartesian_product) to process `:::` command line inputs.
 * [indicatif](https://github.com/console-rs/indicatif) optional TUI progress bar.
 * [regex](https://github.com/rust-lang/regex) optional regular expression capture groups processing for `-r`/`--regex` option.
+* [rust-shlex](https://github.com/comex/rust-shlex) Using [`shlex::try_join`](https://docs.rs/shlex/latest/shlex/fn.try_join.html) for `--shell-quote` mode.
 * [tokio](https://tokio.rs/) asynchronous runtime for rust.  From tokio this app uses:
   * `async` / `await` functions (aka coroutines)
   * Singleton `CommandLineArgs` instance using [`tokio::sync::OnceCell`](https://docs.rs/tokio/latest/tokio/sync/struct.OnceCell.html).
