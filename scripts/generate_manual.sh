@@ -29,12 +29,12 @@ echo '
    1. [Numbered Capture Groups](#numbered-capture-groups)
    1. [Capture Group Special Characters](#capture-group-special-characters)
 1. [Shell Commands](#shell-commands)
-1. [Shell Quote](#shell-quote)
 1. [Bash Function](#bash-function)
    1. [Function Setup](#function-setup)
    1. [Demo of command line arguments](#demo-of-command-line-arguments)
    1. [Demo of function and command line arguments from stdin](#demo-of-function-and-command-line-arguments-from-stdin)
    1. [Demo of function and initial arguments on command line, additional arguments from stdin](#demo-of-function-and-initial-arguments-on-command-line-additional-arguments-from-stdin)
+1. [Shell Quote](#shell-quote)
 '
 
 echo '## Command line options'
@@ -426,24 +426,17 @@ echo -e '$ rust-parallel -s -r \x27(?P<arg1>.*) (?P<arg2>.*)\x27 \x27FOO={arg1};
 $RUST_PARALLEL -s -r '(?P<arg1>.*) (?P<arg2>.*)' 'FOO={arg1}; BAR={arg2}; echo "FOO = ${FOO}, BAR = ${BAR}, shell pid = $$, date = $(date)"' ::: A B ::: CAT DOG
 echo '```'
 
-echo '## Shell Quote
+echo '## Shell Commands
 
-When using shell mode (`-s`), the `--shell-quote` option applies shell escaping to each argument before passing it to the shell.
+Shell commands can be written using `-s` shell mode.
 
-This is useful when arguments contain special shell characters like `$`, backticks, single quotes, or double quotes that should be treated as literal strings and not interpreted by the shell.
+Multiline commands can be written using `;`.
 
-Without `--shell-quote`, special characters can cause command injection or unexpected shell behavior. With `--shell-quote` enabled, arguments are properly escaped.
-'
+Environment variables, `$` characters, nested commands and much more are possible:'
 
 echo '```'
-echo "$ echo -e \"hello\$world\nfoo\`cmd\`\" | rust-parallel -s -0 --shell-quote echo"
-echo -e "hello\$world\nfoo\`cmd\`" | $RUST_PARALLEL -s -0 --shell-quote echo
-echo '```'
-
-echo 'Without `--shell-quote`, the special characters would be interpreted by the shell:'
-echo '```'
-echo "$ echo -e \"hello\$world\nfoo\`cmd\`\" | rust-parallel -s -0 echo"
-echo -e "hello\$world\nfoo\`cmd\`" | $RUST_PARALLEL -s -0 echo
+echo -e '$ rust-parallel -s -r \x27(?P<arg1>.*) (?P<arg2>.*)\x27 \x27FOO={arg1}; BAR={arg2}; echo "FOO = ${FOO}, BAR = ${BAR}, shell pid = $$, date = $(date)"\x27 ::: A B ::: CAT DOG'
+$RUST_PARALLEL -s -r '(?P<arg1>.*) (?P<arg2>.*)' 'FOO={arg1}; BAR={arg2}; echo "FOO = ${FOO}, BAR = ${BAR}, shell pid = $$, date = $(date)"' ::: A B ::: CAT DOG
 echo '```'
 
 echo '## Bash Function
@@ -522,6 +515,69 @@ echo '
 $ cat test | rust-parallel -s logargs hello'
 
 cat test | $RUST_PARALLEL -s logargs hello
+rm -f test
+
+echo '```'
+
+echo '## Shell Quote
+
+When using shell mode (`-s`), the `--shell-quote` option applies shell escaping to each argument before passing it to the shell.
+
+This is useful when arguments contain special shell characters like `$`, backticks, single quotes, or double quotes that should be treated as literal strings and not interpreted by the shell.
+
+Without `--shell-quote`, special characters can cause command injection or unexpected shell behavior. With `--shell-quote` enabled, arguments are properly escaped.
+
+Consider a bash function that uses special characters:
+'
+
+echo '```'
+
+echo '$ demonstrate_shell_quote() {
+  for arg in "$@"; do
+    echo "arg: $arg"
+  done
+}'
+
+demonstrate_shell_quote() {
+  for arg in "$@"; do
+    echo "arg: $arg"
+  done
+}
+
+echo '
+$ export -f demonstrate_shell_quote'
+export -f demonstrate_shell_quote
+
+echo '```
+
+With `--shell-quote`, special characters in arguments are properly escaped:
+'
+
+echo '```'
+echo '$ cat >./test <<'"'"'EOL'"'"'
+hello$world
+foo`cmd`
+bar'"'"'baz'"'"'
+EOL'
+cat >./test <<'EOL'
+hello$world
+foo`cmd`
+bar'baz'
+EOL
+
+echo '
+$ cat test | rust-parallel -s --shell-quote demonstrate_shell_quote'
+cat test | $RUST_PARALLEL -s --shell-quote demonstrate_shell_quote
+echo '```'
+
+echo 'Without `--shell-quote`, special characters are interpreted by the shell, causing errors:
+'
+echo '```'
+echo '$ cat test | rust-parallel -s demonstrate_shell_quote'
+set +e
+cat test | $RUST_PARALLEL -s demonstrate_shell_quote 2>&1 | head -20
+set -e
+
 rm -f test
 
 echo '```'
