@@ -287,6 +287,28 @@ fn runs_shell_function_from_stdin_j1() {
 }
 
 #[test]
+fn runs_shell_function_from_stdin_with_shell_quote_j1() {
+    // Test with null-separated stdin containing special characters: ' " and backticks
+    // When shell_quote is enabled, these special characters should be properly quoted
+    let stdin = "hello'world\0foo\"bar\0baz`cmd`";
+
+    rust_parallel()
+        .write_stdin(stdin)
+        .arg("-0")
+        .arg("-j1")
+        .arg("-s")
+        .arg("--shell-quote")
+        .arg("--shell-path=./dummy_shell.sh")
+        .arg("shell_function")
+        .assert()
+        .success()
+        .stdout(predicate::eq(
+            "dummy_shell arg1=-c arg2=shell_function \"hello'world\"\ndummy_shell arg1=-c arg2=shell_function 'foo\"bar'\ndummy_shell arg1=-c arg2=shell_function 'baz`cmd`'\n",
+        ))
+        .stderr(predicate::str::is_empty());
+}
+
+#[test]
 fn runs_shell_function_from_file_j1() {
     rust_parallel()
         .arg("-j1")
