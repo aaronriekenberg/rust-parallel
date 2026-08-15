@@ -733,3 +733,106 @@ E"#;
         .stdout(predicate::str::contains("1\n").count(5))
         .stderr(predicate::str::is_empty());
 }
+
+#[test]
+fn test_shell_quote_with_spaces() {
+    // Test shell_quote with arguments containing spaces
+    rust_parallel()
+        .arg("-j1")
+        .arg("-s")
+        .arg("--shell-quote")
+        .arg("echo")
+        .arg(":::")
+        .arg("hello world")
+        .arg("foo bar")
+        .assert()
+        .success()
+        .stdout(
+            (predicate::str::contains("hello world\n").count(1))
+                .and(predicate::str::contains("foo bar\n").count(1)),
+        )
+        .stderr(predicate::str::is_empty());
+}
+
+#[test]
+fn test_shell_quote_with_special_characters() {
+    // Test shell_quote with special shell characters like $, ", ', etc.
+    rust_parallel()
+        .arg("-j1")
+        .arg("-s")
+        .arg("--shell-quote")
+        .arg("echo")
+        .arg(":::")
+        .arg("$VAR")
+        .arg("'single quotes'")
+        .arg(" 'single quote and spaces' ")
+        .arg(r#" "double quote and spaces" "#)
+        .assert()
+        .success()
+        .stdout(
+            (predicate::str::contains("$VAR\n").count(1))
+                .and(predicate::str::contains("'single quotes'\n").count(1))
+                .and(predicate::str::contains(" 'single quote and spaces' \n").count(1))
+                .and(
+                    predicate::str::contains(r#" "double quote and spaces" "#.to_owned() + "\n")
+                        .count(1),
+                ),
+        )
+        .stderr(predicate::str::is_empty());
+}
+
+#[test]
+fn test_shell_quote_with_placeholders() {
+    // Test shell_quote combined with placeholder substitution
+    rust_parallel()
+        .arg("-j1")
+        .arg("-s")
+        .arg("--shell-quote")
+        .arg("echo")
+        .arg("arg={}")
+        .arg(":::")
+        .arg("hello world")
+        .arg("foo bar")
+        .assert()
+        .success()
+        .stdout(
+            (predicate::str::contains("arg=hello world\n").count(1))
+                .and(predicate::str::contains("arg=foo bar\n").count(1)),
+        )
+        .stderr(predicate::str::is_empty());
+}
+
+#[test]
+fn test_shell_quote_with_regex() {
+    // Test shell_quote combined with regex capture groups
+    rust_parallel()
+        .arg("-j1")
+        .arg("-s")
+        .arg("--shell-quote")
+        .arg("-r")
+        .arg("(.*):(.*)")
+        .arg("echo")
+        .arg("key={1}")
+        .arg("val={2}")
+        .arg(":::")
+        .arg("my key:my value")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("key=my key val=my value\n"))
+        .stderr(predicate::str::is_empty());
+}
+
+#[test]
+fn test_shell_quote_without_shell_option() {
+    // shell_quote should have no effect when shell is not enabled
+    rust_parallel()
+        .arg("-j1")
+        .arg("--shell-quote")
+        .arg("echo")
+        .arg(":::")
+        .arg("hello world")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("hello world\n"))
+        .stderr(predicate::str::is_empty());
+}
