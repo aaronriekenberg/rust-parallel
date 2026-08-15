@@ -52,6 +52,12 @@ pub struct CommandLineArgs {
     #[arg(short, long)]
     pub shell: bool,
 
+    /// Use shell quoting for command arguments.
+    ///
+    /// Each command line is passed to "<shell-path> <shell-argument>" as a single argument with shell quoting applied to each argument.
+    #[arg(long)]
+    pub shell_quote: bool,
+
     /// Timeout seconds for running commands.  Defaults to infinite timeout if not specified.
     #[arg(short, long, value_parser = Self::parse_timeout_seconds)]
     pub timeout_seconds: Option<f64>,

@@ -21,6 +21,7 @@ indicatif = "0.18"
 itertools = "0.15"
 num_cpus = "1"
 regex = "1"
+shlex = "2"
 thiserror = "2"
 tokio = { version = "1", features = ["full"] }
 tracing = "0.1"

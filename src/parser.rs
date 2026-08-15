@@ -39,6 +39,7 @@ impl ParsedCommand {
 /// Applies shell wrapping (if configured) and converts to OwnedCommandAndArgs.
 pub struct CommandBuilder {
     shell_command_and_args: Option<Vec<String>>,
+    shell_quote: bool,
 }
 
 impl CommandBuilder {
@@ -53,6 +54,7 @@ impl CommandBuilder {
         };
         Self {
             shell_command_and_args,
+            shell_quote: command_line_args.shell_quote,
         }
     }
 
@@ -62,7 +64,14 @@ impl CommandBuilder {
             Some(shell_command_and_args) => {
                 let mut result = Vec::with_capacity(shell_command_and_args.len() + 1);
                 result.extend(shell_command_and_args.iter().cloned());
-                result.push(parsed.command_and_args.join(" "));
+
+                if self.shell_quote {
+                    result.push(
+                        shlex::try_join(parsed.command_and_args.iter().map(|s| s.as_str())).ok()?,
+                    );
+                } else {
+                    result.push(parsed.command_and_args.join(" "));
+                }
                 result
             }
         };
